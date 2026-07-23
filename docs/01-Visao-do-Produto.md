@@ -4,7 +4,7 @@
 
 **Versão:** 0.1
 
-**Status:** Em elaboração
+**Status:** Oficial
 
 **Última atualização:** Julho/2026
 

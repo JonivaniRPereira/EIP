@@ -178,7 +178,7 @@ AI --> User
 
 A plataforma utiliza uma arquitetura baseada em conectores.
 
-Cada sistema externo possui apenas a responsabilidade de transformar seus dados para um Modelo Canônico interno.
+Cada sistema externo é integrado por um conector responsável por extrair os dados e preservar sua linhagem no Data Lake. O Pipeline Canônico realiza a validação e a transformação para o Modelo Canônico interno.
 
 Conectores previstos:
 
@@ -333,11 +333,11 @@ Ela foi projetada para tornar-se a camada central de Inteligência Corporativa d
 
 # Status do Projeto
 
-**Fase Atual:** Arquitetura e Planejamento
+**Fase Atual:** Fundação de Engenharia (Fase 0)
 
-**Versão da Documentação:** 0.1
+**Versão da Documentação:** 1.0
 
-**Status:** Em desenvolvimento
+**Status:** Documentação arquitetural consolidada; implementação ainda não iniciada
 
 ---
 

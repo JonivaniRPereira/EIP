@@ -2,7 +2,7 @@
 
 **Projeto:** Enterprise Intelligence Platform (EIP)  
 **Versão:** 0.1  
-**Status:** Em elaboração  
+**Status:** Oficial  
 
 ---
 
@@ -65,7 +65,7 @@ Permite a evolução da plataforma sem reescrever ou impactar componentes estáv
 * **Exemplo:** Atualizar um modelo de LLM na IA não exige alteração nos Dashboards.
 
 ### 2.5 Cloud Native
-Toda a infraestrutura é projetada especificamente para ambientes de nuvem modernos, baseando-se em containers, orquestradores (Kubernetes), auto-scaling distribuído e observabilidade nativa.
+Toda a infraestrutura é preparada para ambientes de nuvem modernos, baseando-se em containers, observabilidade nativa e evolução progressiva para orquestração e auto-scaling quando a operação exigir.
 
 ---
 
@@ -258,7 +258,7 @@ A plataforma separa rigidamente o ecossistema de ingestão de dados brutos (*Dat
 
 * **Data Lake Corporativo:** Camada central imutável. Armazena os dados extraídos das origens em seu formato bruto (JSON, CSV, tabelas de ERP, XMLs, arquivos de texto). Funciona como a **Fonte Única da Verdade**. Não é exposto para consultas diretas dos usuários devido ao alto custo computacional e falta de tratamento de regras de negócio.
 * **Modelo Canônico:** Abstração crítica que padroniza os dados brutos de fontes distintas para um dicionário de dados universal. Por exemplo, registros como `SA1010` (Protheus), `KNA1` (SAP) ou `CLIENTS` (Oracle CRM) são processados e unificados sob a entidade padrão única `Customer`.
-* **Data Warehouse por Workspace:** Bancos otimizados para leitura (colunares/analíticos) que ingerem os dados padronizados do Modelo Canônico, aplicando as agregações e métricas específicas demandadas por aquele setor (ex: DRE no Financeiro, OEE na Indústria).
+* **Data Warehouse por Tenant:** Camada analítica otimizada para leitura que ingere dados padronizados do Modelo Canônico. Workspaces definem o consumo, as permissões, data marts e camadas semânticas por área (ex.: DRE no Financeiro, OEE na Indústria), sem exigir cópia física integral dos dados por workspace.
 
 ## 8.3 Fluxo de Dados Ponta a Ponta
 
@@ -292,7 +292,7 @@ Platform Core          Data Platform          Intelligence Platform      Platfor
 ## 9.2 Regras de Isolamento e Comunicação
 * **Isolamento de Persistência:** Um domínio jamais realiza queries diretas nas tabelas ou bancos pertencentes a outro domínio.
 * **Comunicação Segura:** Sempre que dados de outro contexto forem necessários, a transação deve ser operada invocando APIs REST/gRPC ou consumindo eventos de negócio postados em tópicos no Message Broker (`Event Driven`).
-* **Estrutura de Código Unificada:** Todos os microsserviços gerados utilizam o padrão de diretórios baseado na **Clean Architecture**, dividindo o código estritamente em: `API`, `Application`, `Domain` e `Infrastructure`.
+* **Estrutura de Código Unificada:** O MVP é entregue como um monólito modular organizado por domínios, seguindo **Clean Architecture** em `API`, `Application`, `Domain` e `Infrastructure`. Um módulo só é separado em microsserviço quando houver necessidade comprovada de escala, isolamento operacional ou ciclo de implantação independente.
 
 ---
 
