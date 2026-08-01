@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <!-- Pin transitivo: Microsoft.OpenApi 2.0.0 (trazido pelo pacote acima) tem vulnerabilidade conhecida (GHSA-v5pm-xwqc-g5wc); corrigida a partir de 2.7.5. -->
     <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />

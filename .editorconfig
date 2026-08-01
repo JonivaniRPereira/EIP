@@ -39,7 +39,7 @@ csharp_prefer_braces = true:warning
 dotnet_style_qualification_for_field = false:warning
 dotnet_style_qualification_for_property = false:warning
 dotnet_style_qualification_for_method = false:warning
-dotnet_style_require_accessibility_modifiers = always:warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
 
 # Nulidade / higiene de código
 dotnet_diagnostic.CS8600.severity = error

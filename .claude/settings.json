@@ -6,7 +6,8 @@
       "Bash(curl -s \"https://api.nuget.org/v3-flatcontainer/microsoft.openapi/index.json\")",
       "Bash(dotnet restore *)",
       "Bash(dotnet list *)",
-      "Bash(curl -s \"https://api.github.com/advisories/GHSA-v5pm-xwqc-g5wc\")"
+      "Bash(curl -s \"https://api.github.com/advisories/GHSA-v5pm-xwqc-g5wc\")",
+      "Bash(docker manifest *)"
     ]
   }
 }

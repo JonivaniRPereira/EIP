@@ -1,0 +1,3 @@
+[*.cs]
+# Nomes de teste com underscore (Metodo_Cenario_Resultado) são a convenção padrão do projeto.
+dotnet_diagnostic.CA1707.severity = none

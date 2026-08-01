@@ -35,6 +35,8 @@ Este documento **não substitui** nenhuma regra definida em `docs/00` a `docs/15
 | Frontend | Angular via `npx @angular/cli` (Node 24 / npm 11 instalados; sem CLI global) | `docs/03-Stack-Tecnologica.md §4` |
 | Estrutura de código | Monólito modular, Clean Architecture (`Api/Application/Domain/Infrastructure`) por domínio | `docs/00`, `docs/02 §9.2` |
 | Mecanismo de RLS | SQL Server `SECURITY POLICY` + função de filtro por `TenantId`, alimentada por `SESSION_CONTEXT('TenantId')`; um `DbCommandInterceptor`/`SaveChangesInterceptor` do EF Core define o `SESSION_CONTEXT` no início de cada unidade de trabalho, a partir do contexto de tenant autenticado (nunca de input do cliente) | `docs/adr/ADR-007`, `docs/08-Multi-Tenant.md §5-6` |
+| Bypass controlado de RLS | Sentinela reservada `TenantContext.System` (`00000000-0000-0000-0000-000000000001`) tratada pela função de predicado como "acesso de sistema"; só atribuível por código interno de confiança (ex. `MembershipDirectory` no login), nunca a partir de input de cliente. Usada quando uma operação é legitimamente cross-tenant (`docs/07-Seguranca.md §6.1`) | Migration `AllowSystemTenantBypass`, E2.3/E2.4 |
+| CQRS / Mediator | **Sem MediatR** — services de aplicação simples (`IAuthService`, etc.), sem dependência externa. Decisão do usuário: MediatR v13+ exige aceite de licença comercial paga acima de certo faturamento (mesmo modelo do AutoMapper, do mesmo autor), risco legal/financeiro real para SaaS comercial. Revisitar como ADR se um dia fizer sentido pagar pela licença ou adotar alternativa OSS (ex. pacote "Mediator", MIT) | Decisão do usuário em 2026-08, E2.4 |
 | Autenticação | ASP.NET Core Identity + emissão própria de JWT (federação OIDC/SAML fica para fase posterior) | `docs/07-Seguranca.md §5.1`, `docs/03 §9.1` |
 | Object Storage local | MinIO (S3-compatible) | `docs/03-Stack-Tecnologica.md §6.2` |
 | Ambiente local | Docker Compose (confirmado: Docker 29.6.1 / Compose v5.2.0 instalados) | `docs/14-DevOps.md §4` |
@@ -77,27 +79,35 @@ Objetivo: solução .NET compilável, vazia, com a estrutura de pastas/projetos 
 
 Objetivo: dependências locais sobem com um único comando, com healthchecks (`docs/14-DevOps.md §4`).
 
-- [ ] **E1.1** `docker/` com `docker-compose.yml` (ou pasta `deploy/docker-compose/`) subindo SQL Server, Redis, RabbitMQ e MinIO, cada um com healthcheck.
-  - *Aceite:* `docker compose up -d` sobe os 4 serviços e todos reportam `healthy`.
-- [ ] **E1.2** `.env.example` com todas as variáveis necessárias, sem nenhum segredo real (`docs/07-Seguranca.md §8`).
-- [ ] **E1.3** Script/documentação única de start (`scripts/dev-up.*` ou README dedicado) validando que as dependências estão prontas antes de a API subir.
+- [x] **E1.1** `deploy/docker-compose/docker-compose.yml` (local definido pela estrutura oficial de `docs/00`) subindo SQL Server (`2022-CU14-ubuntu-22.04`), Redis (`7.4-alpine`), RabbitMQ (`3.13-management-alpine`) e MinIO (`RELEASE.2025-04-08T15-41-24Z`), todas as imagens com tag pinada (não `latest`) e healthcheck próprio.
+  - *Aceite:* `docker compose up -d` sobe os 4 serviços e todos reportam `healthy`. ✅ Validado em 2026-08: `eip-sqlserver`, `eip-redis`, `eip-rabbitmq`, `eip-minio` todos `Up (healthy)`.
+- [x] **E1.2** `deploy/docker-compose/.env.example` com todas as variáveis necessárias, valores claramente marcados como "dev only", sem nenhum segredo real (`docs/07-Seguranca.md §8`).
+- [x] **E1.3** `scripts/dev-up.sh`: copia `.env.example` → `.env` se faltar, sobe o Compose e faz polling de `docker inspect --format='{{.State.Health.Status}}'` até todos os serviços ficarem `healthy` (com timeout), antes de considerar o ambiente pronto para a API subir.
   - *Aceite:* segue exatamente os passos documentados, do zero, e funciona.
 
 ## E2 — Identity & Tenant + RLS Obrigatória
 
 Objetivo: fluxo de autenticação + isolamento de tenant realmente aplicado no banco, não só na aplicação. Este é o épico de maior risco arquitetural.
 
-- [ ] **E2.1** Modelar entidades mínimas de `docs/08-Multi-Tenant.md §4`: `Tenant`, `Membership`, `Company` (sem `Branch`/`Workspace` ainda — fora do primeiro incremento).
-  - *Aceite:* migration inicial gerada e revisada.
-- [ ] **E2.2** Migration inicial já nasce com `TenantId` em toda tabela de escopo de tenant **e** `CREATE SECURITY POLICY` com função de filtro correspondente — nunca uma migration "só de schema" seguida depois por outra "de RLS".
+- [x] **E2.1** Modelar entidades mínimas de `docs/08-Multi-Tenant.md §4`: `Tenant`, `Membership`, `Company` (sem `Branch`/`Workspace` ainda — fora do primeiro incremento).
+  - *Aceite:* migration inicial gerada e revisada. ✅ Concluído — `EIP.Platform.Tenant.Domain` (`Tenant`, `Company`, `Membership`, enums de status), `EIP.BuildingBlocks.DDD.Entity<TId>`.
+- [x] **E2.2** Migration inicial já nasce com `TenantId` em toda tabela de escopo de tenant **e** `CREATE SECURITY POLICY` com função de filtro correspondente — nunca uma migration "só de schema" seguida depois por outra "de RLS".
   - *Depende de:* E2.1, E1.1 (banco disponível).
-  - *Aceite:* rodar a migration cria a tabela **e** a policy na mesma transação/script; consultar a tabela sem `SESSION_CONTEXT` definido não retorna linhas de nenhum tenant.
-- [ ] **E2.3** Implementar o `Tenant/Connection Resolver` (mesmo que simplificado para modo `Shared` apenas) e o interceptor EF Core que injeta `SESSION_CONTEXT('TenantId', @tenantId)` a partir do contexto autenticado da requisição — nunca de `TenantId` vindo do body/query/header não validado (`docs/08 §5.1`).
+  - *Aceite:* rodar a migration cria a tabela **e** a policy na mesma transação/script; consultar a tabela sem `SESSION_CONTEXT` definido não retorna linhas de nenhum tenant. ✅ Concluído e validado com SQL bruto direto no `eip-sqlserver`: sem contexto → 0 linhas; com contexto do Tenant A → só a empresa do Tenant A; `INSERT` com `TenantId` divergente do contexto → rejeitado pelo block predicate (erro 33504). Migration: `src/Platform/Tenant/Infrastructure/Migrations/20260801163802_InitialCreate.cs`. Tenant (schema `tenant`, tabelas `Companies`/`Memberships`) tem `ADD FILTER PREDICATE` + `ADD BLOCK PREDICATE ... AFTER INSERT/UPDATE`; `Tenants` não é protegida por RLS (ela É o tenant).
+- [x] **E2.3** Implementar o interceptor EF Core que injeta `SESSION_CONTEXT('TenantId', @tenantId)` a partir do contexto autenticado — nunca de `TenantId` vindo do body/query/header não validado (`docs/08 §5.1`). *(Tenant/Connection Resolver completo, escolhendo Shared vs Dedicated, fica para quando o modo Dedicated for implementado — fora do escopo da Fase 0 per §6 deste documento.)*
   - *Depende de:* E2.2.
-  - *Aceite:* teste de integração comprova que uma query sem contexto de tenant autenticado não executa.
-- [ ] **E2.4** ASP.NET Core Identity + emissão de JWT (claims incluindo `TenantId`/membership ativa), endpoints de login e refresh.
+  - *Aceite:* teste de integração comprova que uma query sem contexto de tenant autenticado não executa. ✅ Concluído — `TenantSessionContextInterceptor` (`DbConnectionInterceptor`) + `ITenantContextAccessor`/`AsyncLocalTenantContextAccessor` em `EIP.BuildingBlocks.Security`. 4 testes reais em `tests/Integration/EIP.Platform.Tenant.Infrastructure.IntegrationTests` (via EF Core contra o SQL Server do E1, não SQL bruto) comprovam: sem contexto → 0 linhas; com contexto do Tenant A → só suas linhas; filtro explícito por `TenantId` de outro tenant → 0 linhas; insert com tenant divergente → `DbUpdateException`. `dotnet test` → 4/4 aprovados.
+- [x] **E2.4** ASP.NET Core Identity + emissão de JWT (claims incluindo `TenantId`/membership ativa), endpoints de login e refresh.
   - *Depende de:* E2.1.
-  - *Aceite:* login retorna JWT válido; token expira conforme política curta definida em `07-Seguranca.md §5.1`.
+  - *Aceite:* login retorna JWT válido; token expira conforme política curta definida em `07-Seguranca.md §5.1`. ✅ Concluído e validado end-to-end contra o Host real (não só unitário):
+    - `EIP.Platform.Identity.Domain`: `ApplicationUser : IdentityUser<Guid>`, `RefreshToken` (hash apenas, nunca o valor bruto, com `TenantId` para preservar o claim entre refreshes).
+    - `EIP.Platform.Identity.Infrastructure`: `AppIdentityDbContext` (schema `identity`, sem RLS — usuário não é escopado por tenant), `JwtTokenGenerator` (HMAC-SHA256, claim customizado `tenant_id`), `RefreshTokenStore` (hash SHA-256, rotação).
+    - `EIP.Platform.Identity.Application`: `IAuthService`/`AuthService` — **sem MediatR** (decisão do usuário, ver §3: a v13+ do MediatR exige licença comercial paga acima de faturamento; optou-se por services de aplicação simples).
+    - `EIP.Platform.Identity.Api`: `AuthController` com `POST /api/v1/auth/{register,login,refresh,select-tenant}`, erros em `ProblemDetails`.
+    - **Contrato cross-domain**: `EIP.Shared.Contracts.Tenancy.IMembershipDirectory` (Identity nunca acessa a persistência do Tenant diretamente — `docs/02 §9.2`), implementado por `MembershipDirectory` no módulo Tenant usando `IDbContextFactory` + a sentinela `TenantContext.System` (bypass de RLS controlado e documentado — ver ADR-007 e a migration `AllowSystemTenantBypass`) para resolver "quais tenants este usuário pertence" antes de qualquer `TenantId` ser conhecido.
+    - Login com **0** memberships ativas → token sem `tenant_id`, `requiresTenantSelection=true`, lista vazia. Com **exatamente 1** → seleciona automaticamente. Com **2+** → exige seleção explícita (`docs/08 §5.2`), retornando as opções.
+    - Testado manualmente ponta a ponta contra o Host rodando com o SQL Server do E1: register → login (auto-seleção) → refresh (rotação confirmada; reuso do token antigo rejeitado) → cenário com 2 tenants → `select-tenant` rejeita tenant que o usuário não pertence e aceita o correto.
+    - Lockout habilitado via `UserManager` (5 tentativas, 5 min) — brute force (`docs/07-Seguranca.md §5.1`).
 - [ ] **E2.5** Autorização por permissão + escopo (`Identidade + Tenant + Workspace + Empresa + Recurso + Ação`, simplificado para o que existe no MVP) com "negar por padrão".
   - *Depende de:* E2.4.
 - [ ] **E2.6** Testes automatizados obrigatórios de isolamento cross-tenant (`docs/08 §13`): usuário do tenant A não lista/lê/atualiza/exclui recurso do tenant B, mesmo com ID adulterado no payload.
@@ -158,8 +168,8 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 | Épico | Status |
 |---|---|
 | E0 — Scaffolding da Solução | ✅ Concluído (2026-08) |
-| E1 — Infraestrutura Local | Não iniciado |
-| E2 — Identity & Tenant + RLS | Não iniciado |
+| E1 — Infraestrutura Local | ✅ Concluído (2026-08) |
+| E2 — Identity & Tenant + RLS | 🔶 Em andamento — E2.1–E2.4 concluídos; faltam E2.5 (autorização), E2.6 (testes de isolamento em nível de API) e E2.7 (auditoria) |
 | E3 — API versionada e observabilidade | Não iniciado |
 | E4 — Gateway | Não iniciado |
 | E5 — CI | Não iniciado |

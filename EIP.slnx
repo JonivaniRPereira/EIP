@@ -36,4 +36,8 @@
   <Folder Name="/src/Shared/">
     <Project Path="src/Shared/EIP.Shared.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Integration/">
+    <Project Path="tests/Integration/EIP.Platform.Tenant.Infrastructure.IntegrationTests/EIP.Platform.Tenant.Infrastructure.IntegrationTests.csproj" />
+  </Folder>
 </Solution>
