@@ -1,0 +1,36 @@
+<div class="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+  <mat-card class="w-full max-w-sm">
+    <mat-card-header>
+      <mat-card-title>Selecione a organização</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (errorMessage(); as message) {
+        <p class="text-sm text-red-600 pb-2">{{ message }}</p>
+      }
+
+      @if (tenants().length === 0) {
+        <p class="text-sm text-gray-600">
+          Nenhuma organização disponível nesta sessão. Faça login novamente.
+        </p>
+      } @else {
+        <mat-nav-list>
+          @for (tenant of tenants(); track tenant.tenantId) {
+            <a
+              mat-list-item
+              (click)="choose(tenant.tenantId)"
+              [class.opacity-50]="submittingTenantId() !== null"
+            >
+              <span matListItemTitle>{{ tenant.tenantName }}</span>
+              <span matListItemLine>{{ tenant.tenantSlug }}</span>
+            </a>
+          }
+        </mat-nav-list>
+      }
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-button (click)="logout()">Sair</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

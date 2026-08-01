@@ -20,6 +20,21 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) => loggerConfig
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 
+// CORS: o navegador fala só com o Gateway (nunca direto com o Host — docs/02-Arquitetura.md
+// §Gateway), então é aqui que a política precisa existir. Sem isso, o preflight OPTIONS do
+// navegador nem chega a ser respondido corretamente (o proxy encaminharia para o Host, que rejeita
+// por falta de autenticação — CORS precisa ser resolvido antes do proxy).
+const string FrontendCorsPolicy = "frontend";
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:4200"];
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendCorsPolicy, policy => policy
+        .WithOrigins(allowedOrigins)
+        .AllowAnyHeader()
+        .AllowAnyMethod());
+});
+
 // Rate limiting básico por IP (docs/roadmap/fase-0-backlog.md E4.2) — "negar por padrão" quando o
 // limite estoura, nunca deixar passar silenciosamente.
 builder.Services.AddRateLimiter(options =>
@@ -65,6 +80,8 @@ app.Use(async (context, next) =>
 });
 
 app.UseSerilogRequestLogging();
+
+app.UseCors(FrontendCorsPolicy);
 
 app.UseRateLimiter();
 
