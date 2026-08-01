@@ -579,7 +579,8 @@ Todo novo módulo deverá:
 - possuir documentação;
 - possuir ADR quando alterar decisões arquiteturais;
 - possuir APIs versionadas;
-- publicar eventos quando necessário.
+- publicar eventos quando necessário;
+- toda tabela com `TenantId` possuir RLS obrigatória desde a primeira migration (ver ADR-007); ausência de política RLS bloqueia merge/deploy.
 
 ---
 

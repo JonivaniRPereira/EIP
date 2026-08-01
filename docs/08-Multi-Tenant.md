@@ -52,6 +52,7 @@ Plataforma EIP
 5. Todo dado de negócio pertence a um tenant; dados empresariais também pertencem a uma empresa.
 6. A plataforma suporta estratégia híbrida: banco compartilhado para perfis adequados e banco dedicado para requisitos enterprise.
 7. O modelo físico de armazenamento é invisível ao consumidor e resolvido por serviço controlado.
+8. Row-Level Security (RLS) é obrigatória em toda tabela com `TenantId` no modelo compartilhado, desde a primeira migration do primeiro incremento — não é uma melhoria futura nem um controle "quando viável" (ver ADR-007).
 
 ---
 
@@ -158,7 +159,7 @@ Controles mínimos:
 - `TenantId` em todas as tabelas pertencentes a tenant;
 - índices e chaves únicas iniciando por `TenantId` quando apropriado;
 - filtros globais/repositórios centralizados na aplicação;
-- Row-Level Security (RLS) quando viável;
+- Row-Level Security (RLS) obrigatória, sem exceção, em toda tabela que contenha `TenantId`;
 - conta de banco com privilégios mínimos;
 - testes automatizados de tentativa de leitura/escrita cruzada;
 - backup e restauração com procedimento de recuperação por tenant.
@@ -181,7 +182,7 @@ O `Tenant/Connection Resolver` é o único componente que escolhe a conexão fí
 |---|---|
 | API Gateway | valida identidade, cria correlação e encaminha contexto seguro |
 | Backend | autoriza, filtra dados e registra auditoria |
-| Banco | `TenantId`, filtros, constraints e RLS quando adotado |
+| Banco | `TenantId`, filtros, constraints e RLS obrigatória (banco compartilhado) |
 | Cache | chave contém tenant, workspace/empresa, permissões e versão |
 | RabbitMQ | envelope contém tenant, empresa quando aplicável, versão e correlação |
 | Workers | validam o contexto contra a instância/configuração persistida |
@@ -269,6 +270,7 @@ Auditoria inclui criação e alterações de tenant, membership, papéis, escopo
 
 Cada módulo que manipule dados de tenant deve ter testes que comprovem:
 
+- toda tabela com `TenantId` possui política RLS ativa; a ausência de política bloqueia o merge/deploy;
 - usuário do tenant A não lista, lê, atualiza ou exclui recurso do tenant B;
 - filtros, IDs e payloads adulterados não atravessam a fronteira;
 - cache e jobs não retornam ou processam dados com contexto incorreto;

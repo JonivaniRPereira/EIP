@@ -51,6 +51,7 @@ Criar uma base executável, segura e repetível para o desenvolvimento do produt
 - Docker Compose para SQL Server, Redis, RabbitMQ e Object Storage local;
 - CI com build, testes, análise estática, scan de dependências/segredos e contratos;
 - autenticação inicial, identidade, tenant, empresa, membership e permissões básicas;
+- isolamento multi-tenant obrigatório desde a primeira migration: `TenantId` em toda tabela de tenant e política RLS ativa no SQL Server (sem exceção, ver ADR-007);
 - API versionada, OpenAPI, Problem Details, health checks e `CorrelationId`;
 - logs estruturados, métricas/traces iniciais e auditoria administrativa;
 - migrations, dados sintéticos e convenções de desenvolvimento.
@@ -60,6 +61,7 @@ Criar uma base executável, segura e repetível para o desenvolvimento do produt
 - ambiente local pode ser iniciado e validado de forma documentada;
 - pipeline bloqueia build/teste/segurança críticos;
 - usuário de tenant A não acessa recursos de tenant B em testes automatizados;
+- pipeline de CI bloqueia merge/deploy se qualquer tabela com `TenantId` não possuir política RLS ativa;
 - uma API autenticada possui autorização, auditoria, logs e health checks;
 - deploy de ambiente não produtivo é reproduzível a partir de artefatos versionados.
 
@@ -270,7 +272,7 @@ Cada item requer problema real, hipótese de valor, análise de custo/segurança
 | Escopo excessivo de substituição de BI | fases verticais, limites explícitos de MVP e métricas de uso |
 | Conectores instáveis/heterogêneos | framework, CDM incremental, testes, reconciliação e prioridade por demanda |
 | Métricas inconsistentes | camada semântica, proprietário, versão e certificação |
-| Vazamento multi-tenant | filtros, RLS complementar, testes, auditoria e contexto propagado |
+| Vazamento multi-tenant | filtros, RLS obrigatória desde a Fase 0, testes, auditoria e contexto propagado |
 | Custo/risco de IA | ferramentas limitadas, quotas, contexto mínimo, avaliação e aprovação |
 | Complexidade operacional precoce | monólito modular e infraestrutura proporcional à necessidade |
 | Baixa confiança do usuário | frescor, linhagem, qualidade e explicação visíveis no produto |

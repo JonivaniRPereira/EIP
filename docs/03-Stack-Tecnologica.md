@@ -245,7 +245,7 @@ O primeiro incremento executável deverá conter:
 - aplicação Angular inicial;
 - API ASP.NET Core modular;
 - SQL Server, Redis e RabbitMQ via Docker Compose;
-- autenticação, tenant e autorização básica;
+- autenticação, tenant e autorização básica, com isolamento multi-tenant obrigatório (`TenantId` + política RLS no SQL Server desde a primeira migration, sem exceção);
 - OpenAPI e health checks;
 - logs estruturados, trace básico e `CorrelationId`;
 - pipeline de CI com build e testes;

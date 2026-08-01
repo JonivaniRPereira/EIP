@@ -48,7 +48,7 @@ A modelagem de ameaças é obrigatória para novos módulos, integrações, expo
 
 | Ameaça | Controle principal |
 |---|---|
-| Acesso de um tenant aos dados de outro | contexto derivado do token, filtros obrigatórios, testes de isolamento e RLS quando adotado |
+| Acesso de um tenant aos dados de outro | contexto derivado do token, filtros obrigatórios, testes de isolamento e RLS obrigatória em banco compartilhado |
 | Credencial de conector vazada | secret manager, mascaramento, rotação e menor privilégio |
 | Token roubado ou sessão comprometida | curta duração, validação JWT, revogação, MFA para perfis privilegiados e detecção de anomalia |
 | Injeção SQL, comando ou template | queries parametrizadas, validação estrita e proibição de execução arbitrária |
@@ -113,7 +113,7 @@ O isolamento de tenant é a principal fronteira de segurança da EIP. `TenantId`
 
 ## 6.2 Banco compartilhado e dedicado
 
-No modelo compartilhado, a aplicação aplica filtros obrigatórios e o banco deve adotar controles adicionais viáveis, como Row-Level Security (RLS), constraints e contas de acesso restritas. RLS é uma camada complementar: não substitui validações da aplicação.
+No modelo compartilhado, a aplicação aplica filtros obrigatórios e o banco aplica Row-Level Security (RLS) obrigatória em toda tabela que contenha `TenantId`, sem exceção e desde a primeira migration, além de constraints e contas de acesso restritas. RLS é uma camada complementar obrigatória: não substitui as validações da aplicação, mas sua ausência bloqueia a liberação em produção (ver checklist da seção 15 e ADR-007).
 
 No modelo dedicado, a resolução da conexão é controlada pelo Tenant/Connection Resolver. O serviço não aceita connection strings ou identificadores de banco enviados pelo cliente.
 
@@ -305,6 +305,7 @@ O processo deve manter canais de escalonamento, responsáveis de plantão, crit�
 Antes de colocar um recurso em produção, confirmar:
 
 - autenticação, autorização e escopo de tenant/workspace testados;
+- toda tabela com `TenantId` possui política RLS ativa e coberta por teste automatizado de acesso cruzado;
 - entradas, erros, upload e integrações validados;
 - segredos fora do código e com acesso mínimo;
 - logs mascarados, auditoria e alertas configurados;

@@ -66,7 +66,7 @@ As zonas de Raw, Canonical e Staging não são superfícies públicas de consult
 
 No MVP, o SQL Server é a plataforma analítica inicial. Cada tenant possui um escopo lógico de DW. A implementação segue o modo de isolamento do tenant:
 
-- **Shared:** tabelas e partições compartilhadas, com `TenantId` obrigatório, filtros centralizados, RLS quando aplicável e índices iniciados por tenant quando fizer sentido.
+- **Shared:** tabelas e partições compartilhadas, com `TenantId` obrigatório, filtros centralizados, RLS obrigatória (sem exceção) e índices iniciados por tenant quando fizer sentido.
 - **Dedicated:** banco ou ambiente analítico isolado para tenants elegíveis, resolvido pelo Tenant/Connection Resolver.
 
 ## 4.2 Workspace
