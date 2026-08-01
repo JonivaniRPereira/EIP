@@ -30,6 +30,8 @@ Este documento **não substitui** nenhuma regra definida em `docs/00` a `docs/15
 | Decisão | Valor | Origem |
 |---|---|---|
 | SDK .NET alvo | .NET 10 (SDK 10.0.302 já instalado na máquina de desenvolvimento) | Confirmado com o usuário em 2026-08 |
+| Arquivo de solução | `EIP.slnx` (formato XML novo do `dotnet new sln` no SDK .NET 10; substitui o `.sln` clássico) | Gerado em E0.1 |
+| Composition root | `src/Host` (`EIP.Host`, ASP.NET Core com controllers) referencia `.Api`/`.Infrastructure` de cada módulo; é o único processo executável do monólito modular | Criado em E0.2 |
 | Frontend | Angular via `npx @angular/cli` (Node 24 / npm 11 instalados; sem CLI global) | `docs/03-Stack-Tecnologica.md §4` |
 | Estrutura de código | Monólito modular, Clean Architecture (`Api/Application/Domain/Infrastructure`) por domínio | `docs/00`, `docs/02 §9.2` |
 | Mecanismo de RLS | SQL Server `SECURITY POLICY` + função de filtro por `TenantId`, alimentada por `SESSION_CONTEXT('TenantId')`; um `DbCommandInterceptor`/`SaveChangesInterceptor` do EF Core define o `SESSION_CONTEXT` no início de cada unidade de trabalho, a partir do contexto de tenant autenticado (nunca de input do cliente) | `docs/adr/ADR-007`, `docs/08-Multi-Tenant.md §5-6` |
@@ -61,15 +63,15 @@ Critério adicional obrigatório por conta da ADR-007 (não estava explícito no
 
 Objetivo: solução .NET compilável, vazia, com a estrutura de pastas/projetos definida em `docs/00-Arquitetura-do-Repositorio.md`.
 
-- [ ] **E0.1** Criar `EIP.sln` na raiz e estrutura `src/BuildingBlocks`, `src/Shared` com projetos de classe mínimos (sem lógica ainda), namespaces `EIP.BuildingBlocks.*` / `EIP.Shared.*`.
-  - *Aceite:* `dotnet build` da solução passa.
-- [ ] **E0.2** Criar projetos `EIP.Platform.Identity` e `EIP.Platform.Tenant` em Clean Architecture (`Api`, `Application`, `Domain`, `Infrastructure` por módulo), únicos domínios exigidos no primeiro incremento (`docs/03 §13`).
+- [x] **E0.1** Criar `EIP.slnx` na raiz (o `dotnet new sln` do SDK .NET 10 gera o novo formato `.slnx`, não `.sln`) e estrutura `src/BuildingBlocks`, `src/Shared` com projetos de classe mínimos (sem lógica ainda), namespaces `EIP.BuildingBlocks.*` / `EIP.Shared.*`.
+  - *Aceite:* `dotnet build` da solução passa. ✅ Concluído.
+- [x] **E0.2** Criar projetos `EIP.Platform.Identity` e `EIP.Platform.Tenant` em Clean Architecture (`Api`, `Application`, `Domain`, `Infrastructure` por módulo), únicos domínios exigidos no primeiro incremento (`docs/03 §13`). Inclui `src/Host` (`EIP.Host`, ASP.NET Core com controllers) como processo executável único que referencia os projetos `.Api`/`.Infrastructure` de cada módulo — é o composition root do monólito modular.
   - *Depende de:* E0.1.
-  - *Aceite:* build limpo; `Domain` não referencia `Infrastructure`; `Api` não referencia `Domain` diretamente (passa por `Application`).
-- [ ] **E0.3** Configurar `Directory.Build.props`/`.editorconfig` com nullable enable, warnings como erro para regras críticas, e análise estática básica (ex.: analisadores do .NET).
-  - *Aceite:* `dotnet build` reporta avisos de estilo/nulidade quando violado.
-- [ ] **E0.4** Criar `.gitignore` apropriado para .NET + Angular (bin/obj/node_modules/.env) — hoje o repositório não tem nenhum `.gitignore`.
-  - *Aceite:* `git status` não lista artefatos de build depois de compilar.
+  - *Aceite:* build limpo; `Domain` não referencia `Infrastructure`; `Api` não referencia `Domain` diretamente (passa por `Application`). ✅ Concluído — `dotnet build EIP.slnx` compila os 11 projetos sem erros.
+- [x] **E0.3** Configurar `Directory.Build.props`/`.editorconfig` com nullable enable, warnings como erro para regras críticas, e análise estática básica (ex.: analisadores do .NET).
+  - *Aceite:* `dotnet build` reporta avisos de estilo/nulidade quando violado. ✅ Concluído — `Directory.Build.props` centraliza `TargetFramework`/`Nullable`/`AnalysisLevel`; `WarningsAsErrors=Nullable`; `.editorconfig` define nomenclatura e trata `CS86xx` (nulidade) como erro.
+- [x] **E0.4** Criar `.gitignore` apropriado para .NET + Angular (bin/obj/node_modules/.env) — hoje o repositório não tem nenhum `.gitignore`.
+  - *Aceite:* `git status` não lista artefatos de build depois de compilar. ✅ Concluído e verificado com `git status`.
 
 ## E1 — Infraestrutura Local (Docker Compose)
 
@@ -155,7 +157,7 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 
 | Épico | Status |
 |---|---|
-| E0 — Scaffolding da Solução | Não iniciado |
+| E0 — Scaffolding da Solução | ✅ Concluído (2026-08) |
 | E1 — Infraestrutura Local | Não iniciado |
 | E2 — Identity & Tenant + RLS | Não iniciado |
 | E3 — API versionada e observabilidade | Não iniciado |

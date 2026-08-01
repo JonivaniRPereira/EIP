@@ -1,0 +1,39 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/EIP.BuildingBlocks.csproj" />
+  </Folder>
+  <Folder Name="/src/Host/">
+    <Project Path="src/Host/EIP.Host.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/" />
+  <Folder Name="/src/Platform/Identity/" />
+  <Folder Name="/src/Platform/Identity/Api/">
+    <Project Path="src/Platform/Identity/Api/EIP.Platform.Identity.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/Identity/Application/">
+    <Project Path="src/Platform/Identity/Application/EIP.Platform.Identity.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/Identity/Domain/">
+    <Project Path="src/Platform/Identity/Domain/EIP.Platform.Identity.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/Identity/Infrastructure/">
+    <Project Path="src/Platform/Identity/Infrastructure/EIP.Platform.Identity.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/Tenant/" />
+  <Folder Name="/src/Platform/Tenant/Api/">
+    <Project Path="src/Platform/Tenant/Api/EIP.Platform.Tenant.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/Tenant/Application/">
+    <Project Path="src/Platform/Tenant/Application/EIP.Platform.Tenant.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/Tenant/Domain/">
+    <Project Path="src/Platform/Tenant/Domain/EIP.Platform.Tenant.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/Tenant/Infrastructure/">
+    <Project Path="src/Platform/Tenant/Infrastructure/EIP.Platform.Tenant.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/EIP.Shared.csproj" />
+  </Folder>
+</Solution>

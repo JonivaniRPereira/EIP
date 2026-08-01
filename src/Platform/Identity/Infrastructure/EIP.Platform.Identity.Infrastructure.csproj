@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Application\EIP.Platform.Identity.Application.csproj" />
+    <ProjectReference Include="..\Domain\EIP.Platform.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\EIP.BuildingBlocks.csproj" />
+  </ItemGroup>
+
+</Project>

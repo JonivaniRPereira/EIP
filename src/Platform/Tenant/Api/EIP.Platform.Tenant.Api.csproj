@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Application\EIP.Platform.Tenant.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\EIP.Platform.Tenant.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Shared\EIP.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

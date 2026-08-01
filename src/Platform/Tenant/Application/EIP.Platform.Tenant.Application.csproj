@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\EIP.Platform.Tenant.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\EIP.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\..\Shared\EIP.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
