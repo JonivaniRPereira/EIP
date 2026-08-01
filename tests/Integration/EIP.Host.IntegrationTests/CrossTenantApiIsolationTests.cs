@@ -8,7 +8,6 @@ using EIP.Platform.Identity.Infrastructure;
 using EIP.Platform.Tenant.Domain;
 using EIP.Platform.Tenant.Infrastructure;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,10 +17,14 @@ namespace EIP.Host.IntegrationTests;
 /// E2.6 — prova, batendo no Host real via HTTP (não em nível de banco, que já é coberto por
 /// EIP.Platform.Tenant.Infrastructure.IntegrationTests), que um usuário do tenant A nunca lê um
 /// recurso do tenant B mesmo adulterando o ID no payload/rota (docs/08-Multi-Tenant.md §13).
+///
+/// Roda contra um Host real + SQL Server efêmero (<see cref="HostApiFixture"/>, Testcontainers) —
+/// nada de infraestrutura pré-existente precisa estar de pé, nem local nem no CI (E5).
 /// </summary>
-public sealed class CrossTenantApiIsolationTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
+[Collection(HostApiCollection.Name)]
+public sealed class CrossTenantApiIsolationTests : IAsyncLifetime
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly HostApiFixture _fixture;
     private readonly HttpClient _client;
 
     private const string Password = "SenhaForte!123";
@@ -33,10 +36,10 @@ public sealed class CrossTenantApiIsolationTests : IClassFixture<WebApplicationF
     private string _tokenA = null!;
     private string _tokenB = null!;
 
-    public CrossTenantApiIsolationTests(WebApplicationFactory<Program> factory)
+    public CrossTenantApiIsolationTests(HostApiFixture fixture)
     {
-        _factory = factory;
-        _client = factory.CreateClient();
+        _fixture = fixture;
+        _client = fixture.CreateClient();
     }
 
     public async Task InitializeAsync()
@@ -52,8 +55,8 @@ public sealed class CrossTenantApiIsolationTests : IClassFixture<WebApplicationF
 
     public async Task DisposeAsync()
     {
-        var tenantContextAccessor = _factory.Services.GetRequiredService<ITenantContextAccessor>();
-        var tenantDbFactory = _factory.Services.GetRequiredService<IDbContextFactory<TenantDbContext>>();
+        var tenantContextAccessor = _fixture.Services.GetRequiredService<ITenantContextAccessor>();
+        var tenantDbFactory = _fixture.Services.GetRequiredService<IDbContextFactory<TenantDbContext>>();
 
         tenantContextAccessor.Current = TenantContext.System;
         await using (var db = await tenantDbFactory.CreateDbContextAsync())
@@ -64,7 +67,7 @@ public sealed class CrossTenantApiIsolationTests : IClassFixture<WebApplicationF
 
         tenantContextAccessor.Current = null;
 
-        await using var identityDb = _factory.Services.GetRequiredService<IServiceScopeFactory>()
+        await using var identityDb = _fixture.Services.GetRequiredService<IServiceScopeFactory>()
             .CreateScope().ServiceProvider.GetRequiredService<AppIdentityDbContext>();
         await identityDb.Users.Where(u => u.Email == _emailA || u.Email == _emailB).ExecuteDeleteAsync();
     }
@@ -134,8 +137,8 @@ public sealed class CrossTenantApiIsolationTests : IClassFixture<WebApplicationF
     /// via EF Core, com a mesma sentinela de sistema usada pelo MembershipDirectory.</summary>
     private async Task<(Guid TenantAId, Guid TenantBId)> ProvisionTenantsAndMembershipsAsync(Guid userAId, Guid userBId)
     {
-        var tenantContextAccessor = _factory.Services.GetRequiredService<ITenantContextAccessor>();
-        var tenantDbFactory = _factory.Services.GetRequiredService<IDbContextFactory<TenantDbContext>>();
+        var tenantContextAccessor = _fixture.Services.GetRequiredService<ITenantContextAccessor>();
+        var tenantDbFactory = _fixture.Services.GetRequiredService<IDbContextFactory<TenantDbContext>>();
 
         var tenantA = EIP.Platform.Tenant.Domain.Tenant.Create("Tenant A (E2.6)", $"e2e-a-{Guid.NewGuid():N}", Guid.NewGuid(), "America/Sao_Paulo");
         var tenantB = EIP.Platform.Tenant.Domain.Tenant.Create("Tenant B (E2.6)", $"e2e-b-{Guid.NewGuid():N}", Guid.NewGuid(), "America/Sao_Paulo");

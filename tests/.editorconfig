@@ -1,3 +1,5 @@
 [*.cs]
 # Nomes de teste com underscore (Metodo_Cenario_Resultado) são a convenção padrão do projeto.
 dotnet_diagnostic.CA1707.severity = none
+# "XCollection" é a convenção idiomática do xUnit para classes [CollectionDefinition].
+dotnet_diagnostic.CA1711.severity = none

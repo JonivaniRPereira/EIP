@@ -42,6 +42,8 @@ Este documento **não substitui** nenhuma regra definida em `docs/00` a `docs/15
 | Ambiente local | Docker Compose (confirmado: Docker 29.6.1 / Compose v5.2.0 instalados) | `docs/14-DevOps.md §4` |
 | BuildingBlocks x BuildingBlocks.Web | `EIP.BuildingBlocks` fica 100% livre de ASP.NET Core (usável por Domain/Application). Qualquer building block que precise de tipos de ASP.NET Core (ex. `Microsoft.AspNetCore.Authorization`) vai em `EIP.BuildingBlocks.Web` (novo projeto, `FrameworkReference` a `Microsoft.AspNetCore.App`), referenciado só por `.Api`/Host. Misturar as duas coisas no mesmo projeto quebra silenciosamente a descoberta de controllers (ver E2.5) | Descoberto e corrigido em E2.5 |
 | RabbitMQ.Client v7 é assíncrono | `AddRabbitMQ(...)` do `AspNetCore.HealthChecks.Rabbitmq` precisa de uma factory `Func<IServiceProvider, Task<IConnection>>` (`new ConnectionFactory{Uri=...}.CreateConnectionAsync()`), não mais uma string de conexão direta — `CreateConnection()` síncrono foi removido no client 7.x | E3.3 |
+| Testes de integração usam Testcontainers, não a stack persistente | `tests/Support/EIP.Testing.Infrastructure` sobe SQL Server efêmero (Testcontainers) por execução de teste — local e CI usam o mesmo mecanismo, sem depender do `docker compose` do E1 estar de pé. Padrão: `SqlServerContainerFixture`/`HostApiFixture` + `[Collection]`; `[CollectionDefinition]` precisa ser redeclarado em cada projeto de teste (xUnit resolve isso por assembly) | E5.1 |
+| Portas locais | `EIP.Host` em `http://localhost:5080` (interno/direto — health/metrics), `EIP.Gateway` em `http://localhost:5000` (ponto de entrada externo — `/api/**`). Cliente "de fora" deve sempre usar `:5000` | E4.1 |
 | Pacotes OpenTelemetry ainda beta | `OpenTelemetry.Exporter.Prometheus.AspNetCore` não tem release GA no ecossistema .NET (situação de anos, não peculiaridade deste projeto) — usado mesmo assim, pinado em versão beta exata, por ser a única opção para expor métricas em formato Prometheus hoje. `OpenTelemetry.Instrumentation.EntityFrameworkCore` (também só beta) foi deixado de fora nesta passada para não acumular mais dependências beta do que o estritamente necessário | E3.5 |
 
 ---
@@ -141,16 +143,28 @@ Objetivo: fluxo de autenticação + isolamento de tenant realmente aplicado no b
 
 ## E4 — Gateway (YARP)
 
-- [ ] **E4.1** Configurar YARP como ponto único de entrada, roteando para os módulos de `Platform`.
-- [ ] **E4.2** Rate limiting básico e propagação seura do contexto de autenticação/correlação.
-  - *Aceite:* cliente não acessa módulos diretamente; toda chamada passa pelo Gateway.
+- [x] **E4.1** Configurar YARP como ponto único de entrada, roteando para os módulos de `Platform`.
+  - ✅ Concluído. Novo projeto `src/Gateway` (`EIP.Gateway`, `Yarp.ReverseProxy` 2.3.0), roteando `/api/{**catch-all}` para o `EIP.Host` (`ReverseProxy:Clusters:platform-cluster` em `appsettings.json`). Health checks/métricas (`/health/*`, `/metrics`) **não** passam pelo Gateway — ficam acessíveis só direto no Host, para infra (probes/scraper), não clientes; validado que `/health/live` via Gateway dá 404 (rota simplesmente não existe lá).
+- [x] **E4.2** Rate limiting básico e propagação segura do contexto de autenticação/correlação.
+  - *Aceite:* cliente não acessa módulos diretamente; toda chamada passa pelo Gateway. ✅ Concluído e validado com Host+Gateway rodando de verdade:
+    - Rate limiting: `AddRateLimiter` com `PartitionedRateLimiter` por IP (fixed window, 100 req/10s, `QueueLimit=0`, `RejectionStatusCode=429`) — nativo do ASP.NET Core, sem pacote extra. Disparei 110 requisições rápidas: 104 passaram, 6 voltaram `429`.
+    - `CorrelationId`: aceito ou **gerado no Gateway** (o ponto de entrada real — `docs/08-Multi-Tenant.md §5.1`, diferente do fallback que já existia no Host desde o E3 para acesso direto em dev), propagado ao Host via header antes do proxy. Setar o header de resposta só em `Response.OnStarting` (depois do `next()`) evita duplicar o header quando o YARP já copiou o do Host.
+    - `Authorization`: YARP encaminha por padrão, sem configuração extra — validado chamando `/api/v1/auth/select-tenant` autenticado via Gateway e recebendo a resposta de negócio correta do Host (não um 401 de "token ausente").
+    - Serilog + `UseSerilogRequestLogging()` também no Gateway, consistente com o Host.
 
 ## E5 — CI (GitHub Actions)
 
-- [ ] **E5.1** Pipeline: restaurar → lint/análise estática → build → testes unitários → testes de integração com dependências efêmeras (Testcontainers) → scan de segredos/dependências (`docs/14-DevOps.md §6`).
-- [ ] **E5.2** Gate obrigatório: falha de teste de isolamento multi-tenant (E2.6) ou ausência de RLS em tabela nova bloqueia o merge.
-- [ ] **E5.3** Publicação de imagem Docker versionada (mesmo que ainda não haja deploy automatizado para nenhum ambiente real).
-  - *Aceite:* PR de teste proposital quebrando isolamento de tenant é bloqueado pelo pipeline.
+- [x] **E5.1** Pipeline: restaurar → lint/análise estática → build → testes unitários → testes de integração com dependências efêmeras (Testcontainers) → scan de segredos/dependências (`docs/14-DevOps.md §6`).
+  - ✅ Concluído. `.github/workflows/ci.yml`, job `build-and-test`: `dotnet restore` → `dotnet format --verify-no-changes` (lint) → `dotnet build -c Release` → `dotnet test -c Release` → scan de dependências (`dotnet list package --vulnerable`) → scan de segredos (gitleaks CLI, binário oficial baixado direto do GitHub Releases — não a Action de marketplace, que exige licença para repositório privado).
+  - **Refactor grande necessário para viabilizar isto**: os dois projetos de teste de integração (E2.3 e E2.6) dependiam de uma connection string fixa (`localhost,1433`), assumindo a stack persistente do E1 já rodando — isso não existe num runner de CI. Criado `tests/Support/EIP.Testing.Infrastructure` com `SqlServerContainerFixture` (Testcontainers, mesma imagem do E1) + `DatabaseMigrator` (aplica as migrations de Tenant e Identity, incluindo a RLS). `EIP.Host.IntegrationTests` ganhou `HostApiFixture` combinando o container efêmero com um `WebApplicationFactory<Program>` configurado via `ConfigureAppConfiguration` — Redis/RabbitMQ recebem strings sintaticamente válidas mas inalcançáveis, já que os 4 testes ali não chamam `/health/ready`. **Validado de verdade** (não só "buildou"): monitorei `docker ps` durante a execução e confirmei um container SQL Server novo (nome aleatório, porta dinâmica) subindo e sendo descartado ao final, sem tocar a stack do E1.
+  - Rodar `dotnet format --verify-no-changes` como gate revelou drift real (CRLF/charset nas migrations geradas pelo EF, e uma regra de nomenclatura do `.editorconfig` (E0.3) incorretamente aplicada a campos `const`/`static readonly`, que devem ser PascalCase, não `_camelCase`). Corrigido o `.editorconfig` e rodado `dotnet format` uma vez para zerar o débito antes de tornar o check bloqueante.
+  - Scan de segredos encontrou 1 falso positivo (`docs/06-API-Design.md`, um GUID de exemplo interpretado como possível API key por entropia) — corrigido trocando por um placeholder (`<uuid-gerado-pelo-cliente>`) em vez de suprimir a regra.
+- [x] **E5.2** Gate obrigatório: falha de teste de isolamento multi-tenant (E2.6) ou ausência de RLS em tabela nova bloqueia o merge.
+  - ✅ Parcial, por design: a falha do E2.6 já bloqueia o pipeline automaticamente (está na mesma suíte de testes do job `build-and-test`). **Não existe** hoje um analisador estático que detecte "migration nova criou tabela com `TenantId` sem `CREATE SECURITY POLICY` correspondente" — isso dependeria de uma ferramenta própria de lint de migrations, fora do escopo desta passada. Na prática, a proteção real é: todo novo domínio tenant-scoped deve vir com um teste de isolamento no estilo do E2.3/E2.6 (senão o gap fica invisível). Registrar como dívida técnica caso vire um problema recorrente.
+  - **Fora do escopo desta entrega**: configurar a branch protection do GitHub exigindo o workflow como status check obrigatório — é uma configuração do repositório no GitHub (não um arquivo do código), fica para quando o repo for de fato publicado/protegido a pedido do usuário.
+- [x] **E5.3** Publicação de imagem Docker versionada (mesmo que ainda não haja deploy automatizado para nenhum ambiente real).
+  - *Aceite:* PR de teste proposital quebrando isolamento de tenant é bloqueado pelo pipeline. ✅ Concluído — `docker/platform/Dockerfile` (`EIP.Host`) e `docker/gateway/Dockerfile` (`EIP.Gateway`), multi-stage (`sdk:10.0` → `aspnet:10.0`), usuário não-root (`app`, já vem pronto na imagem oficial — não precisa criar). Tag pela `github.sha` no CI, **build apenas, sem push** para nenhum registry (nenhum configurado ainda; ver nota abaixo). Job `docker-build` separado, depende do `build-and-test` passar primeiro. **Validado de verdade**: rodei o container do Host conectado à rede do `docker compose` do E1 (`--network eip-local`) com as connection strings certas — `/health/ready` respondeu `Healthy` para as 4 dependências e `/api/v1/auth/login` respondeu com `ProblemDetails` correto.
+  - Nada foi commitado/enviado ao GitHub nesta sessão — o workflow só roda de verdade após um push/PR real.
 
 ## E6 — Frontend Angular Inicial
 
@@ -186,8 +200,8 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 | E1 — Infraestrutura Local | ✅ Concluído (2026-08) |
 | E2 — Identity & Tenant + RLS | ✅ Concluído (2026-08) |
 | E3 — API versionada e observabilidade | ✅ Concluído (2026-08) |
-| E4 — Gateway | Não iniciado |
-| E5 — CI | Não iniciado |
+| E4 — Gateway | ✅ Concluído (2026-08) |
+| E5 — CI | ✅ Concluído (2026-08) — pendente apenas primeiro push real para validar no GitHub de verdade |
 | E6 — Frontend Angular | Não iniciado |
 | E7 — Conector de referência | Não iniciado |
 

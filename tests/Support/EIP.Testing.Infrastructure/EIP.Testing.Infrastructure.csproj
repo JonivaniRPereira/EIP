@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Biblioteca de apoio, não um projeto de teste em si (referencia xunit.core só pelos tipos
+         IAsyncLifetime/[CollectionDefinition]) — sem isto, `dotnet test` tenta rodá-la como suíte. -->
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Testcontainers.MsSql" Version="4.13.0" />
+    <PackageReference Include="xunit.core" Version="2.9.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Platform\Tenant\Infrastructure\EIP.Platform.Tenant.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Platform\Identity\Infrastructure\EIP.Platform.Identity.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

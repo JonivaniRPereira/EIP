@@ -234,7 +234,7 @@ O `DELETE` físico só é permitido para dados sem valor de auditoria e sem depe
 Clientes podem enviar uma chave única em operações sensíveis a repetição:
 
 ```http
-Idempotency-Key: 05e953a2-8c43-4704-a821-4aaf1b7d8c8b
+Idempotency-Key: <uuid-gerado-pelo-cliente>
 ```
 
 O servidor vincula a chave ao tenant, rota e payload normalizado por período limitado. Uma repetição retorna o resultado original; reutilizar a chave com payload diferente retorna `409 Conflict`.

@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  GITLEAKS_VERSION: "8.30.1"
+
+jobs:
+  build-and-test:
+    name: Build, lint, testes e scans
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restaurar dependências
+        run: dotnet restore EIP.slnx
+
+      - name: Verificar formatação (lint)
+        run: dotnet format EIP.slnx --verify-no-changes --no-restore
+
+      - name: Build (Release)
+        run: dotnet build EIP.slnx --configuration Release --no-restore
+
+      # Inclui a suíte de isolamento multi-tenant do E2.6 (gate mínimo do épico E2 —
+      # docs/roadmap/fase-0-backlog.md) e roda contra SQL Server efêmero via Testcontainers;
+      # runners ubuntu-latest já têm Docker disponível, sem setup adicional.
+      - name: Testes (unitários + integração com Testcontainers)
+        run: dotnet test EIP.slnx --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      - name: Publicar resultados de teste
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: "**/TestResults/**/test-results.trx"
+          retention-days: 14
+
+      - name: Scan de dependências (vulnerabilidades conhecidas)
+        run: |
+          set -e
+          output=$(dotnet list EIP.slnx package --vulnerable --include-transitive)
+          echo "$output"
+          if echo "$output" | grep -qi "the following vulnerable packages"; then
+            echo "::error::Pacotes com vulnerabilidade conhecida encontrados — corrigir antes do merge."
+            exit 1
+          fi
+
+      # CLI open-source direto (Apache-2.0), sem depender da Action de marketplace — evita
+      # qualquer questão de licenciamento para uso em repositório privado. Escaneia a árvore de
+      # trabalho do commit atual (--no-git), não o histórico inteiro a cada execução.
+      - name: Scan de segredos (gitleaks)
+        run: |
+          set -e
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks detect --source . --no-git --redact -v
+
+  docker-build:
+    name: Build de imagens Docker (versionadas, sem publicação)
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build imagem EIP.Host
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/platform/Dockerfile
+          push: false
+          tags: eip-host:${{ github.sha }}
+
+      - name: Build imagem EIP.Gateway
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/gateway/Dockerfile
+          push: false
+          tags: eip-gateway:${{ github.sha }}

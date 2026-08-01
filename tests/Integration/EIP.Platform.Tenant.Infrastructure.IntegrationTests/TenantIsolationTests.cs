@@ -1,6 +1,7 @@
 using EIP.BuildingBlocks.Security;
 using EIP.Platform.Tenant.Domain;
 using EIP.Platform.Tenant.Infrastructure;
+using EIP.Testing.Infrastructure;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,16 +13,22 @@ namespace EIP.Platform.Tenant.Infrastructure.IntegrationTests;
 /// linha é visível, um tenant nunca enxerga linhas de outro mesmo forçando o filtro manualmente, e uma
 /// tentativa de gravar dado de outro tenant é bloqueada pelo banco (não apenas pela aplicação).
 /// Exigido por docs/08-Multi-Tenant.md §13 e é o gate mínimo de conclusão do épico E2.
+///
+/// Roda contra um SQL Server efêmero (Testcontainers, docs/03 §3) — nada de infraestrutura
+/// pré-existente precisa estar de pé para este teste passar, nem local nem no CI (E5).
 /// </summary>
+[Collection(SqlServerCollection.Name)]
 public sealed class TenantIsolationTests : IAsyncLifetime
 {
-    private static readonly string ConnectionString =
-        Environment.GetEnvironmentVariable("EIP_TENANT_DB_CONNECTION")
-        ?? "Server=localhost,1433;Database=EIP;User Id=sa;Password=Dev_OnlyChangeMe_123!;TrustServerCertificate=True;";
-
+    private readonly string _connectionString;
     private readonly AsyncLocalTenantContextAccessor _tenantContextAccessor = new();
     private Domain.Tenant _tenantA = null!;
     private Domain.Tenant _tenantB = null!;
+
+    public TenantIsolationTests(SqlServerContainerFixture sqlServerFixture)
+    {
+        _connectionString = sqlServerFixture.ConnectionString;
+    }
 
     public async Task InitializeAsync()
     {
@@ -140,7 +147,7 @@ public sealed class TenantIsolationTests : IAsyncLifetime
     {
         var interceptor = new TenantSessionContextInterceptor(_tenantContextAccessor);
         var options = new DbContextOptionsBuilder<TenantDbContext>()
-            .UseSqlServer(ConnectionString)
+            .UseSqlServer(_connectionString)
             .AddInterceptors(interceptor)
             .Options;
 

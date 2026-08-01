@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Platform\Tenant\Infrastructure\EIP.Platform.Tenant.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\BuildingBlocks\EIP.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Support\EIP.Testing.Infrastructure\EIP.Testing.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
