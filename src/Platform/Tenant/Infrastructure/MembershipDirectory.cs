@@ -35,19 +35,22 @@ public sealed class MembershipDirectory : IMembershipDirectory
                 from m in db.Memberships
                 join t in db.Tenants on m.TenantId equals t.Id
                 where m.UserId == userId && m.Status == MembershipStatus.Active
-                select new MembershipSummary(t.Id, t.Name, t.Slug))
+                select new MembershipSummary(t.Id, t.Name, t.Slug, m.Role.ToString()))
                 .ToListAsync(cancellationToken);
 
             return (IReadOnlyList<MembershipSummary>)memberships;
         });
     }
 
-    public Task<bool> HasActiveMembershipAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken)
+    public Task<MembershipSummary?> GetActiveMembershipAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken)
     {
-        return RunWithSystemContextAsync(db =>
-            db.Memberships.AnyAsync(
-                m => m.UserId == userId && m.TenantId == tenantId && m.Status == MembershipStatus.Active,
-                cancellationToken));
+        return RunWithSystemContextAsync(async db =>
+            await (
+                from m in db.Memberships
+                join t in db.Tenants on m.TenantId equals t.Id
+                where m.UserId == userId && m.TenantId == tenantId && m.Status == MembershipStatus.Active
+                select new MembershipSummary(t.Id, t.Name, t.Slug, m.Role.ToString()))
+                .SingleOrDefaultAsync(cancellationToken));
     }
 
     private async Task<T> RunWithSystemContextAsync<T>(Func<TenantDbContext, Task<T>> operation)

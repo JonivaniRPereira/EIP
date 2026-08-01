@@ -1,10 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" Version="9.0.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <!-- Pin transitivo: Microsoft.OpenApi 2.0.0 (trazido pelo pacote acima) tem vulnerabilidade conhecida (GHSA-v5pm-xwqc-g5wc); corrigida a partir de 2.7.5. -->
     <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.17.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.17.0-beta.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.17.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.17.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.17.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -12,6 +22,7 @@
     <ProjectReference Include="..\Platform\Identity\Infrastructure\EIP.Platform.Identity.Infrastructure.csproj" />
     <ProjectReference Include="..\Platform\Tenant\Api\EIP.Platform.Tenant.Api.csproj" />
     <ProjectReference Include="..\Platform\Tenant\Infrastructure\EIP.Platform.Tenant.Infrastructure.csproj" />
+    <ProjectReference Include="..\BuildingBlocks.Web\EIP.BuildingBlocks.Web.csproj" />
   </ItemGroup>
 
 </Project>

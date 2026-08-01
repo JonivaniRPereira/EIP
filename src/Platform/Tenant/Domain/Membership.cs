@@ -10,15 +10,17 @@ public sealed class Membership : Entity<Guid>
 {
     public Guid UserId { get; private set; }
     public Guid TenantId { get; private set; }
+    public MembershipRole Role { get; private set; }
     public MembershipStatus Status { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
-    private Membership(Guid id, Guid userId, Guid tenantId)
+    private Membership(Guid id, Guid userId, Guid tenantId, MembershipRole role)
         : base(id)
     {
         UserId = userId;
         TenantId = tenantId;
+        Role = role;
         Status = MembershipStatus.Invited;
         CreatedAt = DateTimeOffset.UtcNow;
         UpdatedAt = CreatedAt;
@@ -28,7 +30,7 @@ public sealed class Membership : Entity<Guid>
     {
     }
 
-    public static Membership Create(Guid userId, Guid tenantId)
+    public static Membership Create(Guid userId, Guid tenantId, MembershipRole role)
     {
         if (userId == Guid.Empty)
         {
@@ -40,7 +42,7 @@ public sealed class Membership : Entity<Guid>
             throw new ArgumentException("TenantId é obrigatório.", nameof(tenantId));
         }
 
-        return new Membership(Guid.NewGuid(), userId, tenantId);
+        return new Membership(Guid.NewGuid(), userId, tenantId, role);
     }
 
     public void Activate()

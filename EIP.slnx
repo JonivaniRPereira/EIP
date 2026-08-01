@@ -3,6 +3,9 @@
   <Folder Name="/src/BuildingBlocks/">
     <Project Path="src/BuildingBlocks/EIP.BuildingBlocks.csproj" />
   </Folder>
+  <Folder Name="/src/BuildingBlocks.Web/">
+    <Project Path="src/BuildingBlocks.Web/EIP.BuildingBlocks.Web.csproj" />
+  </Folder>
   <Folder Name="/src/Host/">
     <Project Path="src/Host/EIP.Host.csproj" />
   </Folder>
@@ -38,6 +41,7 @@
   </Folder>
   <Folder Name="/tests/" />
   <Folder Name="/tests/Integration/">
+    <Project Path="tests/Integration/EIP.Host.IntegrationTests/EIP.Host.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Platform.Tenant.Infrastructure.IntegrationTests/EIP.Platform.Tenant.Infrastructure.IntegrationTests.csproj" />
   </Folder>
 </Solution>

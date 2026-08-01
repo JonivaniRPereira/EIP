@@ -15,6 +15,7 @@ public sealed class MembershipConfiguration : IEntityTypeConfiguration<Membershi
 
         builder.Property(m => m.UserId).IsRequired();
         builder.Property(m => m.TenantId).IsRequired();
+        builder.Property(m => m.Role).HasConversion<string>().HasMaxLength(30).IsRequired();
         builder.Property(m => m.Status).HasConversion<string>().HasMaxLength(30).IsRequired();
 
         builder.HasIndex(m => m.TenantId);

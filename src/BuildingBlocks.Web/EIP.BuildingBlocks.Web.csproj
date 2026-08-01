@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <!-- Precisa da mesma cópia de Microsoft.AspNetCore.Authorization usada pelos projetos .Api
+         (via FrameworkReference); referenciar o pacote NuGet solto aqui causa conflito de
+         identidade de assembly em runtime e faz o ASP.NET Core descartar silenciosamente os
+         controllers do projeto .Api que usam os tipos daqui (ex. RequirePermissionAttribute). -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BuildingBlocks\EIP.BuildingBlocks.csproj" />
+  </ItemGroup>
+
+</Project>

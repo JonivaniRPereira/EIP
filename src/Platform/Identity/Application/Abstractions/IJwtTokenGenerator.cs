@@ -9,5 +9,7 @@ public interface IJwtTokenGenerator
     /// <param name="tenantId">Nulo quando o usuário ainda não selecionou um tenant (login com
     /// múltiplas memberships ativas) — o token, nesse caso, só permite o endpoint de seleção de
     /// tenant (docs/08-Multi-Tenant.md §5.2).</param>
-    JwtAccessToken GenerateAccessToken(Guid userId, string email, Guid? tenantId);
+    /// <param name="permissions">Resolvidas a partir do papel da membership ativa no tenant
+    /// selecionado; vazio quando <paramref name="tenantId"/> é nulo.</param>
+    JwtAccessToken GenerateAccessToken(Guid userId, string email, Guid? tenantId, IReadOnlyCollection<string> permissions);
 }

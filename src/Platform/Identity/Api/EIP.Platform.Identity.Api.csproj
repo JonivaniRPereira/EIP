@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Application\EIP.Platform.Identity.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\EIP.Platform.Identity.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\Shared\EIP.Shared.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks.Web\EIP.BuildingBlocks.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -40,6 +40,9 @@ Este documento **não substitui** nenhuma regra definida em `docs/00` a `docs/15
 | Autenticação | ASP.NET Core Identity + emissão própria de JWT (federação OIDC/SAML fica para fase posterior) | `docs/07-Seguranca.md §5.1`, `docs/03 §9.1` |
 | Object Storage local | MinIO (S3-compatible) | `docs/03-Stack-Tecnologica.md §6.2` |
 | Ambiente local | Docker Compose (confirmado: Docker 29.6.1 / Compose v5.2.0 instalados) | `docs/14-DevOps.md §4` |
+| BuildingBlocks x BuildingBlocks.Web | `EIP.BuildingBlocks` fica 100% livre de ASP.NET Core (usável por Domain/Application). Qualquer building block que precise de tipos de ASP.NET Core (ex. `Microsoft.AspNetCore.Authorization`) vai em `EIP.BuildingBlocks.Web` (novo projeto, `FrameworkReference` a `Microsoft.AspNetCore.App`), referenciado só por `.Api`/Host. Misturar as duas coisas no mesmo projeto quebra silenciosamente a descoberta de controllers (ver E2.5) | Descoberto e corrigido em E2.5 |
+| RabbitMQ.Client v7 é assíncrono | `AddRabbitMQ(...)` do `AspNetCore.HealthChecks.Rabbitmq` precisa de uma factory `Func<IServiceProvider, Task<IConnection>>` (`new ConnectionFactory{Uri=...}.CreateConnectionAsync()`), não mais uma string de conexão direta — `CreateConnection()` síncrono foi removido no client 7.x | E3.3 |
+| Pacotes OpenTelemetry ainda beta | `OpenTelemetry.Exporter.Prometheus.AspNetCore` não tem release GA no ecossistema .NET (situação de anos, não peculiaridade deste projeto) — usado mesmo assim, pinado em versão beta exata, por ser a única opção para expor métricas em formato Prometheus hoje. `OpenTelemetry.Instrumentation.EntityFrameworkCore` (também só beta) foi deixado de fora nesta passada para não acumular mais dependências beta do que o estritamente necessário | E3.5 |
 
 ---
 
@@ -108,21 +111,33 @@ Objetivo: fluxo de autenticação + isolamento de tenant realmente aplicado no b
     - Login com **0** memberships ativas → token sem `tenant_id`, `requiresTenantSelection=true`, lista vazia. Com **exatamente 1** → seleciona automaticamente. Com **2+** → exige seleção explícita (`docs/08 §5.2`), retornando as opções.
     - Testado manualmente ponta a ponta contra o Host rodando com o SQL Server do E1: register → login (auto-seleção) → refresh (rotação confirmada; reuso do token antigo rejeitado) → cenário com 2 tenants → `select-tenant` rejeita tenant que o usuário não pertence e aceita o correto.
     - Lockout habilitado via `UserManager` (5 tentativas, 5 min) — brute force (`docs/07-Seguranca.md §5.1`).
-- [ ] **E2.5** Autorização por permissão + escopo (`Identidade + Tenant + Workspace + Empresa + Recurso + Ação`, simplificado para o que existe no MVP) com "negar por padrão".
-  - *Depende de:* E2.4.
-- [ ] **E2.6** Testes automatizados obrigatórios de isolamento cross-tenant (`docs/08 §13`): usuário do tenant A não lista/lê/atualiza/exclui recurso do tenant B, mesmo com ID adulterado no payload.
+- [x] **E2.5** Autorização por permissão + escopo (`Identidade + Tenant + Workspace + Empresa + Recurso + Ação`, simplificado para o que existe no MVP) com "negar por padrão".
+  - *Depende de:* E2.4. ✅ Concluído e validado manualmente contra o Host real:
+    - `Membership.Role` (`MembershipRole`: Owner/Admin/Member) + `EIP.Shared.Contracts.Tenancy.RolePermissions`/`TenantPermissions` (mapeamento papel→permissões; vive em Shared porque o domínio Identity precisa resolvê-lo sem depender do domínio Tenant).
+    - Claim `permissions` (comma-separated) embutida no JWT em login/select-tenant/refresh — sempre **resolvida de novo** a cada emissão (nunca copiada), então uma mudança de papel/revogação de membership reflete no próximo refresh.
+    - `RequirePermissionAttribute` + `PermissionAuthorizationHandler` + `PermissionAuthorizationPolicyProvider` (policy dinâmica `permission:{nome}`) — nega por padrão se a claim não contiver a permissão.
+    - `FallbackPolicy` global exige autenticação para qualquer endpoint sem `[Authorize]`/`[AllowAnonymous]` explícito — inclusive endpoints de infraestrutura como `/openapi/*` (ver nota de arquitetura abaixo).
+    - Endpoint de referência `GET /api/v1/tenants/{tenantId}` (`TenantsController`) exige `RequirePermission(TenantPermissions.TenantView)` **e** valida explicitamente que o `tenantId` da rota bate com o claim `tenant_id` do token — RLS bloqueia no banco, isto bloqueia na API (defesa em profundidade).
+    - **Achado de arquitetura importante:** tipos de autorização do ASP.NET Core (`AuthorizeAttribute`, `IAuthorizationHandler` etc.) não podem viver em `EIP.BuildingBlocks` (classlib sem `FrameworkReference`) referenciando o pacote NuGet solto `Microsoft.AspNetCore.Authorization` — isso cria um conflito de identidade de assembly com a cópia do framework compartilhado usada pelos projetos `.Api` (que têm `FrameworkReference`), fazendo o ASP.NET Core **descartar silenciosamente** (sem erro, sem log) qualquer controller que referencie esses tipos. Corrigido criando `EIP.BuildingBlocks.Web` (novo projeto, COM `FrameworkReference`, referenciado só por `.Api`/Host — nunca por Domain/Application) para tudo que depende de ASP.NET Core. Ver `AuthorizationPolicyProvider`/`AuthorizationHandler`/`RequirePermissionAttribute` lá.
+- [x] **E2.6** Testes automatizados obrigatórios de isolamento cross-tenant (`docs/08 §13`): usuário do tenant A não lista/lê/atualiza/exclui recurso do tenant B, mesmo com ID adulterado no payload.
   - *Depende de:* E2.2, E2.3, E2.5.
-  - *Aceite:* suíte de teste dedicada roda no CI e falha o build se algum teste de isolamento falhar. **Este teste é o gate mínimo para considerar E2 concluído.**
-- [ ] **E2.7** Auditoria mínima: login, falha de login, criação/alteração de membership (`docs/07-Seguranca.md §11.2`).
+  - *Aceite:* suíte de teste dedicada roda no CI e falha o build se algum teste de isolamento falhar. **Este teste é o gate mínimo para considerar E2 concluído.** ✅ Concluído — `tests/Integration/EIP.Host.IntegrationTests` (`WebApplicationFactory<Program>`, HTTP real, não SQL bruto): usuário A lendo `GET /api/v1/tenants/{tenantIdDeB}` → 403 mesmo com o ID adulterado na rota; sem token → 401; `select-tenant` para tenant que não pertence → falha. 4/4 aprovados. Precisou expor `public partial class Program;` no `Program.cs` do Host (top-level statements geram uma classe implícita `internal`).
+- [x] **E2.7** Auditoria mínima: login, falha de login, criação/alteração de membership (`docs/07-Seguranca.md §11.2`).
+  - ✅ Concluído (parcial, por design): `AuditEvent` (schema `identity`, sem RLS — não é dado de tenant) registra `UserRegistered`, `LoginSucceeded`, `LoginFailed` (usuário não encontrado / senha errada, mesma mensagem genérica) e `LoginLockedOut`. Confirmado via os próprios testes automatizados (linhas gravadas durante os testes do E2.6). Auditoria de criação/alteração de **membership** fica pendente até existir um endpoint de gestão de membership (fora do escopo de E2, que é só autenticação) — não inventei um endpoint só para isso.
 
 ## E3 — API Versionada e Observabilidade Básica
 
-- [ ] **E3.1** Prefixo `/api/v1`, `ProblemDetails` para erros padronizados, DTOs não expõem entidades de domínio.
-- [ ] **E3.2** OpenAPI publicado e versionado junto do código.
-- [ ] **E3.3** Health checks (liveness/readiness) cobrindo dependências críticas (SQL Server, Redis, RabbitMQ).
-- [ ] **E3.4** Middleware de `CorrelationId` (aceito ou gerado), propagado em logs.
-- [ ] **E3.5** Logs estruturados via Serilog; traces/métricas básicos via OpenTelemetry.
-  - *Aceite combinado (E3.1–E3.5):* uma chamada autenticada em `/api/v1/...` aparece nos logs com `CorrelationId`, retorna erro em formato `ProblemDetails` quando aplicável, e os health checks respondem `healthy`/`unhealthy` corretamente quando uma dependência cai.
+- [x] **E3.1** Prefixo `/api/v1`, `ProblemDetails` para erros padronizados, DTOs não expõem entidades de domínio.
+  - ✅ Concluído. `AddProblemDetails()` + `UseExceptionHandler()` cobrem exceções não tratadas (500) e validação automática do `[ApiController]` (400) com o mesmo formato; `CustomizeProblemDetails` injeta `traceId`/`correlationId`. `TenantsController` passou a devolver `TenantDto` (era objeto anônimo) — nenhum controller expõe entidade de domínio.
+- [x] **E3.2** OpenAPI publicado e versionado junto do código.
+  - ✅ Concluído. `AddOpenApi()`/`MapOpenApi()` (já existiam desde E0) + `.AllowAnonymous()` explícito, já que o `FallbackPolicy` do E2.5 passou a exigir autenticação por padrão em qualquer endpoint sem anotação — sem isso o próprio doc de API ficava atrás de login. Validado: `GET /openapi/v1.json` → 200 sem token.
+- [x] **E3.3** Health checks (liveness/readiness) cobrindo dependências críticas (SQL Server, Redis, RabbitMQ).
+  - ✅ Concluído. `/health/live` nunca depende de dependência externa (`Predicate = _ => false`, só reporta o processo vivo — não derruba por uma dependência instável). `/health/ready` roda os checks tagueados `ready`: `tenant-db`, `identity-db` (SQL Server via `AspNetCore.HealthChecks.SqlServer`), `redis` (`AspNetCore.HealthChecks.Redis` + `StackExchange.Redis`), `rabbitmq` (`AspNetCore.HealthChecks.Rabbitmq` + `RabbitMQ.Client` 7.x — API mudou para conexão assíncrona, então o registro usa uma factory `Func<IServiceProvider, Task<IConnection>>`, não mais string de conexão direta). Resposta em JSON custom (`HealthCheckResponseWriter`) listando status por dependência. **Validado de verdade**: parei o container `eip-rabbitmq` → `/health/ready` foi a 503 com `rabbitmq: Unhealthy` (as outras 3 dependências continuaram `Healthy`); religuei o container → voltou a `Healthy` depois de alguns segundos.
+- [x] **E3.4** Middleware de `CorrelationId` (aceito ou gerado), propagado em logs.
+  - ✅ Concluído. Primeiro middleware do pipeline: usa `X-Correlation-Id` do request se presente, senão gera um novo; devolve no header de resposta; empurra para o `Serilog.Context.LogContext` para aparecer em toda linha de log da requisição. Validado nos logs reais (ver E3.5).
+- [x] **E3.5** Logs estruturados via Serilog; traces/métricas básicos via OpenTelemetry.
+  - ✅ Concluído. Serilog (`Serilog.AspNetCore` + `Serilog.Sinks.Console`) com `UseSerilogRequestLogging()` — uma linha estruturada por requisição, com `CorrelationId` visível. OpenTelemetry (`AddAspNetCoreInstrumentation` + `AddHttpClientInstrumentation`) para traces (exportados via console — sem coletor na Fase 0) e métricas expostas em `/metrics` via `OpenTelemetry.Exporter.Prometheus.AspNetCore` (**pacote ainda beta** — o exporter Prometheus do ecossistema OpenTelemetry .NET não tem GA disponível; é o único caminho hoje). Instrumentação de EF Core (`OpenTelemetry.Instrumentation.EntityFrameworkCore`) também só existe em beta e foi deixada de fora nesta passada para não acumular mais dependências beta do que o necessário.
+  - *Aceite combinado (E3.1–E3.5):* uma chamada autenticada em `/api/v1/...` aparece nos logs com `CorrelationId`, retorna erro em formato `ProblemDetails` quando aplicável, e os health checks respondem `healthy`/`unhealthy` corretamente quando uma dependência cai. ✅ Validado de ponta a ponta com o Host rodando de verdade (ver detalhes acima em cada subtarefa).
 
 ## E4 — Gateway (YARP)
 
@@ -169,8 +184,8 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 |---|---|
 | E0 — Scaffolding da Solução | ✅ Concluído (2026-08) |
 | E1 — Infraestrutura Local | ✅ Concluído (2026-08) |
-| E2 — Identity & Tenant + RLS | 🔶 Em andamento — E2.1–E2.4 concluídos; faltam E2.5 (autorização), E2.6 (testes de isolamento em nível de API) e E2.7 (auditoria) |
-| E3 — API versionada e observabilidade | Não iniciado |
+| E2 — Identity & Tenant + RLS | ✅ Concluído (2026-08) |
+| E3 — API versionada e observabilidade | ✅ Concluído (2026-08) |
 | E4 — Gateway | Não iniciado |
 | E5 — CI | Não iniciado |
 | E6 — Frontend Angular | Não iniciado |

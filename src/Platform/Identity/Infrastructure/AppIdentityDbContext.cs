@@ -13,6 +13,8 @@ public sealed class AppIdentityDbContext : IdentityDbContext<ApplicationUser, Id
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
+    public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
+
     public AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options)
         : base(options)
     {

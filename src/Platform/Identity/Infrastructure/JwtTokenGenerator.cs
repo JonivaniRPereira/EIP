@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using EIP.BuildingBlocks.Security;
 using EIP.Platform.Identity.Application.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -9,8 +10,6 @@ namespace EIP.Platform.Identity.Infrastructure;
 
 public sealed class JwtTokenGenerator : IJwtTokenGenerator
 {
-    public const string TenantIdClaimType = "tenant_id";
-
     private readonly JwtOptions _options;
 
     public JwtTokenGenerator(IOptions<JwtOptions> options)
@@ -18,7 +17,7 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
         _options = options.Value;
     }
 
-    public JwtAccessToken GenerateAccessToken(Guid userId, string email, Guid? tenantId)
+    public JwtAccessToken GenerateAccessToken(Guid userId, string email, Guid? tenantId, IReadOnlyCollection<string> permissions)
     {
         var expiresAtUtc = DateTimeOffset.UtcNow.AddMinutes(_options.AccessTokenLifetimeMinutes);
 
@@ -31,7 +30,12 @@ public sealed class JwtTokenGenerator : IJwtTokenGenerator
 
         if (tenantId is not null)
         {
-            claims.Add(new Claim(TenantIdClaimType, tenantId.Value.ToString()));
+            claims.Add(new Claim(EipClaimTypes.TenantId, tenantId.Value.ToString()));
+        }
+
+        if (permissions.Count > 0)
+        {
+            claims.Add(new Claim(EipClaimTypes.Permissions, string.Join(',', permissions)));
         }
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey));

@@ -11,7 +11,8 @@ public interface IMembershipDirectory
     /// selecionado automaticamente ou se requer seleção explícita (docs/08-Multi-Tenant.md §5.2).</summary>
     Task<IReadOnlyList<MembershipSummary>> GetActiveMembershipsAsync(Guid userId, CancellationToken cancellationToken);
 
-    /// <summary>Confirma que o usuário possui membership ativa no tenant informado, antes de emitir
-    /// um token com aquele TenantId como claim.</summary>
-    Task<bool> HasActiveMembershipAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken);
+    /// <summary>Retorna a membership ativa do usuário no tenant informado (nula se não existir/não
+    /// estiver ativa) — usado tanto para confirmar acesso quanto para resolver o papel/permissões
+    /// antes de emitir um token com aquele TenantId como claim.</summary>
+    Task<MembershipSummary?> GetActiveMembershipAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken);
 }

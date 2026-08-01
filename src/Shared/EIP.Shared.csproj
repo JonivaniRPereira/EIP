@@ -1,4 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <!-- CA1716: "Shared" é o nome do módulo definido em docs/00-Arquitetura-do-Repositorio.md; não muda. -->
+    <NoWarn>$(NoWarn);CA1716</NoWarn>
+  </PropertyGroup>
 
 </Project>
