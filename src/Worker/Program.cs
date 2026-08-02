@@ -8,6 +8,10 @@ using EIP.Data.Connector.Infrastructure;
 using EIP.Data.DataLake;
 using EIP.Data.DataLake.Infrastructure;
 using EIP.Data.Pipeline;
+using EIP.Data.Warehouse.Application;
+using EIP.Data.Warehouse.Infrastructure;
+using EIP.Platform.Tenant.Infrastructure;
+using EIP.Shared.Contracts.Tenancy;
 using EIP.Worker.Sync;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +33,10 @@ var connectorConnectionString = builder.Configuration.GetConnectionString("Conne
     ?? throw new InvalidOperationException("ConnectionStrings:ConnectorDb não configurado.");
 var canonicalConnectionString = builder.Configuration.GetConnectionString("CanonicalDb")
     ?? throw new InvalidOperationException("ConnectionStrings:CanonicalDb não configurado.");
+var warehouseConnectionString = builder.Configuration.GetConnectionString("WarehouseDb")
+    ?? throw new InvalidOperationException("ConnectionStrings:WarehouseDb não configurado.");
+var tenantConnectionString = builder.Configuration.GetConnectionString("TenantDb")
+    ?? throw new InvalidOperationException("ConnectionStrings:TenantDb não configurado.");
 var rabbitMqConnectionString = builder.Configuration.GetConnectionString("RabbitMQ")
     ?? throw new InvalidOperationException("ConnectionStrings:RabbitMQ não configurado.");
 
@@ -45,9 +53,21 @@ builder.Services.AddDbContextFactory<CanonicalDbContext>((sp, options) =>
     options.UseSqlServer(canonicalConnectionString)
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 
+builder.Services.AddDbContextFactory<WarehouseDbContext>((sp, options) =>
+    options.UseSqlServer(warehouseConnectionString)
+        .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
+
+builder.Services.AddDbContextFactory<TenantDbContext>((sp, options) =>
+    options.UseSqlServer(tenantConnectionString)
+        .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
+
 builder.Services.AddSingleton<IConnectorSyncStore, ConnectorSyncStore>();
 builder.Services.AddSingleton<ICanonicalRecordStore, CanonicalRecordStore>();
 builder.Services.AddSingleton<ICanonicalReconciliationService, CanonicalReconciliationService>();
+builder.Services.AddSingleton<ITenantDirectory, TenantDirectory>();
+builder.Services.AddSingleton<IWarehouseLoadStore, WarehouseLoadStore>();
+builder.Services.AddSingleton<IWarehouseLoadService, WarehouseLoadService>();
+builder.Services.AddSingleton<IWarehouseReconciliationService, WarehouseReconciliationService>();
 
 var dataLakeOptions = builder.Configuration.GetSection(S3RawObjectStoreOptions.SectionName).Get<S3RawObjectStoreOptions>()
     ?? throw new InvalidOperationException("Seção de configuração 'DataLake' não configurada.");

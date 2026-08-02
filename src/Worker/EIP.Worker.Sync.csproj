@@ -13,6 +13,9 @@
     <ProjectReference Include="..\Data\DataLake\EIP.Data.DataLake.csproj" />
     <ProjectReference Include="..\Data\DataLake.Infrastructure\EIP.Data.DataLake.Infrastructure.csproj" />
     <ProjectReference Include="..\Data\Pipeline\EIP.Data.Pipeline.csproj" />
+    <ProjectReference Include="..\Data\Warehouse\Application\EIP.Data.Warehouse.Application.csproj" />
+    <ProjectReference Include="..\Data\Warehouse\Infrastructure\EIP.Data.Warehouse.Infrastructure.csproj" />
+    <ProjectReference Include="..\Platform\Tenant\Infrastructure\EIP.Platform.Tenant.Infrastructure.csproj" />
     <ProjectReference Include="..\BuildingBlocks\EIP.BuildingBlocks.csproj" />
     <ProjectReference Include="..\BuildingBlocks.Data\EIP.BuildingBlocks.Data.csproj" />
   </ItemGroup>

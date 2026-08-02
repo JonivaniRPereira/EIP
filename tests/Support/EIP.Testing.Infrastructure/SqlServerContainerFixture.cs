@@ -1,5 +1,6 @@
 using EIP.Data.Canonical.Infrastructure;
 using EIP.Data.Connector.Infrastructure;
+using EIP.Data.Warehouse.Infrastructure;
 using EIP.Platform.Identity.Infrastructure;
 using EIP.Platform.Tenant.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -53,6 +54,14 @@ public static class DatabaseMigrator
         await using (var canonicalDb = new CanonicalDbContext(canonicalOptions))
         {
             await canonicalDb.Database.MigrateAsync();
+        }
+
+        var warehouseOptions = new DbContextOptionsBuilder<WarehouseDbContext>()
+            .UseSqlServer(connectionString, sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", WarehouseDbContext.Schema))
+            .Options;
+        await using (var warehouseDb = new WarehouseDbContext(warehouseOptions))
+        {
+            await warehouseDb.Database.MigrateAsync();
         }
     }
 }

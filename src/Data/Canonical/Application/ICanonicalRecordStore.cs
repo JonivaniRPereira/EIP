@@ -48,4 +48,15 @@ public interface ICanonicalRecordStore
     /// <summary>Estado atual persistido para a fatia Comercial de um conector — contagem de faturas e
     /// soma de <c>NetAmount</c> — usado pela reconciliação Canônico↔Origem (docs/04 §8.3, E4.3).</summary>
     Task<(int Count, decimal NetAmountTotal)> GetSalesInvoiceTotalsAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken);
+
+    /// <summary>Mesma ideia de <see cref="GetSalesInvoiceTotalsAsync"/>, mas no grão de item (não de
+    /// cabeçalho da fatura) — usado pela reconciliação Canônico↔Fato (docs/09-Data-Warehouse.md §8.2,
+    /// E5.4), já que <c>FactSalesInvoiceItem</c> tem uma linha por item, não por fatura.</summary>
+    Task<(int Count, decimal NetAmountTotal)> GetSalesInvoiceItemTotalsAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken);
+
+    /// <summary>Lote válido pronto para a carga do Data Warehouse (E5.3, docs/09 §7.1, passo 1) — um
+    /// item por linha, já com a fatura e as entidades de referência resolvidas. Reflete o estado
+    /// atual do Canônico (não um delta desde a última carga — nenhuma incrementalidade ainda,
+    /// mesma simplificação já aceita em outros pontos desta fase).</summary>
+    Task<IReadOnlyList<SalesInvoiceItemForLoad>> ListSalesInvoiceItemsForLoadAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken);
 }

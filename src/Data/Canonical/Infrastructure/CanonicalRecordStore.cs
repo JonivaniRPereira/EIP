@@ -171,6 +171,63 @@ public sealed class CanonicalRecordStore : ICanonicalRecordStore
         return (count, netAmountTotal);
     }
 
+    public async Task<(int Count, decimal NetAmountTotal)> GetSalesInvoiceItemTotalsAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var items = db.SalesInvoiceItems.Where(i => i.TenantId == tenantId && i.SourceSystemId == sourceSystemId);
+
+        var count = await items.CountAsync(cancellationToken);
+        var netAmountTotal = count == 0 ? 0m : await items.SumAsync(i => i.NetAmount, cancellationToken);
+
+        return (count, netAmountTotal);
+    }
+
+    public async Task<IReadOnlyList<SalesInvoiceItemForLoad>> ListSalesInvoiceItemsForLoadAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var query =
+            from item in db.SalesInvoiceItems
+            where item.TenantId == tenantId && item.SourceSystemId == sourceSystemId
+            join invoice in db.SalesInvoices on item.SalesInvoiceId equals invoice.Id
+            join customer in db.Customers on invoice.CustomerId equals customer.Id
+            join product in db.Products on item.ProductId equals product.Id
+            select new SalesInvoiceItemForLoad(
+                item.TenantId,
+                item.CompanyId,
+                item.SourceSystemId,
+                item.SourceEntity,
+                item.SourceRecordId,
+                item.RawObjectUri,
+                invoice.Id,
+                item.Id,
+                invoice.InvoiceNumber,
+                invoice.IssueDate,
+                invoice.CurrencyCode,
+                invoice.Status,
+                item.LineNumber,
+                item.Quantity,
+                item.GrossAmount,
+                item.DiscountAmount,
+                item.TaxAmount,
+                item.NetAmount,
+                customer.Id,
+                customer.Code,
+                customer.Name,
+                customer.City,
+                customer.StateOrRegion,
+                customer.CountryCode,
+                customer.IsActive,
+                product.Id,
+                product.Code,
+                product.Name,
+                product.ProductType,
+                product.UnitOfMeasure,
+                product.IsActive);
+
+        return await query.ToListAsync(cancellationToken);
+    }
+
     private static Task<TEntity?> FindByBusinessKeyAsync<TEntity>(DbSet<TEntity> set, TEntity candidate, CancellationToken cancellationToken)
         where TEntity : CanonicalEntity
     {

@@ -48,6 +48,16 @@
   <Folder Name="/src/Data/Pipeline/">
     <Project Path="src/Data/Pipeline/EIP.Data.Pipeline.csproj" />
   </Folder>
+  <Folder Name="/src/Data/Warehouse/" />
+  <Folder Name="/src/Data/Warehouse/Application/">
+    <Project Path="src/Data/Warehouse/Application/EIP.Data.Warehouse.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/Warehouse/Domain/">
+    <Project Path="src/Data/Warehouse/Domain/EIP.Data.Warehouse.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/Warehouse/Infrastructure/">
+    <Project Path="src/Data/Warehouse/Infrastructure/EIP.Data.Warehouse.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Platform/" />
   <Folder Name="/src/Platform/Identity/" />
   <Folder Name="/src/Platform/Identity/Api/">
@@ -85,6 +95,7 @@
   <Folder Name="/tests/Integration/">
     <Project Path="tests/Integration/EIP.Data.DataLake.Infrastructure.IntegrationTests/EIP.Data.DataLake.Infrastructure.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Data.Pipeline.IntegrationTests/EIP.Data.Pipeline.IntegrationTests.csproj" />
+    <Project Path="tests/Integration/EIP.Data.Warehouse.IntegrationTests/EIP.Data.Warehouse.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Host.IntegrationTests/EIP.Host.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Platform.Tenant.Infrastructure.IntegrationTests/EIP.Platform.Tenant.Infrastructure.IntegrationTests.csproj" />
   </Folder>

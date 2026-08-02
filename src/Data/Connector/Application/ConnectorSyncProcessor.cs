@@ -3,6 +3,7 @@ using EIP.Data.Connector.Application.Abstractions;
 using EIP.Data.Connector.Application.Contracts;
 using EIP.Data.DataLake;
 using EIP.Data.Pipeline;
+using EIP.Data.Warehouse.Application;
 using EIP.Shared.Contracts.Canonical;
 using Microsoft.Extensions.Logging;
 
@@ -10,8 +11,8 @@ namespace EIP.Data.Connector.Application;
 
 public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
 {
-    // Limite de divergência aceitável na reconciliação Canônico↔Origem (docs/04 §8.3) — fixo nesta
-    // fase; parametrização por tenant/conector fica para quando houver demanda real (E5/E6).
+    // Limite de divergência aceitável nas reconciliações (docs/04 §8.3, docs/09 §8.2) — fixo nesta
+    // fase; parametrização por tenant/conector fica para quando houver demanda real (Fase 2).
     private const decimal ReconciliationToleranceFraction = 0.01m;
 
     private readonly IConnectorSyncStore _store;
@@ -19,6 +20,8 @@ public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
     private readonly IRawObjectStore _rawObjectStore;
     private readonly IPipelineProcessor _pipelineProcessor;
     private readonly ICanonicalReconciliationService _reconciliationService;
+    private readonly IWarehouseLoadService _warehouseLoadService;
+    private readonly IWarehouseReconciliationService _warehouseReconciliationService;
     private readonly ILogger<ConnectorSyncProcessor> _logger;
 
     public ConnectorSyncProcessor(
@@ -27,6 +30,8 @@ public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
         IRawObjectStore rawObjectStore,
         IPipelineProcessor pipelineProcessor,
         ICanonicalReconciliationService reconciliationService,
+        IWarehouseLoadService warehouseLoadService,
+        IWarehouseReconciliationService warehouseReconciliationService,
         ILogger<ConnectorSyncProcessor> logger)
     {
         _store = store;
@@ -34,6 +39,8 @@ public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
         _rawObjectStore = rawObjectStore;
         _pipelineProcessor = pipelineProcessor;
         _reconciliationService = reconciliationService;
+        _warehouseLoadService = warehouseLoadService;
+        _warehouseReconciliationService = warehouseReconciliationService;
         _logger = logger;
     }
 
@@ -107,6 +114,20 @@ public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
                 {
                     LogReconciliationOutOfTolerance(run.Id, reconciliation.Discrepancy);
                 }
+
+                // Carga do Warehouse (E5.3) — sempre a partir do Modelo Canônico já validado acima,
+                // nunca direto da origem (docs/09 §7.1).
+                await _warehouseLoadService.LoadSalesInvoiceItemsAsync(instance.TenantId, instance.Id, message.CorrelationId, cancellationToken);
+
+                // Reconciliação Canônico↔Fato (docs/09 §8.2, E5.4) — mesmo padrão não bloqueante da
+                // reconciliação Canônico↔Origem acima.
+                var warehouseReconciliation = await _warehouseReconciliationService.ReconcileSalesInvoiceItemsAsync(
+                    instance.TenantId, instance.Id, ReconciliationToleranceFraction, cancellationToken);
+
+                if (!warehouseReconciliation.IsWithinTolerance)
+                {
+                    LogWarehouseReconciliationOutOfTolerance(run.Id, warehouseReconciliation.Discrepancy);
+                }
             }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -122,4 +143,7 @@ public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Reconciliação Canônico↔Origem fora da tolerância para SyncRun {SyncRunId}: {Discrepancy}")]
     private partial void LogReconciliationOutOfTolerance(Guid syncRunId, string? discrepancy);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Reconciliação Canônico↔Fato fora da tolerância para SyncRun {SyncRunId}: {Discrepancy}")]
+    private partial void LogWarehouseReconciliationOutOfTolerance(Guid syncRunId, string? discrepancy);
 }

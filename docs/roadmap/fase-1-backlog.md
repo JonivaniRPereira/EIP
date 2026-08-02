@@ -358,7 +358,7 @@ listagem/reprocessamento de quarentena, e reconciliação silenciosa quando os d
 Objetivo: fechar `docs/09-Data-Warehouse.md` para o fato `FactSalesInvoiceItem` e suas dimensões
 mínimas, com RLS obrigatória (`docs/09 §4.1`).
 
-- [ ] **E5.1** Novo módulo `EIP.Data.Warehouse` (Domain/Infrastructure), schema `warehouse`.
+- [x] **E5.1** Novo módulo `EIP.Data.Warehouse` (Domain/Infrastructure), schema `warehouse`.
       Dimensões conformadas mínimas (`docs/09 §5.2`): `DimTenant`, `DimCompany` (com `CountryCode`
       de E2.1), `DimDate` (pré-gerada, calendário), `DimCustomer` (SCD Type 2), `DimProduct` (SCD
       Type 2), `DimProductCategory`, `DimCurrency` (mínima — só código + nome). Convenções
@@ -366,23 +366,86 @@ mínimas, com RLS obrigatória (`docs/09 §4.1`).
       em toda fato/dimensão tenant-scoped, nomes em inglês no modelo físico.
   - *Depende de:* E2.1, E2.2.
   - *Aceite:* migration inicial já nasce com RLS (mesmo padrão de sempre) nas dimensões/fato
-    tenant-scoped; `DimDate` não precisa de RLS (dado de referência, não tenant-scoped).
-- [ ] **E5.2** Fato `FactSalesInvoiceItem` (`docs/09 §5.3`): grão de uma linha por item de fatura
+    tenant-scoped; `DimDate` não precisa de RLS (dado de referência, não tenant-scoped). ✅
+    Concluído — `EIP.Data.Warehouse.{Domain,Application,Infrastructure}` (Application desde já,
+    diferente do Canonical em E2.2: o processo de carga precisava de uma abstração de acesso a dados
+    própria desde o início). Toda tabela com `TenantId` carrega **tanto** o `TenantKey` (surrogate
+    int, convenção dimensional de docs/09 §5.1) **quanto** o `TenantId` (Guid, discriminador real da
+    RLS via `SESSION_CONTEXT`) — os dois convivem porque a RLS deste projeto sempre compara contra o
+    Guid, nunca contra uma chave substituta. `DimDate`/`DimCurrency` são as únicas sem `TenantId`
+    (dado de referência compartilhado). `DimProductCategory` existe no esquema mas nunca é populada
+    nesta fase — mesma lacuna já aceita em `Canonical.Product.CategoryId` (conector de referência não
+    ingere categorias). Migration `InitialCreate` aplicada com RLS validada via SQL bruto real:
+    catálogo do sistema confirma zero tabelas com `TenantId` desprotegidas no schema `warehouse`;
+    isolamento cross-tenant provado com `INSERT`/`SELECT` reais (tenant B não vê linha do tenant A,
+    sem contexto não vê nenhuma). `DatabaseMigrator`/`RlsCoverageTests` atualizados para cobrir o
+    novo schema automaticamente (mesma regra permanente desde E2).
+- [x] **E5.2** Fato `FactSalesInvoiceItem` (`docs/09 §5.3`): grão de uma linha por item de fatura
       emitida; métricas mínimas (quantidade, bruto, desconto, imposto, líquido — custo/margem só se
       disponível na origem, o que não é o caso do conector de referência nesta fase, então ficam de
       fora por enquanto).
-  - *Depende de:* E5.1.
-- [ ] **E5.3** Processo de carga (`docs/09 §7.1`): staging → resolução de dimensões (aplicando SCD 2
+  - *Depende de:* E5.1. ✅ Concluído — chave de negócio para upsert idempotente é
+    `(TenantId, SourceSystemId, SourceEntity, SourceRecordId)`, a mesma linhagem do CDM (docs/04
+    §4.1) — deliberadamente **não** `SalesInvoiceItemId`: o Canônico substitui (delete+insert) os
+    itens de uma fatura a cada reprocessamento (E3.4), então esse Guid não é estável entre cargas,
+    só o `SourceRecordId` (`"{invoiceNumber}-{lineNumber}"`) é. Campos de linhagem completos
+    (`SalesInvoiceId`, `SalesInvoiceItemId` da versão atual, `RawObjectUri`, `LoadBatchId`) para
+    rastreabilidade Fonte→Raw→Canonical→Fact.
+- [x] **E5.3** Processo de carga (`docs/09 §7.1`): staging → resolução de dimensões (aplicando SCD 2
       em `DimCustomer`/`DimProduct` quando o atributo relevante muda) → materialização do fato →
       contagens de reconciliação. Disparado a partir do Modelo Canônico já validado (E3/E4), nunca
       direto da origem.
   - *Depende de:* E5.1, E5.2, E3.3.
   - *Aceite:* teste ponta a ponta: um `SyncRun` reflete em linhas de `FactSalesInvoiceItem`
     rastreáveis até o registro canônico e o objeto bruto correspondentes (critério de saída
-    "dado bruto, registro canônico e fato analítico podem ser rastreados entre si").
-- [ ] **E5.4** Reconciliação Canônico↔Fato (`docs/09 §8.2`): comparação de contagens/somas entre
+    "dado bruto, registro canônico e fato analítico podem ser rastreados entre si"). ✅ Concluído —
+    `IWarehouseLoadService`/`WarehouseLoadService`, chamado por `ConnectorSyncProcessor` logo após a
+    reconciliação Canônico↔Origem (E4.3), só para `sales-invoices`. Sem staging físico separado
+    nesta fase (YAGNI — o volume de referência não justifica); a "validação de tipos/duplicidade"
+    do passo 3 já foi feita pelo Pipeline (E3). Nova projeção `SalesInvoiceItemForLoad`
+    (`EIP.Data.Canonical.Application`) e `ICanonicalRecordStore.ListSalesInvoiceItemsForLoadAsync`:
+    o Warehouse nunca acessa o schema `canonical` diretamente, só essa abstração — mesmo princípio
+    já usado entre Pipeline e Canonical. **Nova abstração cross-domain**: `ITenantDirectory`
+    (`EIP.Shared.Contracts.Tenancy`, implementada por `EIP.Platform.Tenant.Infrastructure.
+    TenantDirectory`) — o Warehouse precisa do nome do tenant/empresa para `DimTenant`/`DimCompany`,
+    que só existem no módulo Tenant; mesmo padrão já estabelecido por `IMembershipDirectory` (E2.4).
+    SCD Tipo 2 em `DimCustomer`/`DimProduct`: fecha a versão atual (`EffectiveTo`/`IsCurrent=false`)
+    e abre uma nova só quando um atributo descritivo muda de fato
+    (`HasDescriptiveChangeComparedTo`) — nunca sobrescreve. **Decisão documentada**: a origem ainda
+    não fornece `SourceUpdatedAt` (sempre nulo no Pipeline), então toda versão nasce datada do
+    momento da carga, não do negócio; resolver a versão "válida para a data de negócio" (docs/09
+    §6.1) quando a fatura é anterior à primeira carga cai de volta para a versão mais antiga
+    conhecida (`ResolveDim{Customer,Product}KeyAsOfAsync`) — nunca falha por "não encontrado" para
+    uma entidade já carregada nesta execução. `LoadBatch` (novo, mirando `SyncRun`) registra
+    tenant/origem/correlação/contagens de cada carga. Validado com Testcontainers (3 testes novos:
+    rastreabilidade+idempotência, versionamento SCD2, reconciliação) e ao vivo (Host+Gateway+Worker+
+    SQL Server real): sincronização de sales-invoices gerou 5 linhas de `FactSalesInvoiceItem`
+    rastreáveis até `canonical.SalesInvoiceItems` e o `RawObjectUri` do MinIO; resincronizar manteve
+    exatamente 5 linhas (idempotente) com um novo `LoadBatch` de auditoria.
+- [x] **E5.4** Reconciliação Canônico↔Fato (`docs/09 §8.2`): comparação de contagens/somas entre
       `canonical.SalesInvoiceItem` e `warehouse.FactSalesInvoiceItem` por lote de carga.
-  - *Depende de:* E5.3, E4.3.
+  - *Depende de:* E5.3, E4.3. ✅ Concluído — `IWarehouseReconciliationService`/
+    `WarehouseReconciliationService` (mesmo desenho de `CanonicalReconciliationService`, E4.3):
+    compara contagem/soma de `NetAmount` entre `canonical.SalesInvoiceItems` e
+    `warehouse.FactSalesInvoiceItem` para o mesmo conector, com tolerância configurável (1% fixo
+    nesta fase). Chamado por `ConnectorSyncProcessor` logo após a carga; só loga um aviso quando
+    fora da tolerância, nunca bloqueia (bloqueio automático fica para fase futura, mesmo critério de
+    E4.3). Novo `ICanonicalRecordStore.GetSalesInvoiceItemTotalsAsync` (grão de item, distinto do
+    `GetSalesInvoiceTotalsAsync` de cabeçalho usado pelo E4.3). Testado (Testcontainers): caso dentro
+    da tolerância e caso de divergência detectável (linha de fato removida manualmente após a carga).
+
+**Validação de fechamento do E5** (todas as 4 tarefas, 2026-08-02): `dotnet build`/`dotnet test`
+limpos na solução inteira (23 testes — 3 novos de `EIP.Data.Warehouse.IntegrationTests` além dos 20
+já existentes), `dotnet format --verify-no-changes` limpo. RLS validada no novo schema `warehouse`
+via SQL bruto real (zero tabelas com `TenantId` desprotegidas; isolamento cross-tenant provado com
+`INSERT`/`SELECT`). Ponta a ponta real (Host+Gateway+Worker+SQL Server+RabbitMQ+MinIO): sincronizar
+sales-invoices carregou `DimTenant`(1)/`DimCompany`(1)/`DimCustomer`(3)/`DimProduct`(4)/`DimDate`(3)/
+`DimCurrency`(1) e 5 linhas de `FactSalesInvoiceItem` corretamente rastreáveis; resincronizar sem
+mudança de origem manteve exatamente 5 linhas (upsert idempotente) com um segundo `LoadBatch` de
+auditoria; nenhum aviso de reconciliação Canônico↔Fato (dados consistentes, como esperado). Módulo
+novo `EIP.Data.Warehouse.{Domain,Application,Infrastructure}` e nova abstração cross-domain
+`ITenantDirectory` (Shared→Tenant) wireados em `EIP.Worker.Sync` (novas connection strings
+`WarehouseDb`/`TenantDb` no `appsettings.json`, mesmo valor "dev only" das demais).
 
 ## E6 — Camada Semântica Mínima
 
@@ -465,7 +528,7 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 | E2 — Modelo Canônico (fatia Comercial) | ✅ Concluído (2026-08) |
 | E3 — Pipeline de Ingestão e Transformação | ✅ Concluído (2026-08) |
 | E4 — Qualidade e Reconciliação | ✅ Concluído (2026-08) |
-| E5 — Data Warehouse Inicial | Não iniciado |
+| E5 — Data Warehouse Inicial | ✅ Concluído (2026-08) |
 | E6 — Camada Semântica Mínima | Não iniciado |
 | E7 — Carga Incremental e Reprocessamento | Não iniciado |
 | E8 — Testes de Isolamento e Fechamento da Fase | Não iniciado |

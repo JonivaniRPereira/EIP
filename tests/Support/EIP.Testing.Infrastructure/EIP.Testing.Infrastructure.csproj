@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\..\src\Data\Canonical\Infrastructure\EIP.Data.Canonical.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Data\Connector\Infrastructure\EIP.Data.Connector.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Data\DataLake.Infrastructure\EIP.Data.DataLake.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Data\Warehouse\Infrastructure\EIP.Data.Warehouse.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
