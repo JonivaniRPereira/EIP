@@ -47,22 +47,59 @@ Este documento **não substitui** nenhuma regra definida em `docs/00` a `docs/15
 | Testes de integração usam Testcontainers, não a stack persistente | `tests/Support/EIP.Testing.Infrastructure` sobe SQL Server efêmero (Testcontainers) por execução de teste — local e CI usam o mesmo mecanismo, sem depender do `docker compose` do E1 estar de pé. Padrão: `SqlServerContainerFixture`/`HostApiFixture` + `[Collection]`; `[CollectionDefinition]` precisa ser redeclarado em cada projeto de teste (xUnit resolve isso por assembly) | E5.1 |
 | Portas locais | `EIP.Host` em `http://localhost:5080` (interno/direto — health/metrics), `EIP.Gateway` em `http://localhost:5000` (ponto de entrada externo — `/api/**`). Cliente "de fora" deve sempre usar `:5000` | E4.1 |
 | Pacotes OpenTelemetry ainda beta | `OpenTelemetry.Exporter.Prometheus.AspNetCore` não tem release GA no ecossistema .NET (situação de anos, não peculiaridade deste projeto) — usado mesmo assim, pinado em versão beta exata, por ser a única opção para expor métricas em formato Prometheus hoje. `OpenTelemetry.Instrumentation.EntityFrameworkCore` (também só beta) foi deixado de fora nesta passada para não acumular mais dependências beta do que o estritamente necessário | E3.5 |
+| `EIP.BuildingBlocks.Data` (novo projeto) | O `TenantSessionContextInterceptor` (mecanismo de RLS via `SESSION_CONTEXT`) deixou de viver só em `EIP.Platform.Tenant.Infrastructure` e passou para um projeto compartilhado (sibling de `BuildingBlocks`/`BuildingBlocks.Web`, com `Microsoft.EntityFrameworkCore.Relational`) — qualquer módulo novo com tabelas `TenantId` (Connector, e os que vierem depois) reusa a mesma implementação em vez de copiar o código de segurança mais crítico do projeto | E7.1 |
+| Conector de referência é REST genérico, não CSV | Prioridade "Alta" para ambos em `docs/05-Connector-Framework.md §14`, mas REST genérico valida o framework com um contrato mais previsível (sem parsing de arquivo/encoding/layout) — decisão tomada por mim dado que o backlog delegava "decidir por demanda validada" e não há demanda de cliente real ainda nesta fase | E7.1 |
+| Connector Registry completo (Draft/Configuring/Validating, Secret Provider, Data Lake) é Fase 1, não Fase 0 | `docs/15-Roadmap.md §5` (Fase 1) lista Connector Framework/Registry/Data Lake como entrega daquela fase; `docs/03-Stack-Tecnologica.md §13` só exige "um conector de referência e uma execução assíncrona ponta a ponta" no primeiro incremento. `ConnectorInstance` do E7 é deliberadamente mínimo (só Active/Paused, sem ciclo de vida completo) | E7.1 |
+| `EIP.Worker.Sync` (novo composition root) | Terceiro processo executável do monólito modular (sibling de `Host`/`Gateway`), `src/Worker`, `Microsoft.NET.Sdk.Worker` (Generic Host, não ASP.NET Core — não expõe HTTP). Consome RabbitMQ e define o `SESSION_CONTEXT` a partir do `TenantId` da própria mensagem (nunca de claim JWT, já que não há request HTTP) | E7.2 |
+| Fila de sincronização sem retry com backoff, só DLQ direto | E7.2 exige explicitamente "idempotente com DLQ", não retry — implementar backoff exponencial sem o plugin de mensagens atrasadas do RabbitMQ (não instalado) adicionaria complexidade desproporcional ao mínimo da Fase 0. Falha → `BasicNack(requeue: false)` → DLQ imediata, via `x-dead-letter-exchange`/`x-dead-letter-routing-key` na fila principal | E7.2 |
+| Sem outbox transacional na publicação do `SyncRun` | Se `IConnectorSyncPublisher.PublishAsync` falhar depois do `SyncRun` já persistido em `Pending`, o run é marcado `Failed` explicitamente (nunca fica `Pending` para sempre sem mensagem alguma publicada) — um outbox transacional de verdade (tabela de outbox + processo relay) é hardening de fase posterior, não bloqueante para provar o fluxo ponta a ponta | E7.2 |
+| `identity.RefreshTokens` tem RLS + bypass de sistema, não é exceção | Revisão da §4 (Definition of Done) encontrou, via um teste automatizado novo que varre o catálogo do SQL Server, que `identity.RefreshTokens` tinha uma coluna `TenantId` sem política RLS — violação da ADR-007 não percebida antes por não haver esse gate. Decisão do usuário: aplicar RLS de verdade (não documentar como exceção) — `RefreshTokenStore` agora roda toda operação sob `TenantContext.System` (mesmo bypass do `MembershipDirectory`), já que a busca por hash acontece antes de qualquer tenant estar em contexto. A função de predicado do schema `identity` também deixa passar linhas com `TenantId IS NULL` (tokens ainda sem tenant selecionado) — única diferença em relação aos predicados de `tenant`/`connector`. Precisou de duas migrations (`AddRlsToRefreshTokens` + `AllowSystemBypassOnRefreshTokens`, o segundo corrigindo um esquecimento do bypass no primeiro — mesmo padrão de `AllowSystemTenantBypass` no módulo Tenant) | Revisão da Fase 0, 2026-08-01 |
+| Gate automatizado de cobertura de RLS (`RlsCoverageTests`) | Consulta direta ao catálogo do SQL Server (`sys.security_predicates`/`sys.security_policies`/`sys.columns`) via `HostApiFixture`, listando toda tabela com coluna `TenantId` sem uma `SECURITY POLICY` habilitada com FILTER predicate — falha o teste (e portanto o CI) se existir alguma. Fecha o critério da ADR-007 que estava marcado como dívida técnica desde o E5.2 ("não existe hoje um analisador estático..."); não precisa entender migrations C#, só o estado real do banco depois de todas aplicadas | Revisão da Fase 0, 2026-08-01 |
+| `docker/worker/Dockerfile` usa `dotnet/runtime`, não `dotnet/aspnet` | `EIP.Worker.Sync` é um Generic Host puro (`Microsoft.NET.Sdk.Worker`), sem Kestrel/HTTP — a imagem final não precisa do runtime ASP.NET Core, só do runtime base do .NET | Revisão da Fase 0, 2026-08-01 |
+| `docs/guides/ambiente-local.md` (novo) | Runbook único cobrindo infraestrutura (Compose) + migrations dos 3 módulos + os três processos executáveis (Host/Gateway/Worker) + frontend — fecha o critério "comando/documentação única para iniciar e validar o ambiente" (`docs/14-DevOps.md §4`), que antes só existia implicitamente via `scripts/dev-up.sh` (que cobre só a infraestrutura, não a aplicação) | Revisão da Fase 0, 2026-08-01 |
 
 ---
 
 # 4. Critérios de Saída da Fase 0 (Definition of Done)
 
-Copiados literalmente de `docs/15-Roadmap.md §4`. A Fase 0 só termina quando todos estiverem `[x]`:
+Copiados literalmente de `docs/15-Roadmap.md §4`. Revisados formalmente em 2026-08-01, ao final do
+E7, com evidência para cada item — não apenas "os épicos estão codificados":
 
-- [ ] Ambiente local pode ser iniciado e validado de forma documentada.
-- [ ] Pipeline bloqueia build/teste/segurança críticos.
-- [ ] Usuário de tenant A não acessa recursos de tenant B em testes automatizados.
-- [ ] Uma API autenticada possui autorização, auditoria, logs e health checks.
-- [ ] Deploy de ambiente não produtivo é reproduzível a partir de artefatos versionados.
+- [x] Ambiente local pode ser iniciado e validado de forma documentada.
+  - `docs/guides/ambiente-local.md` (novo, ver §3 acima): infraestrutura (`scripts/dev-up.sh`) +
+    migrations dos 3 módulos + os três processos executáveis (Host/Gateway/Worker) + frontend, com
+    seção de validação (`/health/live`, `/health/ready`, login) e troubleshooting. Seguido do zero
+    durante esta revisão (matando e resubindo os três processos várias vezes) — funciona como
+    documentado.
+- [x] Pipeline bloqueia build/teste/segurança críticos.
+  - `.github/workflows/ci.yml`: lint (`dotnet format --verify-no-changes`) → build Release → testes
+    (agora 13/13, incluindo o gate de RLS e os dois conjuntos de isolamento cross-tenant) → scan de
+    dependências vulneráveis → scan de segredos (gitleaks). Qualquer falha nessas etapas bloqueia o
+    job `build-and-test`; `docker-build` só roda se ele passar. Ainda não validado com um push real
+    ao GitHub (ver ressalva no rastreamento).
+- [x] Usuário de tenant A não acessa recursos de tenant B em testes automatizados.
+  - `CrossTenantApiIsolationTests` (Tenant, E2.6) + `ConnectorCrossTenantIsolationTests` (Connector,
+    novo nesta revisão) — cobre os dois domínios com recursos tenant-scoped hoje. Ambos rodam contra
+    Host real + SQL Server efêmero (Testcontainers), não só a nível de banco.
+- [x] Uma API autenticada possui autorização, auditoria, logs e health checks.
+  - Autorização por permissão (E2.5), auditoria mínima de autenticação (E2.7 — login/registro/
+    lockout; auditoria de ações de negócio como sync fica registrada no próprio `SyncRun`, não numa
+    tabela de auditoria separada), Serilog estruturado + OpenTelemetry (E3.4/E3.5), `/health/live` e
+    `/health/ready` cobrindo as 3 dependências críticas (E3.3).
+- [x] Deploy de ambiente não produtivo é reproduzível a partir de artefatos versionados.
+  - As três imagens (`docker/platform`, `docker/gateway`, `docker/worker`) buildam a partir de
+    artefatos 100% versionados e foram validadas rodando de verdade contra a rede do
+    `docker compose` local nesta revisão (o Worker conectou no RabbitMQ/SQL Server reais do E1).
+    Nenhuma publica em registry ainda (aceito — não há registry configurado nesta fase).
 
 Critério adicional obrigatório por conta da ADR-007 (não estava explícito no roadmap original, mas é vinculante):
 
-- [ ] Toda tabela com `TenantId` possui política RLS ativa, e o CI falha se alguma migration criar uma tabela de tenant sem RLS correspondente.
+- [x] Toda tabela com `TenantId` possui política RLS ativa, e o CI falha se alguma migration criar uma tabela de tenant sem RLS correspondente.
+  - `RlsCoverageTests` (novo, ver §3 acima) consulta o catálogo do SQL Server depois de todas as
+    migrations aplicadas e falha se qualquer tabela com `TenantId` não tiver uma `SECURITY POLICY`
+    habilitada — roda no mesmo `dotnet test` do CI. Esta própria revisão encontrou e corrigiu uma
+    violação real (`identity.RefreshTokens`, sem RLS) antes de marcar este critério como satisfeito;
+    hoje a consulta retorna zero tabelas desprotegidas.
 
 ---
 
@@ -183,9 +220,23 @@ Objetivo: fluxo de autenticação + isolamento de tenant realmente aplicado no b
 
 ## E7 — Conector de Referência + Execução Assíncrona Ponta a Ponta
 
-- [ ] **E7.1** Um conector de referência simples (REST genérico **ou** CSV/Excel — decidir por demanda validada, conforme `docs/15-Roadmap.md §5`).
-- [ ] **E7.2** Publicação de mensagem em RabbitMQ (com `TenantId`, correlação e versão de contrato — `docs/03 §7.1`) e worker consumidor idempotente com DLQ.
-  - *Aceite:* uma sincronização é disparada pela API, processada de forma assíncrona pelo worker, e o resultado é auditável — fechando o fluxo síncrono→assíncrono ponta a ponta exigido pelo primeiro incremento.
+- [x] **E7.1** Um conector de referência simples (REST genérico **ou** CSV/Excel — decidir por demanda validada, conforme `docs/15-Roadmap.md §5`).
+  - ✅ Concluído. Escolhido REST genérico (docs/05-Connector-Framework.md §14: "alta prioridade inicial, validar o framework com contrato previsível"). Novo módulo `EIP.Platform.Connector` (Domain/Application/Infrastructure/Api, mesma Clean Architecture dos outros domínios):
+    - `Domain`: `ConnectorInstance` (Id, TenantId, Name, BaseUrl, Status Active/Paused) e `SyncRun` (Id, TenantId, ConnectorInstanceId, CorrelationId, Status Pending/Running/Succeeded/Failed, RecordsProcessed, ErrorMessage, timestamps) — o `SyncRun` É o registro de auditoria da execução, sem tabela de auditoria separada.
+    - Schema `connector`, protegido por RLS obrigatória (ADR-007) na mesma migration que cria as tabelas — `connector.fn_TenantAccessPredicate`/`connector.ConnectorAccessPolicy`, função e policy próprias do schema (não reaproveita a de `tenant`; RLS do SQL Server é declarada por schema).
+    - `POST /api/v1/connectors` (registra a instância — substitui, na Fase 0, o Connector Registry completo do framework, que é escopo de Fase 1), `POST /api/v1/connectors/{id}/sync` (dispara, 202 Accepted), `GET /api/v1/connectors/{id}/sync-runs/{runId}` (relatório de execução). Novas permissões `connector.view`/`connector.manage` (`EIP.Shared.Contracts.Connectors.ConnectorPermissions`), concedidas a Owner/Admin (manage+view) e Member (só view).
+    - Fonte de dados de referência: `GET /api/v1/sample/customers` no próprio Host (retorna um array JSON estático de 5 registros fake) — um stand-in local para "sistema externo", só para provar o fluxo ponta a ponta sem depender de internet/terceiros; não é feature de produto.
+  - **Refactor pré-requisito**: `TenantSessionContextInterceptor` (o mecanismo de RLS via `SESSION_CONTEXT`, antes vivendo só em `EIP.Platform.Tenant.Infrastructure`) foi extraído para um novo projeto `EIP.BuildingBlocks.Data` (sibling de `BuildingBlocks`/`BuildingBlocks.Web`, com `Microsoft.EntityFrameworkCore.Relational`), para que o módulo Connector reusasse a mesma implementação em vez de copiar o código de segurança mais crítico do projeto.
+- [x] **E7.2** Publicação de mensagem em RabbitMQ (com `TenantId`, correlação e versão de contrato — `docs/03 §7.1`) e worker consumidor idempotente com DLQ.
+  - *Aceite:* uma sincronização é disparada pela API, processada de forma assíncrona pelo worker, e o resultado é auditável — fechando o fluxo síncrono→assíncrono ponta a ponta exigido pelo primeiro incremento. ✅ Concluído e **validado de ponta a ponta com infraestrutura real** (Host + Gateway + SQL Server + RabbitMQ + Worker, todos rodando simultaneamente):
+    - `SyncRequestedMessage` (`SyncRunId`, `ConnectorInstanceId`, `TenantId`, `CorrelationId`, `ContractVersion="1.0"`) — `ConnectorSyncService.RequestSyncAsync` valida a instância, persiste o `SyncRun` em `Pending` e publica **antes** de retornar 202 (nunca processa de forma síncrona no request).
+    - Novo projeto executável `src/Worker` (`EIP.Worker.Sync`, Generic Host / `Microsoft.NET.Sdk.Worker`) — terceiro composition root do monólito modular, sibling de `Host`/`Gateway`. `SyncRequestedConsumerService` (`BackgroundService`) consome `connector.sync.requested`, define o `SESSION_CONTEXT` a partir do `TenantId` da mensagem (via `ITenantContextAccessor`, o mesmo papel do middleware do Host a partir do claim JWT) e delega a `ConnectorSyncProcessor` (Application, não conhece RabbitMQ).
+    - Topologia RabbitMQ (`ConnectorMessagingTopology`, declarada idempotentemente tanto pelo publisher quanto pelo worker): exchange `eip.connector` (direct) → fila `connector.sync.requested` com `x-dead-letter-exchange`/`x-dead-letter-routing-key` apontando para `connector.sync.requested.dlq`. Falha no processamento → `BasicNack(requeue: false)` → cai direto na DLQ (sem retry com backoff — fora do mínimo exigido por E7.2, que só pede idempotência + DLQ).
+    - **Idempotência**: `SyncRun.TryStartProcessing()` só avança `Pending → Running` uma única vez; reentregas (RabbitMQ é at-least-once) de um run já `Running`/terminal são identificadas e puladas (ack sem reprocessar). **Validado de verdade**: republiquei manualmente (via API de management do RabbitMQ) a mesma mensagem de um `SyncRun` já `Succeeded` — o worker fez só o `SELECT`, sem nova chamada HTTP nem `UPDATE`, e o `FinishedAt` continuou idêntico ao da primeira execução.
+    - **DLQ validado de verdade**: registrei uma instância com `BaseUrl` inalcançável (`http://localhost:59999/...`), disparei a sincronização — `SyncRun` foi para `Failed` com a mensagem de erro real (conexão recusada) e a mensagem apareceu na fila `connector.sync.requested.dlq` (confirmado via `GET /api/queues/.../connector.sync.requested.dlq` da API de management: `messages: 1`).
+    - **Caminho feliz validado de verdade**: `POST /api/v1/connectors` → `POST .../sync` (202) → worker chama `GET /api/v1/sample/customers` de verdade via `HttpClient` → `SyncRun` vira `Succeeded` com `recordsProcessed: 5` (contagem real do array JSON) em ~300ms.
+    - Defesa em profundidade replicada do padrão do `TenantsController` (E2.5): `ConnectorSyncProcessor` nunca confia cegamente no `TenantId`/`ConnectorInstanceId` da mensagem — compara explicitamente `instance.TenantId == message.TenantId` além do que a RLS já garante.
+    - `dotnet test` (suíte completa, Testcontainers): 9/9 aprovados após o refactor (`DatabaseMigrator` passou a migrar também `ConnectorDbContext`). `dotnet format --verify-no-changes`: limpo (logs do worker usam `[LoggerMessage]` source-generated, não chamadas diretas de `ILogger`, para não introduzir avisos `CA1848`/`CA1873` novos no gate do CI).
 
 ---
 
@@ -211,7 +262,15 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 | E3 — API versionada e observabilidade | ✅ Concluído (2026-08) |
 | E4 — Gateway | ✅ Concluído (2026-08) |
 | E5 — CI | ✅ Concluído (2026-08) — pendente apenas primeiro push real para validar no GitHub de verdade |
-| E6 — Frontend Angular | ✅ Concluído (2026-08) — pendente confirmação visual manual no navegador |
-| E7 — Conector de referência | Não iniciado |
+| E6 — Frontend Angular | ✅ Concluído (2026-08) — confirmado visualmente no navegador (login → dashboard) pelo usuário |
+| E7 — Conector de referência | ✅ Concluído (2026-08) |
+
+**Fase 0 — Definition of Done (§4): ✅ revisada e satisfeita em 2026-08-01.** Todos os 6 critérios
+(5 do roadmap + o adicional da ADR-007) verificados com evidência nesta revisão, incluindo a correção
+de uma violação real de RLS encontrada pelo próprio gate automatizado novo (`identity.RefreshTokens`).
+Pendências conhecidas, não bloqueantes: (1) nada foi commitado/enviado ao GitHub ainda nesta sessão —
+o CI nunca rodou de verdade num runner; (2) sem analisador estático de "migration nova sem RLS" (E5.2)
+— a proteção real hoje é o `RlsCoverageTests` rodando contra o schema já aplicado, não uma checagem
+estática do C# da migration em si.
 
 Atualizar esta tabela conforme os épicos avançam.

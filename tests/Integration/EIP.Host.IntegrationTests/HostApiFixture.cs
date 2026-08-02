@@ -24,6 +24,10 @@ public sealed class HostApiFixture : IAsyncLifetime
 
     public IServiceProvider Services => Factory.Services;
 
+    /// <summary>Connection string do SQL Server efêmero — usada por testes que precisam consultar o
+    /// catálogo de sistema diretamente (ex.: <see cref="RlsCoverageTests"/>), não só via EF Core.</summary>
+    public string ConnectionString { get; private set; } = string.Empty;
+
     private WebApplicationFactory<Program> Factory =>
         _factory ?? throw new InvalidOperationException($"{nameof(HostApiFixture)} ainda não foi inicializada.");
 
@@ -36,6 +40,7 @@ public sealed class HostApiFixture : IAsyncLifetime
             InitialCatalog = "EIP",
         };
         var connectionString = builder.ConnectionString;
+        ConnectionString = connectionString;
 
         await DatabaseMigrator.MigrateAllAsync(connectionString);
 
@@ -44,6 +49,7 @@ public sealed class HostApiFixture : IAsyncLifetime
             [
                 new("ConnectionStrings:TenantDb", connectionString),
                 new("ConnectionStrings:IdentityDb", connectionString),
+                new("ConnectionStrings:ConnectorDb", connectionString),
                 new("ConnectionStrings:Redis", "localhost:16399"),
                 new("ConnectionStrings:RabbitMQ", "amqp://guest:guest@localhost:16599/"),
             ])));

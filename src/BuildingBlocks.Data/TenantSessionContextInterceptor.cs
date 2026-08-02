@@ -3,12 +3,17 @@ using System.Data.Common;
 using EIP.BuildingBlocks.Security;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace EIP.Platform.Tenant.Infrastructure;
+namespace EIP.BuildingBlocks.Data;
 
 /// <summary>
 /// Define o SESSION_CONTEXT('TenantId') do SQL Server logo após cada abertura de conexão, a partir
 /// do contexto de tenant autenticado (nunca de input do cliente). É o mecanismo concreto exigido
 /// pela ADR-007 para que a RLS (SECURITY POLICY) do banco filtre as linhas automaticamente.
+///
+/// Único e compartilhado por todo módulo que tenha tabelas com <c>TenantId</c> (Tenant, Connector,
+/// ...) — vive aqui (não em cada módulo) para que o mecanismo de RLS tenha uma única implementação,
+/// nunca cópias divergentes de um código de segurança crítico. Funciona tanto no pipeline HTTP
+/// (Host) quanto em processos worker, já que <see cref="ITenantContextAccessor"/> é AsyncLocal.
 ///
 /// sp_reset_connection (chamado pelo ADO.NET ao reutilizar uma conexão do pool) limpa o
 /// SESSION_CONTEXT anterior, então cada "ConnectionOpened" corresponde sempre a um estado limpo —

@@ -1,3 +1,4 @@
+using EIP.Platform.Connector.Infrastructure;
 using EIP.Platform.Identity.Infrastructure;
 using EIP.Platform.Tenant.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,14 @@ public static class DatabaseMigrator
         await using (var identityDb = new AppIdentityDbContext(identityOptions))
         {
             await identityDb.Database.MigrateAsync();
+        }
+
+        var connectorOptions = new DbContextOptionsBuilder<ConnectorDbContext>()
+            .UseSqlServer(connectionString, sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", ConnectorDbContext.Schema))
+            .Options;
+        await using (var connectorDb = new ConnectorDbContext(connectorOptions))
+        {
+            await connectorDb.Database.MigrateAsync();
         }
     }
 }

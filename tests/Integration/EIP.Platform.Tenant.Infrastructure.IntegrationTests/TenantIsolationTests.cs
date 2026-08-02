@@ -1,3 +1,4 @@
+using EIP.BuildingBlocks.Data;
 using EIP.BuildingBlocks.Security;
 using EIP.Platform.Tenant.Domain;
 using EIP.Platform.Tenant.Infrastructure;

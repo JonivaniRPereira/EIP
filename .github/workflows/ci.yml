@@ -96,3 +96,11 @@ jobs:
           file: docker/gateway/Dockerfile
           push: false
           tags: eip-gateway:${{ github.sha }}
+
+      - name: Build imagem EIP.Worker.Sync
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/worker/Dockerfile
+          push: false
+          tags: eip-worker-sync:${{ github.sha }}

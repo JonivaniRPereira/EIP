@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Application\EIP.Platform.Tenant.Application.csproj" />
     <ProjectReference Include="..\Domain\EIP.Platform.Tenant.Domain.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\EIP.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks.Data\EIP.BuildingBlocks.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

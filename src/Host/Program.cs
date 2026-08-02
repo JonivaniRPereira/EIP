@@ -1,6 +1,10 @@
 using System.Text;
+using EIP.BuildingBlocks.Data;
 using EIP.BuildingBlocks.Security;
 using EIP.BuildingBlocks.Security.Authorization;
+using EIP.Platform.Connector.Application;
+using EIP.Platform.Connector.Application.Abstractions;
+using EIP.Platform.Connector.Infrastructure;
 using EIP.Platform.Identity.Application;
 using EIP.Platform.Identity.Application.Abstractions;
 using EIP.Platform.Identity.Domain;
@@ -61,6 +65,8 @@ var redisConnectionString = builder.Configuration.GetConnectionString("Redis")
     ?? throw new InvalidOperationException("ConnectionStrings:Redis não configurado.");
 var rabbitMqConnectionString = builder.Configuration.GetConnectionString("RabbitMQ")
     ?? throw new InvalidOperationException("ConnectionStrings:RabbitMQ não configurado.");
+var connectorConnectionString = builder.Configuration.GetConnectionString("ConnectorDb")
+    ?? throw new InvalidOperationException("ConnectionStrings:ConnectorDb não configurado.");
 
 // Única forma de obter TenantDbContext no processo: IDbContextFactory (não DbContext escopado).
 // Registrar os dois ao mesmo tempo para o mesmo TContext causa erro de resolução de escopo do DI;
@@ -70,7 +76,21 @@ builder.Services.AddDbContextFactory<TenantDbContext>((sp, options) =>
     options.UseSqlServer(tenantConnectionString)
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 
-builder.Services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(identityConnectionString));
+// identity.RefreshTokens tem RLS obrigatória (ADR-007) mesmo o schema `identity` em geral não sendo
+// tenant-scoped — precisa do mesmo interceptor para o SESSION_CONTEXT ser definido (RefreshTokenStore
+// sempre roda sob a sentinela de sistema, ver comentário na própria classe).
+builder.Services.AddDbContext<AppIdentityDbContext>((sp, options) =>
+    options.UseSqlServer(identityConnectionString)
+        .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
+
+// Mesmo motivo do TenantDbContext acima: só factory, nunca DbContext escopado ao mesmo tempo.
+builder.Services.AddDbContextFactory<ConnectorDbContext>((sp, options) =>
+    options.UseSqlServer(connectorConnectionString)
+        .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
+
+builder.Services.AddScoped<IConnectorSyncStore, ConnectorSyncStore>();
+builder.Services.AddSingleton<IConnectorSyncPublisher>(_ => new RabbitMqConnectorSyncPublisher(rabbitMqConnectionString));
+builder.Services.AddScoped<IConnectorSyncService, ConnectorSyncService>();
 
 builder.Services.AddScoped<IMembershipDirectory, EIP.Platform.Tenant.Infrastructure.MembershipDirectory>();
 builder.Services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();
@@ -199,6 +219,19 @@ app.Use(async (context, next) =>
 
     await next();
 });
+
+// Fonte de dados de referência para o único Connector Type da Fase 0 (REST genérico, E7.1) — um
+// stand-in local para "sistema externo", só para provar o fluxo de ponta a ponta sem depender de
+// internet/terceiros. Não é uma feature de produto; um `ConnectorInstance` real aponta para o ERP/
+// API de fato do cliente.
+app.MapGet("/api/v1/sample/customers", () => Results.Json(new[]
+{
+    new { id = 1, name = "Ana Souza", email = "ana.souza@example.com" },
+    new { id = 2, name = "Bruno Lima", email = "bruno.lima@example.com" },
+    new { id = 3, name = "Carla Nunes", email = "carla.nunes@example.com" },
+    new { id = 4, name = "Diego Alves", email = "diego.alves@example.com" },
+    new { id = 5, name = "Elisa Prado", email = "elisa.prado@example.com" },
+})).AllowAnonymous();
 
 app.MapControllers();
 

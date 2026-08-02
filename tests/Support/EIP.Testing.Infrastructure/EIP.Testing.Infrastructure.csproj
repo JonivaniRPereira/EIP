@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Platform\Tenant\Infrastructure\EIP.Platform.Tenant.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Platform\Identity\Infrastructure\EIP.Platform.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Platform\Connector\Infrastructure\EIP.Platform.Connector.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

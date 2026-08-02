@@ -117,7 +117,6 @@ Enquanto ERPs executam processos operacionais, a EIP conecta essas informações
 - C#
 - Entity Framework Core
 - Dapper
-- MediatR
 - FluentValidation
 
 ## Banco de Dados
@@ -267,14 +266,24 @@ EIP/
 ├── LICENSE
 ├── CHANGELOG.md
 
-├── backend/
-├── frontend/
-├── connectors/
-├── ai/
-├── infrastructure/
+├── src/                  # backend .NET (monólito modular — ver docs/00)
+│   ├── Host/             # composition root (API real)
+│   ├── Gateway/          # YARP — ponto único de entrada externo
+│   ├── Worker/           # worker assíncrono (sincronizações, E7)
+│   ├── Platform/         # Identity, Tenant, Connector (Domain/Application/Infrastructure/Api)
+│   ├── Shared/
+│   ├── BuildingBlocks/
+│   ├── BuildingBlocks.Data/
+│   └── BuildingBlocks.Web/
+├── frontend/             # Angular
+├── tests/                # unitários + integração (Testcontainers)
+├── docker/               # Dockerfiles por serviço
+├── deploy/docker-compose/
+├── scripts/
 
 └── docs/
 
+    ├── 00-Arquitetura-do-Repositorio.md
     ├── 01-Visao-do-Produto.md
     ├── 02-Arquitetura.md
     ├── 03-Stack-Tecnologica.md
@@ -289,7 +298,10 @@ EIP/
     ├── 12-Dashboard-Builder.md
     ├── 13-Automacao.md
     ├── 14-DevOps.md
-    └── 15-Roadmap.md
+    ├── 15-Roadmap.md
+    ├── adr/              # Architecture Decision Records
+    ├── guides/           # runbooks operacionais (ex.: ambiente local)
+    └── roadmap/          # backlog de execução por fase
 ```
 
 ---
@@ -333,11 +345,14 @@ Ela foi projetada para tornar-se a camada central de Inteligência Corporativa d
 
 # Status do Projeto
 
-**Fase Atual:** Fundação de Engenharia (Fase 0)
+**Fase Atual:** Fundação de Engenharia (Fase 0) — implementada e validada; Fase 1 ainda não iniciada.
 
 **Versão da Documentação:** 1.0
 
-**Status:** Documentação arquitetural consolidada; implementação ainda não iniciada
+**Status:** Backend (.NET 10), frontend (Angular) e infraestrutura local (Docker Compose) da Fase 0
+implementados: autenticação/tenant/permissões com RLS obrigatória, API versionada com observabilidade,
+Gateway (YARP), CI, e um conector de referência com execução assíncrona ponta a ponta. Veja
+`docs/roadmap/fase-0-backlog.md` (execução) e `docs/guides/ambiente-local.md` (como rodar).
 
 ---
 

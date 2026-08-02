@@ -3,6 +3,9 @@
   <Folder Name="/src/BuildingBlocks/">
     <Project Path="src/BuildingBlocks/EIP.BuildingBlocks.csproj" />
   </Folder>
+  <Folder Name="/src/BuildingBlocks.Data/">
+    <Project Path="src/BuildingBlocks.Data/EIP.BuildingBlocks.Data.csproj" />
+  </Folder>
   <Folder Name="/src/BuildingBlocks.Web/">
     <Project Path="src/BuildingBlocks.Web/EIP.BuildingBlocks.Web.csproj" />
   </Folder>
@@ -13,6 +16,19 @@
     <Project Path="src/Host/EIP.Host.csproj" />
   </Folder>
   <Folder Name="/src/Platform/" />
+  <Folder Name="/src/Platform/Connector/" />
+  <Folder Name="/src/Platform/Connector/Api/">
+    <Project Path="src/Platform/Connector/Api/EIP.Platform.Connector.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/Connector/Application/">
+    <Project Path="src/Platform/Connector/Application/EIP.Platform.Connector.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/Connector/Domain/">
+    <Project Path="src/Platform/Connector/Domain/EIP.Platform.Connector.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/Connector/Infrastructure/">
+    <Project Path="src/Platform/Connector/Infrastructure/EIP.Platform.Connector.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Platform/Identity/" />
   <Folder Name="/src/Platform/Identity/Api/">
     <Project Path="src/Platform/Identity/Api/EIP.Platform.Identity.Api.csproj" />
@@ -41,6 +57,9 @@
   </Folder>
   <Folder Name="/src/Shared/">
     <Project Path="src/Shared/EIP.Shared.csproj" />
+  </Folder>
+  <Folder Name="/src/Worker/">
+    <Project Path="src/Worker/EIP.Worker.Sync.csproj" />
   </Folder>
   <Folder Name="/tests/" />
   <Folder Name="/tests/Integration/">
