@@ -1,27 +1,40 @@
+using EIP.Data.Canonical.Application;
 using EIP.Data.Connector.Application.Abstractions;
 using EIP.Data.Connector.Application.Contracts;
 using EIP.Data.DataLake;
 using EIP.Data.Pipeline;
+using EIP.Shared.Contracts.Canonical;
+using Microsoft.Extensions.Logging;
 
 namespace EIP.Data.Connector.Application;
 
-public sealed class ConnectorSyncProcessor : IConnectorSyncProcessor
+public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
 {
+    // Limite de divergência aceitável na reconciliação Canônico↔Origem (docs/04 §8.3) — fixo nesta
+    // fase; parametrização por tenant/conector fica para quando houver demanda real (E5/E6).
+    private const decimal ReconciliationToleranceFraction = 0.01m;
+
     private readonly IConnectorSyncStore _store;
     private readonly IReferenceRestClient _restClient;
     private readonly IRawObjectStore _rawObjectStore;
     private readonly IPipelineProcessor _pipelineProcessor;
+    private readonly ICanonicalReconciliationService _reconciliationService;
+    private readonly ILogger<ConnectorSyncProcessor> _logger;
 
     public ConnectorSyncProcessor(
         IConnectorSyncStore store,
         IReferenceRestClient restClient,
         IRawObjectStore rawObjectStore,
-        IPipelineProcessor pipelineProcessor)
+        IPipelineProcessor pipelineProcessor,
+        ICanonicalReconciliationService reconciliationService,
+        ILogger<ConnectorSyncProcessor> logger)
     {
         _store = store;
         _restClient = restClient;
         _rawObjectStore = rawObjectStore;
         _pipelineProcessor = pipelineProcessor;
+        _reconciliationService = reconciliationService;
+        _logger = logger;
     }
 
     public async Task ProcessAsync(SyncRequestedMessage message, CancellationToken cancellationToken)
@@ -74,8 +87,27 @@ public sealed class ConnectorSyncProcessor : IConnectorSyncProcessor
                 RawContent: rawContent);
             var result = await _pipelineProcessor.ProcessAsync(pipelineRequest, cancellationToken);
 
-            run.Complete(result.AcceptedCount);
+            run.Complete(result.ExtractedCount, result.AcceptedCount, result.UpdatedCount, result.RejectedCount, result.DeletedCount);
             await _store.SaveRunAsync(run, cancellationToken);
+
+            // Reconciliação Canônico↔Origem (docs/04 §8.3, E4.3) — só para sales-invoices, onde
+            // "totais por período/origem" fazem sentido de negócio. Nunca falha o SyncRun por conta
+            // disso: o bloqueio automático de publicação fica para E5/E6, aqui só registra o alerta.
+            if (instance.SourceEntity == CanonicalSourceEntities.SalesInvoices && result.NetAmountTotal is { } netAmountTotal)
+            {
+                var reconciliation = await _reconciliationService.ReconcileSalesInvoicesAsync(
+                    instance.TenantId,
+                    instance.Id,
+                    result.AcceptedCount,
+                    netAmountTotal,
+                    ReconciliationToleranceFraction,
+                    cancellationToken);
+
+                if (!reconciliation.IsWithinTolerance)
+                {
+                    LogReconciliationOutOfTolerance(run.Id, reconciliation.Discrepancy);
+                }
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -87,4 +119,7 @@ public sealed class ConnectorSyncProcessor : IConnectorSyncProcessor
             throw;
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Reconciliação Canônico↔Origem fora da tolerância para SyncRun {SyncRunId}: {Discrepancy}")]
+    private partial void LogReconciliationOutOfTolerance(Guid syncRunId, string? discrepancy);
 }

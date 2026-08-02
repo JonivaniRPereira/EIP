@@ -20,6 +20,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Data\Connector\Api\EIP.Data.Connector.Api.csproj" />
     <ProjectReference Include="..\Data\Connector\Infrastructure\EIP.Data.Connector.Infrastructure.csproj" />
+    <ProjectReference Include="..\Data\Canonical\Application\EIP.Data.Canonical.Application.csproj" />
+    <ProjectReference Include="..\Data\Canonical\Infrastructure\EIP.Data.Canonical.Infrastructure.csproj" />
     <ProjectReference Include="..\Platform\Identity\Api\EIP.Platform.Identity.Api.csproj" />
     <ProjectReference Include="..\Platform\Identity\Infrastructure\EIP.Platform.Identity.Infrastructure.csproj" />
     <ProjectReference Include="..\Platform\Tenant\Api\EIP.Platform.Tenant.Api.csproj" />

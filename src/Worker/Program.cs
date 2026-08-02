@@ -47,6 +47,7 @@ builder.Services.AddDbContextFactory<CanonicalDbContext>((sp, options) =>
 
 builder.Services.AddSingleton<IConnectorSyncStore, ConnectorSyncStore>();
 builder.Services.AddSingleton<ICanonicalRecordStore, CanonicalRecordStore>();
+builder.Services.AddSingleton<ICanonicalReconciliationService, CanonicalReconciliationService>();
 
 var dataLakeOptions = builder.Configuration.GetSection(S3RawObjectStoreOptions.SectionName).Get<S3RawObjectStoreOptions>()
     ?? throw new InvalidOperationException("Seção de configuração 'DataLake' não configurada.");

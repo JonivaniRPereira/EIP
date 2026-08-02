@@ -33,7 +33,9 @@ public sealed class PipelineProcessor : IPipelineProcessor
 
         var records = document.RootElement.EnumerateArray().ToList();
         var accepted = 0;
+        var updated = 0;
         var rejected = 0;
+        decimal? netAmountTotal = request.SourceEntity == CanonicalSourceEntities.SalesInvoices ? 0m : null;
 
         foreach (var record in records)
         {
@@ -41,8 +43,17 @@ public sealed class PipelineProcessor : IPipelineProcessor
 
             try
             {
-                await ProcessRecordAsync(request, record, cancellationToken);
+                var outcome = await ProcessRecordAsync(request, record, cancellationToken);
                 accepted++;
+                if (outcome.WasUpdated)
+                {
+                    updated++;
+                }
+
+                if (outcome.NetAmount is { } netAmount)
+                {
+                    netAmountTotal += netAmount;
+                }
             }
             catch (CanonicalValidationException ex)
             {
@@ -60,10 +71,12 @@ public sealed class PipelineProcessor : IPipelineProcessor
             }
         }
 
-        return new PipelineProcessingResult(records.Count, accepted, rejected);
+        return new PipelineProcessingResult(records.Count, accepted, updated, rejected, DeletedCount: 0, NetAmountTotal: netAmountTotal);
     }
 
-    private Task ProcessRecordAsync(PipelineProcessingRequest request, JsonElement record, CancellationToken cancellationToken) =>
+    private readonly record struct RecordOutcome(bool WasUpdated, decimal? NetAmount);
+
+    private Task<RecordOutcome> ProcessRecordAsync(PipelineProcessingRequest request, JsonElement record, CancellationToken cancellationToken) =>
         request.SourceEntity switch
         {
             CanonicalSourceEntities.Customers => ProcessCustomerAsync(request, record, cancellationToken),
@@ -72,7 +85,7 @@ public sealed class PipelineProcessor : IPipelineProcessor
             _ => throw new CanonicalValidationException("unknown-source-entity", $"SourceEntity '{request.SourceEntity}' não é reconhecido pelo pipeline."),
         };
 
-    private async Task ProcessCustomerAsync(PipelineProcessingRequest request, JsonElement record, CancellationToken cancellationToken)
+    private async Task<RecordOutcome> ProcessCustomerAsync(PipelineProcessingRequest request, JsonElement record, CancellationToken cancellationToken)
     {
         var code = GetRequiredString(record, "code");
         var name = GetRequiredString(record, "name");
@@ -83,10 +96,11 @@ public sealed class PipelineProcessor : IPipelineProcessor
         var countryCode = GetOptionalString(record, "countryCode");
 
         var customer = Customer.Create(BuildLineage(request, code), code, name, isActive, taxId: null, email, city, stateOrRegion, countryCode);
-        await _store.UpsertCustomerAsync(customer, cancellationToken);
+        var wasUpdated = await _store.UpsertCustomerAsync(customer, cancellationToken);
+        return new RecordOutcome(wasUpdated, NetAmount: null);
     }
 
-    private async Task ProcessProductAsync(PipelineProcessingRequest request, JsonElement record, CancellationToken cancellationToken)
+    private async Task<RecordOutcome> ProcessProductAsync(PipelineProcessingRequest request, JsonElement record, CancellationToken cancellationToken)
     {
         var code = GetRequiredString(record, "code");
         var name = GetRequiredString(record, "name");
@@ -100,10 +114,11 @@ public sealed class PipelineProcessor : IPipelineProcessor
         };
 
         var product = Product.Create(BuildLineage(request, code), code, name, productType, isActive, categoryId: null, unitOfMeasure);
-        await _store.UpsertProductAsync(product, cancellationToken);
+        var wasUpdated = await _store.UpsertProductAsync(product, cancellationToken);
+        return new RecordOutcome(wasUpdated, NetAmount: null);
     }
 
-    private async Task ProcessSalesInvoiceAsync(PipelineProcessingRequest request, JsonElement record, CancellationToken cancellationToken)
+    private async Task<RecordOutcome> ProcessSalesInvoiceAsync(PipelineProcessingRequest request, JsonElement record, CancellationToken cancellationToken)
     {
         var invoiceNumber = GetRequiredString(record, "invoiceNumber");
         var issueDateRaw = GetRequiredString(record, "issueDate");
@@ -177,7 +192,8 @@ public sealed class PipelineProcessor : IPipelineProcessor
                 i.Net))
             .ToList();
 
-        await _store.UpsertSalesInvoiceAsync(invoice, items, cancellationToken);
+        var wasUpdated = await _store.UpsertSalesInvoiceAsync(invoice, items, cancellationToken);
+        return new RecordOutcome(wasUpdated, NetAmount: totalNet);
     }
 
     private static CanonicalLineage BuildLineage(PipelineProcessingRequest request, string sourceRecordId) =>

@@ -14,6 +14,19 @@ public sealed record PipelineProcessingRequest(
     string RawObjectUri,
     ReadOnlyMemory<byte> RawContent);
 
-/// <summary>Relatório mínimo de execução (docs/04-Modelo-Canonico.md §8.3) — contagens completas
-/// (atualizado/rejeitado separadamente, etc.) ficam para E4.1.</summary>
-public sealed record PipelineProcessingResult(int ExtractedCount, int AcceptedCount, int RejectedCount);
+/// <summary>
+/// Relatório de execução (docs/04-Modelo-Canonico.md §8.3: "extraídas, aceitas, atualizadas,
+/// excluídas, rejeitadas e processadas"). Neste pipeline de referência <see cref="ExtractedCount"/>
+/// e "processadas" coincidem sempre — todo registro extraído é totalmente processado na mesma
+/// passada síncrona, não há estado parcial/retomável ainda. <see cref="DeletedCount"/> é sempre 0: o
+/// conector de referência (REST genérico, dados fixos) não emite sinal de exclusão de origem.
+/// <see cref="NetAmountTotal"/> só é preenchido para `sales-invoices` (soma de <c>NetAmount</c> dos
+/// registros aceitos nesta execução) — usado pela reconciliação Canônico↔Origem (E4.3).
+/// </summary>
+public sealed record PipelineProcessingResult(
+    int ExtractedCount,
+    int AcceptedCount,
+    int UpdatedCount,
+    int RejectedCount,
+    int DeletedCount = 0,
+    decimal? NetAmountTotal = null);

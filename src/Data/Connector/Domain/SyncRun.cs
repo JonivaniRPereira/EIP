@@ -16,7 +16,29 @@ public sealed class SyncRun : Entity<Guid>
     public Guid ConnectorInstanceId { get; private set; }
     public string CorrelationId { get; private set; }
     public SyncRunStatus Status { get; private set; }
+
+    /// <summary>Total de registros extraídos da origem nesta execução (docs/04 §8.3: "extraídas").
+    /// Neste pipeline de referência coincide sempre com "processadas" — não há estado
+    /// parcial/retomável ainda, então um único campo cobre os dois conceitos.</summary>
     public int? RecordsProcessed { get; private set; }
+
+    /// <summary>Quantos dos extraídos foram persistidos com sucesso no Modelo Canônico (criados ou
+    /// atualizados) — docs/04 §8.3 "aceitas".</summary>
+    public int? AcceptedCount { get; private set; }
+
+    /// <summary>Subconjunto de <see cref="AcceptedCount"/> que já existia e foi atualizado (em vez de
+    /// criado) — docs/04 §8.3 "atualizadas".</summary>
+    public int? UpdatedCount { get; private set; }
+
+    /// <summary>Marcados como excluídos nesta execução — docs/04 §8.3 "excluídas". Sempre 0 no
+    /// conector de referência: a origem fixa (REST genérico, dados estáticos) não emite sinal de
+    /// exclusão.</summary>
+    public int? DeletedCount { get; private set; }
+
+    /// <summary>Falharam validação/mapeamento/resolução de referência e foram para quarentena —
+    /// docs/04 §8.3 "rejeitadas".</summary>
+    public int? RejectedCount { get; private set; }
+
     public string? ErrorMessage { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? StartedAt { get; private set; }
@@ -69,10 +91,14 @@ public sealed class SyncRun : Entity<Guid>
         return true;
     }
 
-    public void Complete(int recordsProcessed)
+    public void Complete(int recordsProcessed, int acceptedCount, int updatedCount, int rejectedCount, int deletedCount = 0)
     {
         Status = SyncRunStatus.Succeeded;
         RecordsProcessed = recordsProcessed;
+        AcceptedCount = acceptedCount;
+        UpdatedCount = updatedCount;
+        RejectedCount = rejectedCount;
+        DeletedCount = deletedCount;
         FinishedAt = DateTimeOffset.UtcNow;
     }
 

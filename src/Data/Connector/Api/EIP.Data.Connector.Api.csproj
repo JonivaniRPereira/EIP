@@ -3,6 +3,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\EIP.Data.Connector.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\EIP.Data.Connector.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Canonical\Application\EIP.Data.Canonical.Application.csproj" />
+    <ProjectReference Include="..\..\Canonical\Domain\EIP.Data.Canonical.Domain.csproj" />
     <ProjectReference Include="..\..\..\Shared\EIP.Shared.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks.Web\EIP.BuildingBlocks.Web.csproj" />
   </ItemGroup>

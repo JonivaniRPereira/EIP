@@ -2,6 +2,8 @@ using System.Text;
 using EIP.BuildingBlocks.Data;
 using EIP.BuildingBlocks.Security;
 using EIP.BuildingBlocks.Security.Authorization;
+using EIP.Data.Canonical.Application;
+using EIP.Data.Canonical.Infrastructure;
 using EIP.Data.Connector.Application;
 using EIP.Data.Connector.Application.Abstractions;
 using EIP.Data.Connector.Infrastructure;
@@ -67,6 +69,8 @@ var rabbitMqConnectionString = builder.Configuration.GetConnectionString("Rabbit
     ?? throw new InvalidOperationException("ConnectionStrings:RabbitMQ não configurado.");
 var connectorConnectionString = builder.Configuration.GetConnectionString("ConnectorDb")
     ?? throw new InvalidOperationException("ConnectionStrings:ConnectorDb não configurado.");
+var canonicalConnectionString = builder.Configuration.GetConnectionString("CanonicalDb")
+    ?? throw new InvalidOperationException("ConnectionStrings:CanonicalDb não configurado.");
 
 // Única forma de obter TenantDbContext no processo: IDbContextFactory (não DbContext escopado).
 // Registrar os dois ao mesmo tempo para o mesmo TContext causa erro de resolução de escopo do DI;
@@ -88,9 +92,14 @@ builder.Services.AddDbContextFactory<ConnectorDbContext>((sp, options) =>
     options.UseSqlServer(connectorConnectionString)
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 
+builder.Services.AddDbContextFactory<CanonicalDbContext>((sp, options) =>
+    options.UseSqlServer(canonicalConnectionString)
+        .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
+
 builder.Services.AddScoped<IConnectorSyncStore, ConnectorSyncStore>();
 builder.Services.AddSingleton<IConnectorSyncPublisher>(_ => new RabbitMqConnectorSyncPublisher(rabbitMqConnectionString));
 builder.Services.AddScoped<IConnectorSyncService, ConnectorSyncService>();
+builder.Services.AddScoped<ICanonicalRecordStore, CanonicalRecordStore>();
 
 builder.Services.AddScoped<IMembershipDirectory, EIP.Platform.Tenant.Infrastructure.MembershipDirectory>();
 builder.Services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();

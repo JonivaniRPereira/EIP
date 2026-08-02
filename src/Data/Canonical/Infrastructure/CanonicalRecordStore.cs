@@ -19,7 +19,7 @@ public sealed class CanonicalRecordStore : ICanonicalRecordStore
         return await db.Customers.SingleOrDefaultAsync(c => c.TenantId == tenantId && c.Code == code, cancellationToken);
     }
 
-    public async Task UpsertCustomerAsync(Customer candidate, CancellationToken cancellationToken)
+    public async Task<bool> UpsertCustomerAsync(Customer candidate, CancellationToken cancellationToken)
     {
         await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         var existing = await FindByBusinessKeyAsync(db.Customers, candidate, cancellationToken);
@@ -34,6 +34,7 @@ public sealed class CanonicalRecordStore : ICanonicalRecordStore
         }
 
         await db.SaveChangesAsync(cancellationToken);
+        return existing is not null;
     }
 
     public async Task<Product?> FindProductByCodeAsync(Guid tenantId, string code, CancellationToken cancellationToken)
@@ -42,7 +43,7 @@ public sealed class CanonicalRecordStore : ICanonicalRecordStore
         return await db.Products.SingleOrDefaultAsync(p => p.TenantId == tenantId && p.Code == code, cancellationToken);
     }
 
-    public async Task UpsertProductAsync(Product candidate, CancellationToken cancellationToken)
+    public async Task<bool> UpsertProductAsync(Product candidate, CancellationToken cancellationToken)
     {
         await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         var existing = await FindByBusinessKeyAsync(db.Products, candidate, cancellationToken);
@@ -57,9 +58,10 @@ public sealed class CanonicalRecordStore : ICanonicalRecordStore
         }
 
         await db.SaveChangesAsync(cancellationToken);
+        return existing is not null;
     }
 
-    public async Task UpsertSalesInvoiceAsync(SalesInvoice invoice, IReadOnlyList<SalesInvoiceItem> items, CancellationToken cancellationToken)
+    public async Task<bool> UpsertSalesInvoiceAsync(SalesInvoice invoice, IReadOnlyList<SalesInvoiceItem> items, CancellationToken cancellationToken)
     {
         await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         var existing = await FindByBusinessKeyAsync(db.SalesInvoices, invoice, cancellationToken);
@@ -101,6 +103,7 @@ public sealed class CanonicalRecordStore : ICanonicalRecordStore
         }
 
         await db.SaveChangesAsync(cancellationToken);
+        return existing is not null;
     }
 
     public async Task AddQuarantineEntryAsync(CanonicalQuarantineEntry entry, CancellationToken cancellationToken)
@@ -108,6 +111,64 @@ public sealed class CanonicalRecordStore : ICanonicalRecordStore
         await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         db.QuarantineEntries.Add(entry);
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<CanonicalQuarantineEntry>> ListQuarantineEntriesAsync(
+        Guid tenantId,
+        Guid? connectorInstanceId,
+        DateTimeOffset? createdFrom,
+        DateTimeOffset? createdTo,
+        CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var query = db.QuarantineEntries.Where(q => q.TenantId == tenantId);
+
+        if (connectorInstanceId is { } id)
+        {
+            query = query.Where(q => q.ConnectorInstanceId == id);
+        }
+
+        if (createdFrom is { } fromValue)
+        {
+            query = query.Where(q => q.CreatedAt >= fromValue);
+        }
+
+        if (createdTo is { } toValue)
+        {
+            query = query.Where(q => q.CreatedAt <= toValue);
+        }
+
+        return await query.OrderByDescending(q => q.CreatedAt).ToListAsync(cancellationToken);
+    }
+
+    public async Task<CanonicalQuarantineEntry?> FindQuarantineEntryAsync(Guid tenantId, Guid quarantineEntryId, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        return await db.QuarantineEntries.SingleOrDefaultAsync(q => q.TenantId == tenantId && q.Id == quarantineEntryId, cancellationToken);
+    }
+
+    public async Task MarkQuarantineEntryResolvedAsync(Guid quarantineEntryId, DateTimeOffset resolvedAt, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var entry = await db.QuarantineEntries.SingleOrDefaultAsync(q => q.Id == quarantineEntryId, cancellationToken);
+        if (entry is null)
+        {
+            return;
+        }
+
+        entry.MarkResolved(resolvedAt);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<(int Count, decimal NetAmountTotal)> GetSalesInvoiceTotalsAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var invoices = db.SalesInvoices.Where(i => i.TenantId == tenantId && i.SourceSystemId == sourceSystemId);
+
+        var count = await invoices.CountAsync(cancellationToken);
+        var netAmountTotal = count == 0 ? 0m : await invoices.SumAsync(i => i.NetAmount, cancellationToken);
+
+        return (count, netAmountTotal);
     }
 
     private static Task<TEntity?> FindByBusinessKeyAsync<TEntity>(DbSet<TEntity> set, TEntity candidate, CancellationToken cancellationToken)

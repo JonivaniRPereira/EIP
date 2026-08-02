@@ -1,10 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Domain\EIP.Data.Connector.Domain.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\EIP.BuildingBlocks.csproj" />
     <ProjectReference Include="..\..\DataLake\EIP.Data.DataLake.csproj" />
     <ProjectReference Include="..\..\Pipeline\EIP.Data.Pipeline.csproj" />
+    <ProjectReference Include="..\..\Canonical\Application\EIP.Data.Canonical.Application.csproj" />
+    <ProjectReference Include="..\..\..\Shared\EIP.Shared.csproj" />
   </ItemGroup>
 
 </Project>

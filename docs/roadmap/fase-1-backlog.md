@@ -289,25 +289,69 @@ Ajustado para `5080`/`5000` nos dois `launchSettings.json` (e a URL de exemplo e
 Objetivo: fechar `docs/04 §8` e o critério de saída "falhas de qualidade ficam em quarentena, sem
 corromper o DW".
 
-- [ ] **E4.1** Relatório de execução por `SyncRun` (`docs/04 §8.3`): contagens de extraído, aceito,
+- [x] **E4.1** Relatório de execução por `SyncRun` (`docs/04 §8.3`): contagens de extraído, aceito,
       atualizado, rejeitado, processado. Estender `SyncRun` (E7) ou nova entidade associada — decidir
       durante a implementação conforme o que fica mais simples sem violar o grão do `SyncRun` já
       existente.
   - *Depende de:* E3.3.
   - *Aceite:* `GET /api/v1/connectors/{id}/sync-runs/{runId}` (endpoint já existente do E7) passa a
-    incluir essas contagens na resposta.
-- [ ] **E4.2** Endpoint(s) de consulta e reprocessamento de quarentena (`docs/04 §8.2`: "operador
+    incluir essas contagens na resposta. ✅ Concluído — `SyncRun` ganhou `AcceptedCount`/
+    `UpdatedCount`/`RejectedCount`/`DeletedCount` (nullable, mesma migration `AddSyncRunReportCounts`);
+    `RecordsProcessed` (já existente do E7) continua servindo como "extraídas"/"processadas" — as duas
+    coincidem sempre neste conector de referência (extração completa a cada sincronização, sem
+    watermark/incremental ainda). `ICanonicalRecordStore.Upsert*Async` passou a retornar
+    `bool` (existia e foi atualizado) para o Pipeline poder contar "atualizadas" separado de
+    "aceitas". `DeletedCount` sempre 0 — o conector de referência não emite sinal de exclusão de
+    origem. Validado ao vivo: primeira sincronização de customers → `acceptedCount=5, updatedCount=0`;
+    reexecutando a mesma sincronização → `acceptedCount=5, updatedCount=5` (as 5 já existiam).
+- [x] **E4.2** Endpoint(s) de consulta e reprocessamento de quarentena (`docs/04 §8.2`: "operador
       pode corrigir o mapeamento e reprocessar a carga, mantendo trilha de auditoria"): listar
       entradas de quarentena por tenant/conector/período, e disparar reprocessamento de uma entrada
       específica (reaproveitando a fila assíncrona do E7/E3).
-  - *Depende de:* E2.4, E3.3.
-- [ ] **E4.3** Reconciliação Canônico↔Origem (`docs/04 §8.3`): para a fatia Comercial, verificação de
+  - *Depende de:* E2.4, E3.3. ✅ Concluído — novo `QuarantineController` (`EIP.Data.Connector.Api`):
+    `GET /api/v1/connectors/quarantine` (filtros opcionais `connectorInstanceId`/`createdFrom`/
+    `createdTo`) e `POST /api/v1/connectors/quarantine/{id}/reprocess`. Reprocessar aqui dispara uma
+    nova sincronização completa da instância dona da entrada (via `IConnectorSyncService.
+    RequestSyncAsync`, reaproveitando a fila assíncrona do E7) e marca a entrada como resolvida
+    (`MarkResolved`, nunca apaga — docs/04 §8.2 "mantendo auditoria"); não existe reprocessamento
+    cirúrgico de um único registro nesta fase (mapeamento fixo no código, conteúdo bruto armazenado
+    só por lote/SyncRun, não por registro individual) — decisão deliberada, documentada no próprio
+    controller. `ICanonicalRecordStore` ganhou `ListQuarantineEntriesAsync`/`FindQuarantineEntryAsync`/
+    `MarkQuarantineEntryResolvedAsync`. Validado ao vivo: registrado um conector com mapeamento
+    inválido de propósito, sincronizado (5 registros → 5 rejeitados), a listagem retornou as 5
+    entradas, o filtro por `connectorInstanceId` funcionou, e `reprocess` disparou um novo `SyncRun`
+    (`Succeeded`, mesma quarentena reaparecendo — dado de origem não mudou, comportamento esperado) e
+    marcou a entrada original com `resolvedAt` preenchido.
+- [x] **E4.3** Reconciliação Canônico↔Origem (`docs/04 §8.3`): para a fatia Comercial, verificação de
       totais (contagem de faturas, soma de `NetAmount`) comparando o relatório do `SyncRun` com o
       que foi de fato persistido no Modelo Canônico.
   - *Depende de:* E4.1, E3.3.
   - *Aceite:* teste prova que uma divergência acima do limite configurado é detectável (mesmo que o
     bloqueio automático de publicação fique para E5/E6 — aqui o requisito mínimo é a verificação
-    existir e ser testável).
+    existir e ser testável). ✅ Concluído — `ICanonicalReconciliationService`/
+    `CanonicalReconciliationService` (`EIP.Data.Canonical.Application`, sem projeto próprio de
+    Infrastructure — só usa `ICanonicalRecordStore`): compara a contagem/soma de `NetAmount`
+    reportada pelo Pipeline nesta execução contra `GetSalesInvoiceTotalsAsync` (o que está de fato
+    persistido para aquele `SourceSystemId`). Tolerância configurável por fração (fixa em 1% nesta
+    fase — parametrização por tenant/conector fica para E5/E6). `ConnectorSyncProcessor` chama a
+    reconciliação só para `sales-invoices`, logando um aviso (nunca falhando o `SyncRun`) quando fora
+    da tolerância. 2 testes de integração novos (Testcontainers) provam o caso dentro da tolerância e
+    o caso de divergência detectável. Validado ao vivo: sincronização real de sales-invoices não
+    gerou nenhum aviso de reconciliação (dados consistentes, como esperado).
+
+**Validação de fechamento do E4** (todas as 3 tarefas, 2026-08-02): `dotnet build`/`dotnet test`
+limpos na solução inteira (20 testes — 2 novos de reconciliação além dos 18 já existentes),
+`dotnet format --verify-no-changes` limpo. **Bug real encontrado e corrigido durante a validação ao
+vivo** (não introduzido antes desta sessão de trabalho, mas exposto por ela): o `EIP.Host` nunca
+registrava `CanonicalDbContext`/`ICanonicalRecordStore` no container de DI — só o `EIP.Worker.Sync`
+tinha essa dependência, porque até o E3 nenhum endpoint do Host precisava do Modelo Canônico
+diretamente. O novo `QuarantineController` (E4.2) quebrou essa suposição; sem o registro, toda
+chamada a `/api/v1/connectors/quarantine` retornava 500 (`Unable to resolve service for type
+ICanonicalRecordStore`). Corrigido adicionando `CanonicalDbContext`/`ICanonicalRecordStore` ao
+`Program.cs` do Host (mesmo padrão do Worker) e a connection string `CanonicalDb` a
+`appsettings.json`/`HostApiFixture` (testes de integração). Ponta a ponta real (Host+Gateway+Worker+
+SQL Server+RabbitMQ+MinIO): validados os três itens do épico com o fluxo completo de sincronização,
+listagem/reprocessamento de quarentena, e reconciliação silenciosa quando os dados batem.
 
 ## E5 — Data Warehouse Inicial (fatia Comercial)
 
@@ -419,8 +463,8 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 |---|---|
 | E1 — Correção Estrutural + Fundações de Dados | ✅ Concluído (2026-08) |
 | E2 — Modelo Canônico (fatia Comercial) | ✅ Concluído (2026-08) |
-| E3 — Pipeline de Ingestão e Transformação | Não iniciado |
-| E4 — Qualidade e Reconciliação | Não iniciado |
+| E3 — Pipeline de Ingestão e Transformação | ✅ Concluído (2026-08) |
+| E4 — Qualidade e Reconciliação | ✅ Concluído (2026-08) |
 | E5 — Data Warehouse Inicial | Não iniciado |
 | E6 — Camada Semântica Mínima | Não iniciado |
 | E7 — Carga Incremental e Reprocessamento | Não iniciado |

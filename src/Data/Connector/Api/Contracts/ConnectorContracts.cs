@@ -10,7 +10,23 @@ public sealed record SyncRunDto(
     string Status,
     string CorrelationId,
     int? RecordsProcessed,
+    int? AcceptedCount,
+    int? UpdatedCount,
+    int? RejectedCount,
+    int? DeletedCount,
     string? ErrorMessage,
     DateTimeOffset CreatedAt,
     DateTimeOffset? StartedAt,
     DateTimeOffset? FinishedAt);
+
+public sealed record QuarantineEntryDto(
+    Guid Id,
+    Guid ConnectorInstanceId,
+    Guid SyncRunId,
+    string SourceEntity,
+    string RawObjectUri,
+    string CorrelationId,
+    string FailedRule,
+    string Reason,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? ResolvedAt);
