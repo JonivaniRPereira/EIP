@@ -1,3 +1,4 @@
+using EIP.Data.Canonical.Infrastructure;
 using EIP.Data.Connector.Infrastructure;
 using EIP.Platform.Identity.Infrastructure;
 using EIP.Platform.Tenant.Infrastructure;
@@ -44,6 +45,14 @@ public static class DatabaseMigrator
         await using (var connectorDb = new ConnectorDbContext(connectorOptions))
         {
             await connectorDb.Database.MigrateAsync();
+        }
+
+        var canonicalOptions = new DbContextOptionsBuilder<CanonicalDbContext>()
+            .UseSqlServer(connectionString, sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", CanonicalDbContext.Schema))
+            .Options;
+        await using (var canonicalDb = new CanonicalDbContext(canonicalOptions))
+        {
+            await canonicalDb.Database.MigrateAsync();
         }
     }
 }

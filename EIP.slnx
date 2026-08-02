@@ -16,6 +16,13 @@
     <Project Path="src/Host/EIP.Host.csproj" />
   </Folder>
   <Folder Name="/src/Data/" />
+  <Folder Name="/src/Data/Canonical/" />
+  <Folder Name="/src/Data/Canonical/Domain/">
+    <Project Path="src/Data/Canonical/Domain/EIP.Data.Canonical.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/Canonical/Infrastructure/">
+    <Project Path="src/Data/Canonical/Infrastructure/EIP.Data.Canonical.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Data/Connector/" />
   <Folder Name="/src/Data/Connector/Api/">
     <Project Path="src/Data/Connector/Api/EIP.Data.Connector.Api.csproj" />

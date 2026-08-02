@@ -61,6 +61,9 @@ aqui.
 | Camada semântica mínima: 3 métricas certificadas, sem motor de métricas genérico | Analytics Engine (consultas declarativas, cache, motor de métricas reutilizável) é entrega de Fase 2 (`docs/15 §6`) — aqui basta um endpoint versionado consultando `FactSalesInvoiceItem` com a definição de cada métrica documentada e testada, não um mecanismo configurável | `docs/15 §5` vs `§6`, escopo desta fase |
 | `Workspace` continua fora do escopo | Já era decisão da Fase 0 (`fase-0-backlog.md §6`) e `docs/15 §5` não exige Workspace para a Fase 1 — Data Mart/Semântica desta fase pertencem diretamente ao Tenant, sem camada de Workspace | Fase 0 §6, mantido |
 | `Company` precisa de `CountryCode` (novo campo obrigatório do CDM) | `docs/04-Modelo-Canonico.md §5.1` exige `CountryCode` em `Company`; a entidade `Tenant.Domain.Company` de hoje não tem esse campo — precisa de uma migration de extensão antes do primeiro registro canônico referenciar uma empresa | Achado desta revisão, E2.1 |
+| `EIP.Data.Canonical` só com `Domain`/`Infrastructure` no E2 | `Application`/`Api` ficam para quando o Pipeline (E3) ou os endpoints de quarentena (E4.2) precisarem de fato de uma abstração/rota — nenhum consumidor existe ainda dentro do próprio E2, então criar esses projetos agora seria especulativo (YAGNI) | E2.2 |
+| Sem FK/navegação EF Core entre entidades canônicas do mesmo schema | `Customer`/`Product` referenciados por `SalesInvoice`/`SalesInvoiceItem` via `Guid` simples, sem `HasOne/WithMany` — evita qualquer interação entre constraints de FK e block predicates de RLS (não testado/documentado pela Microsoft para este cenário específico), e seque o mesmo padrão já usado em `Membership.TenantId`/`Company.TenantId` no módulo Tenant | E2.2 |
+| `DatabaseMigrator.MigrateAllAsync` (Fase 0, E5.1) agora também migra `CanonicalDbContext` | Sem isso, o gate `RlsCoverageTests` (criado no fechamento da Fase 0) não veria as tabelas de `canonical.*` no banco efêmero de teste — a cobertura de RLS ficaria correta em produção/dev mas não seria verificada automaticamente no CI. Qualquer módulo novo com tabelas precisa entrar nesta lista | E2.2, mantém o gate da Fase 0 válido |
 
 ---
 
@@ -152,10 +155,13 @@ e ter uma forma segura de gravar/ler dado bruto (Data Lake).
 Objetivo: entidades canônicas mínimas da fatia Comercial, com RLS obrigatória desde a primeira
 migration (ADR-007), consistentes com `docs/04-Modelo-Canonico.md §4/§5`.
 
-- [ ] **E2.1** Estender `Tenant.Domain.Company` com `CountryCode` (obrigatório, ISO 3166-1 alpha-2)
+- [x] **E2.1** Estender `Tenant.Domain.Company` com `CountryCode` (obrigatório, ISO 3166-1 alpha-2)
       e `TradeName` (opcional) para satisfazer `docs/04 §5.1`. Nova migration no módulo Tenant.
   - *Aceite:* migration aplicada; `CountryCode` obrigatório na criação, `TaxId` continua opcional.
-- [ ] **E2.2** Novo módulo `EIP.Data.Canonical` (Domain/Application/Infrastructure/Api), schema
+    ✅ Concluído — migration `AddCompanyCountryCodeAndTradeName` aplicada (0 linhas existentes em
+    `tenant.Companies`, sem necessidade de backfill). `Company.Create` agora exige `countryCode`;
+    os 3 usos em `TenantIsolationTests` atualizados.
+- [x] **E2.2** Novo módulo `EIP.Data.Canonical` (Domain/Application/Infrastructure/Api), schema
       `canonical`. Campos comuns de `docs/04 §4` como um objeto de valor/base compartilhado
       (`Id, TenantId, CompanyId, SourceSystemId, SourceEntity, SourceRecordId, SourceUpdatedAt,
       IngestedAt, ProcessedAt, IsDeleted, SchemaVersion, CorrelationId, RawObjectUri`). Entidades
@@ -163,17 +169,40 @@ migration (ADR-007), consistentes com `docs/04-Modelo-Canonico.md §4/§5`.
       `SalesInvoice`, `SalesInvoiceItem` — campos exatamente conforme `docs/04 §5.2/§5.3`.
   - *Depende de:* E2.1 (referência a `CompanyId` já com `CountryCode` disponível para o DW depois).
   - *Aceite:* migration inicial já nasce com `TenantId` + política RLS (mesmo padrão de
-    `tenant`/`connector`/`identity`) — sem exceção.
-- [ ] **E2.3** Índice de unicidade da chave de negócio (`docs/04 §4.1`):
+    `tenant`/`connector`/`identity`) — sem exceção. ✅ Concluído — só `Domain` + `Infrastructure`
+    criados (`Application`/`Api` ficam para quando o Pipeline/E4 precisarem de fato de uma
+    abstração ou endpoint; YAGNI por ora). Campos comuns centralizados em `CanonicalEntity`
+    (classe base abstrata) + `CanonicalLineage` (record com a linhagem, passado a cada `Create`).
+    `BranchId`/`SalesOrder`/`Currency`-como-entidade deliberadamente fora (ver §3). Referências
+    entre entidades do próprio schema (`Customer`/`Product` a partir de `SalesInvoice`/`Item`) são
+    `Guid` simples, sem FK/navegação EF Core — mesmo padrão já usado em `Membership.TenantId`, e
+    evita qualquer interação estranha entre constraints de FK e block predicates de RLS.
+- [x] **E2.3** Índice de unicidade da chave de negócio (`docs/04 §4.1`):
       `TenantId + SourceSystemId + SourceEntity + SourceRecordId` único por entidade canônica.
   - *Depende de:* E2.2.
   - *Aceite:* teste prova que inserir duas vezes o mesmo registro de origem falha/idempotentemente
-    não duplica (depende de como E3 resolve isso — ver E3.4).
-- [ ] **E2.4** Entidade de quarentena (`docs/04 §8.2`): `CanonicalQuarantineEntry` (schema
+    não duplica (depende de como E3 resolve isso — ver E3.4). ✅ Concluído — índice único criado via
+    `CanonicalEntityConfigurationExtensions.ConfigureCanonicalFields<T>()` (evita repetir/divergir a
+    configuração entre as 5 entidades). Validado com SQL bruto real contra o `canonical.Customers`:
+    inserir a mesma chave de negócio duas vezes falha com erro de índice único
+    (`IX_Customers_TenantId_SourceSystemId_SourceEntity_SourceRecordId`).
+- [x] **E2.4** Entidade de quarentena (`docs/04 §8.2`): `CanonicalQuarantineEntry` (schema
       `canonical`, RLS obrigatória) — motivo da rejeição, referência ao `RawObjectUri`,
       `ConnectorInstanceId`, `SyncRunId`, `CorrelationId`, a regra de validação que falhou, e o
       payload bruto rejeitado (ou referência a ele) para permitir correção manual e reprocessamento.
-  - *Depende de:* E2.2.
+  - *Depende de:* E2.2. ✅ Concluído — `CanonicalQuarantineEntry` não herda de `CanonicalEntity`
+    (um registro rejeitado pode não ter conseguido resolver nem os campos comuns mínimos, docs/04
+    §6.3); guarda o payload bruto por referência (`RawObjectUri`, já grava no Data Lake via E1.2),
+    não uma cópia inline. `MarkResolved` preserva o histórico em vez de apagar a entrada.
+
+**Validação de fechamento do E2** (todas as 4 tarefas, 2026-08-02): `dotnet build`/`dotnet test`
+(16/16, incluindo `RlsCoverageTests` — `DatabaseMigrator.MigrateAllAsync` em
+`EIP.Testing.Infrastructure` passou a migrar também `CanonicalDbContext`, então o gate de RLS da
+Fase 0 já cobre o novo schema automaticamente) e `dotnet format --verify-no-changes` limpos.
+Migration aplicada no SQL Server local e RLS validada com SQL bruto: catálogo do sistema confirma
+zero tabelas com `TenantId` desprotegidas nas 6 novas tabelas; isolamento cross-tenant e unicidade
+de chave de negócio provados com `INSERT`s reais (sem contexto → 0 linhas; contexto do tenant B →
+0 linhas; duplicidade de chave de negócio → bloqueada pelo índice único).
 
 ## E3 — Pipeline de Ingestão e Transformação
 
@@ -343,7 +372,7 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 | Épico | Status |
 |---|---|
 | E1 — Correção Estrutural + Fundações de Dados | ✅ Concluído (2026-08) |
-| E2 — Modelo Canônico (fatia Comercial) | Não iniciado |
+| E2 — Modelo Canônico (fatia Comercial) | ✅ Concluído (2026-08) |
 | E3 — Pipeline de Ingestão e Transformação | Não iniciado |
 | E4 — Qualidade e Reconciliação | Não iniciado |
 | E5 — Data Warehouse Inicial | Não iniciado |

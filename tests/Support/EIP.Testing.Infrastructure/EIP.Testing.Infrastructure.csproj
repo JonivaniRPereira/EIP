@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Platform\Tenant\Infrastructure\EIP.Platform.Tenant.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Platform\Identity\Infrastructure\EIP.Platform.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Data\Canonical\Infrastructure\EIP.Data.Canonical.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Data\Connector\Infrastructure\EIP.Data.Connector.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Data\DataLake.Infrastructure\EIP.Data.DataLake.Infrastructure.csproj" />
   </ItemGroup>

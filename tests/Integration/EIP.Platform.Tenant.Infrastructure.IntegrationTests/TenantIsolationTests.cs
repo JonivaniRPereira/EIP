@@ -46,14 +46,14 @@ public sealed class TenantIsolationTests : IAsyncLifetime
         _tenantContextAccessor.Current = new TenantContext(_tenantA.Id);
         await using (var dbA = CreateDbContext())
         {
-            dbA.Companies.Add(Company.Create(_tenantA.Id, "Empresa da A", "BRL"));
+            dbA.Companies.Add(Company.Create(_tenantA.Id, "Empresa da A", "BRL", "BR"));
             await dbA.SaveChangesAsync();
         }
 
         _tenantContextAccessor.Current = new TenantContext(_tenantB.Id);
         await using (var dbB = CreateDbContext())
         {
-            dbB.Companies.Add(Company.Create(_tenantB.Id, "Empresa da B", "BRL"));
+            dbB.Companies.Add(Company.Create(_tenantB.Id, "Empresa da B", "BRL", "BR"));
             await dbB.SaveChangesAsync();
         }
 
@@ -137,7 +137,7 @@ public sealed class TenantIsolationTests : IAsyncLifetime
         _tenantContextAccessor.Current = new TenantContext(_tenantA.Id);
         await using var db = CreateDbContext();
 
-        db.Companies.Add(Company.Create(_tenantB.Id, "Empresa invasora", "BRL"));
+        db.Companies.Add(Company.Create(_tenantB.Id, "Empresa invasora", "BRL", "BR"));
 
         var act = async () => await db.SaveChangesAsync();
 

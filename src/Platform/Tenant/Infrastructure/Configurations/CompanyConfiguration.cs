@@ -15,7 +15,9 @@ public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
 
         builder.Property(c => c.TenantId).IsRequired();
         builder.Property(c => c.Name).HasMaxLength(200).IsRequired();
+        builder.Property(c => c.TradeName).HasMaxLength(200);
         builder.Property(c => c.TaxId).HasMaxLength(50);
+        builder.Property(c => c.CountryCode).HasMaxLength(2).IsRequired();
         builder.Property(c => c.DefaultCurrency).HasMaxLength(3).IsRequired();
         builder.Property(c => c.Status).HasConversion<string>().HasMaxLength(30).IsRequired();
 
