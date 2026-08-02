@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Platform\Connector\Application\EIP.Platform.Connector.Application.csproj" />
-    <ProjectReference Include="..\Platform\Connector\Infrastructure\EIP.Platform.Connector.Infrastructure.csproj" />
+    <ProjectReference Include="..\Data\Connector\Application\EIP.Data.Connector.Application.csproj" />
+    <ProjectReference Include="..\Data\Connector\Infrastructure\EIP.Data.Connector.Infrastructure.csproj" />
     <ProjectReference Include="..\BuildingBlocks\EIP.BuildingBlocks.csproj" />
     <ProjectReference Include="..\BuildingBlocks.Data\EIP.BuildingBlocks.Data.csproj" />
   </ItemGroup>

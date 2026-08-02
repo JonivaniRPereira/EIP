@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Platform\Connector\Api\EIP.Platform.Connector.Api.csproj" />
-    <ProjectReference Include="..\Platform\Connector\Infrastructure\EIP.Platform.Connector.Infrastructure.csproj" />
+    <ProjectReference Include="..\Data\Connector\Api\EIP.Data.Connector.Api.csproj" />
+    <ProjectReference Include="..\Data\Connector\Infrastructure\EIP.Data.Connector.Infrastructure.csproj" />
     <ProjectReference Include="..\Platform\Identity\Api\EIP.Platform.Identity.Api.csproj" />
     <ProjectReference Include="..\Platform\Identity\Infrastructure\EIP.Platform.Identity.Infrastructure.csproj" />
     <ProjectReference Include="..\Platform\Tenant\Api\EIP.Platform.Tenant.Api.csproj" />

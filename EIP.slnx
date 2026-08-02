@@ -15,20 +15,27 @@
   <Folder Name="/src/Host/">
     <Project Path="src/Host/EIP.Host.csproj" />
   </Folder>
+  <Folder Name="/src/Data/" />
+  <Folder Name="/src/Data/Connector/" />
+  <Folder Name="/src/Data/Connector/Api/">
+    <Project Path="src/Data/Connector/Api/EIP.Data.Connector.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/Connector/Application/">
+    <Project Path="src/Data/Connector/Application/EIP.Data.Connector.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/Connector/Domain/">
+    <Project Path="src/Data/Connector/Domain/EIP.Data.Connector.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/Connector/Infrastructure/">
+    <Project Path="src/Data/Connector/Infrastructure/EIP.Data.Connector.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/DataLake/">
+    <Project Path="src/Data/DataLake/EIP.Data.DataLake.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/DataLake.Infrastructure/">
+    <Project Path="src/Data/DataLake.Infrastructure/EIP.Data.DataLake.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Platform/" />
-  <Folder Name="/src/Platform/Connector/" />
-  <Folder Name="/src/Platform/Connector/Api/">
-    <Project Path="src/Platform/Connector/Api/EIP.Platform.Connector.Api.csproj" />
-  </Folder>
-  <Folder Name="/src/Platform/Connector/Application/">
-    <Project Path="src/Platform/Connector/Application/EIP.Platform.Connector.Application.csproj" />
-  </Folder>
-  <Folder Name="/src/Platform/Connector/Domain/">
-    <Project Path="src/Platform/Connector/Domain/EIP.Platform.Connector.Domain.csproj" />
-  </Folder>
-  <Folder Name="/src/Platform/Connector/Infrastructure/">
-    <Project Path="src/Platform/Connector/Infrastructure/EIP.Platform.Connector.Infrastructure.csproj" />
-  </Folder>
   <Folder Name="/src/Platform/Identity/" />
   <Folder Name="/src/Platform/Identity/Api/">
     <Project Path="src/Platform/Identity/Api/EIP.Platform.Identity.Api.csproj" />
@@ -63,6 +70,7 @@
   </Folder>
   <Folder Name="/tests/" />
   <Folder Name="/tests/Integration/">
+    <Project Path="tests/Integration/EIP.Data.DataLake.Infrastructure.IntegrationTests/EIP.Data.DataLake.Infrastructure.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Host.IntegrationTests/EIP.Host.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Platform.Tenant.Infrastructure.IntegrationTests/EIP.Platform.Tenant.Infrastructure.IntegrationTests.csproj" />
   </Folder>

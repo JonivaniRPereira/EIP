@@ -1,8 +1,8 @@
 using System.Text.Json;
 using EIP.BuildingBlocks.Security;
-using EIP.Platform.Connector.Application;
-using EIP.Platform.Connector.Application.Contracts;
-using EIP.Platform.Connector.Infrastructure;
+using EIP.Data.Connector.Application;
+using EIP.Data.Connector.Application.Contracts;
+using EIP.Data.Connector.Infrastructure;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;

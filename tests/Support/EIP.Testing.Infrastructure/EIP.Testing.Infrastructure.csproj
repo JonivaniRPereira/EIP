@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Testcontainers.Minio" Version="4.13.0" />
     <PackageReference Include="Testcontainers.MsSql" Version="4.13.0" />
     <PackageReference Include="xunit.core" Version="2.9.3" />
   </ItemGroup>
@@ -14,7 +15,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Platform\Tenant\Infrastructure\EIP.Platform.Tenant.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Platform\Identity\Infrastructure\EIP.Platform.Identity.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\src\Platform\Connector\Infrastructure\EIP.Platform.Connector.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Data\Connector\Infrastructure\EIP.Data.Connector.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Data\DataLake.Infrastructure\EIP.Data.DataLake.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

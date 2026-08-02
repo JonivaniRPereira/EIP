@@ -91,13 +91,24 @@ Critério adicional obrigatório por conta da ADR-007 (mesmo texto usado para fe
 Objetivo: alinhar a estrutura de pastas com `docs/00` antes de acrescentar mais módulos em `src/Data/`,
 e ter uma forma segura de gravar/ler dado bruto (Data Lake).
 
-- [ ] **E1.1** Mover `EIP.Platform.Connector.*` → `EIP.Data.Connector.*` (`src/Platform/Connector` →
+- [x] **E1.1** Mover `EIP.Platform.Connector.*` → `EIP.Data.Connector.*` (`src/Platform/Connector` →
       `src/Data/Connector`, mesma estrutura Domain/Application/Infrastructure/Api). Atualizar
       namespaces, `EIP.slnx`, referências em `Host`, `Worker`, `EIP.Testing.Infrastructure` e nos
       testes de integração. Nenhuma mudança de comportamento — só localização/namespace.
   - *Aceite:* `dotnet build`/`dotnet test` continuam 100% verdes; `git mv` preserva histórico dos
-    arquivos quando possível.
-- [ ] **E1.2** Novo módulo `EIP.Data.DataLake` (Infrastructure): abstração `IRawObjectStore`
+    arquivos quando possível. ✅ Concluído — `git mv` usado para o diretório e para os 4 `.csproj`
+    renomeados (`EIP.Platform.Connector.*.csproj` → `EIP.Data.Connector.*.csproj`); 40 referências
+    de namespace/caminho corrigidas em `EIP.slnx`, `Host`, `Worker`, `EIP.Testing.Infrastructure` e
+    3 projetos de teste. **Gotcha real encontrado**: `git mv` do diretório falhou com "Permission
+    denied" — causado por `bin`/`obj` da build anterior com handles abertos; resolvido apagando
+    `bin`/`obj` antes de mover (nada a ver com o próprio `git mv`). **Segundo gotcha**: como
+    `src/Data` já existia (criado por `mkdir -p` antes do `git mv`), o comando moveu o conteúdo para
+    dentro de `src/Data/Connector/Connector/...` (aninhado) em vez de `src/Data/Connector/...` —
+    corrigido movendo os 4 subdiretórios um nível acima. Validado com a suíte completa (13/13),
+    `dotnet format --verify-no-changes` limpo, rebuild real da imagem Docker do Host, e um teste de
+    fumaça ponta a ponta via API (registrar conector → sincronizar → `Succeeded` com
+    `recordsProcessed: 5`) confirmando que a mudança de namespace não quebrou nada em runtime.
+- [x] **E1.2** Novo módulo `EIP.Data.DataLake` (Infrastructure): abstração `IRawObjectStore`
       (Application-side interface, sem depender de S3/MinIO) + implementação via cliente
       S3-compatible apontando para o MinIO do E1 (Fase 0). Convenção de chave obrigatória:
       `{tenantId}/{sourceSystemId}/{sourceEntity}/{yyyy}/{MM}/{dd}/{syncRunId}/{sequencial}.json`
@@ -106,14 +117,35 @@ e ter uma forma segura de gravar/ler dado bruto (Data Lake).
       checksum SHA-256.
   - *Depende de:* nenhuma (usa o MinIO já disponível desde a Fase 0).
   - *Aceite:* gravar e ler um objeto de verdade contra o MinIO real do `docker-compose`; checksum
-    verificado na leitura.
-- [ ] **E1.3** Teste automatizado de isolamento de tenant no Data Lake: tenant A não lista nem lê
+    verificado na leitura. ✅ Concluído. Dois projetos, mesmo padrão `BuildingBlocks`/
+    `BuildingBlocks.Web` (abstração livre de dependências + implementação separada):
+    `EIP.Data.DataLake` (`IRawObjectStore`, `RawObjectMetadata`, `StoredRawObject`, zero pacotes) e
+    `EIP.Data.DataLake.Infrastructure` (`S3RawObjectStore` via `AWSSDK.S3` 4.0.101.6, apontando para
+    qualquer endpoint S3-compatible com `ForcePathStyle = true`, obrigatório para MinIO). A chave é
+    **sempre** construída dentro de `PutAsync` a partir do `TenantId` de `RawObjectMetadata` — nunca
+    aceita do chamador. "Sequencial" simplificado como um GUID curto (Object Storage não tem
+    sequência transacional nativa; documentado no código). **Mesmo gotcha de aninhamento do
+    BuildingBlocks/BuildingBlocks.Web reapareceu aqui**: coloquei `Infrastructure` como subpasta de
+    `DataLake` por engano — MSBuild incluiu os `.cs` dos dois projetos no mesmo assembly (erro
+    `CS0579` de atributo duplicado); corrigido movendo `Infrastructure` para `src/Data/DataLake.Infrastructure`
+    (irmã, não aninhada) — a lição já registrada na memória do projeto desde a Fase 0 se confirmou
+    na prática de novo.
+- [x] **E1.3** Teste automatizado de isolamento de tenant no Data Lake: tenant A não lista nem lê
       objetos do prefixo de tenant B via `IRawObjectStore`, mesmo adulterando o `TenantId` num
       parâmetro de chamada da API interna (não existe endpoint HTTP direto para o Data Lake — o
       teste chama a abstração diretamente, análogo ao nível "banco" do E2.3 da Fase 0).
   - *Depende de:* E1.2.
   - *Aceite:* teste roda contra MinIO real (ou Testcontainers com uma imagem S3-compatible),
-    prova negativa explícita, não apenas ausência de erro.
+    prova negativa explícita, não apenas ausência de erro. ✅ Concluído — novo
+    `tests/Integration/EIP.Data.DataLake.Infrastructure.IntegrationTests`, seguindo o mesmo padrão
+    Testcontainers do `SqlServerContainerFixture` (E5.1 da Fase 0): novo `MinioContainerFixture`
+    (`EIP.Testing.Infrastructure`, pacote `Testcontainers.Minio` 4.13.0, mesma imagem do MinIO da
+    Fase 0) sobe um MinIO efêmero real por execução. 3 testes: round-trip put→get com checksum
+    SHA-256 batendo; `ListKeysAsync` de um tenant nunca retorna chaves de outro (o prefixo é filtro
+    nativo do Object Storage, não checagem posterior); `GetAsync` com uma chave de outro tenant
+    lança `UnauthorizedAccessException` antes de qualquer chamada real ao storage. 3/3 aprovados,
+    validado com tempo de parede (~5,5s) consistente com a criação real de um container (não apenas
+    "não deu erro").
 
 ## E2 — Modelo Canônico (fatia Comercial)
 
@@ -310,7 +342,7 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 
 | Épico | Status |
 |---|---|
-| E1 — Correção Estrutural + Fundações de Dados | Não iniciado |
+| E1 — Correção Estrutural + Fundações de Dados | ✅ Concluído (2026-08) |
 | E2 — Modelo Canônico (fatia Comercial) | Não iniciado |
 | E3 — Pipeline de Ingestão e Transformação | Não iniciado |
 | E4 — Qualidade e Reconciliação | Não iniciado |

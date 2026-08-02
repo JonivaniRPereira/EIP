@@ -1,4 +1,4 @@
-using EIP.Platform.Connector.Infrastructure;
+using EIP.Data.Connector.Infrastructure;
 using EIP.Platform.Identity.Infrastructure;
 using EIP.Platform.Tenant.Infrastructure;
 using Microsoft.EntityFrameworkCore;

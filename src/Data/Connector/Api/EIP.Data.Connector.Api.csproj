@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Application\EIP.Data.Connector.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\EIP.Data.Connector.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Shared\EIP.Shared.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks.Web\EIP.BuildingBlocks.Web.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

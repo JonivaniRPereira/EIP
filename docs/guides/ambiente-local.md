@@ -51,7 +51,7 @@ subir (a partir da raiz do repositório):
 ```bash
 dotnet ef database update --project src/Platform/Tenant/Infrastructure --startup-project src/Platform/Tenant/Infrastructure
 dotnet ef database update --project src/Platform/Identity/Infrastructure --startup-project src/Platform/Identity/Infrastructure
-dotnet ef database update --project src/Platform/Connector/Infrastructure --startup-project src/Platform/Connector/Infrastructure
+dotnet ef database update --project src/Data/Connector/Infrastructure --startup-project src/Data/Connector/Infrastructure
 ```
 
 Cada migration inicial já nasce com a política RLS correspondente (ADR-007) — não existe uma etapa

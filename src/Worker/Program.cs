@@ -1,8 +1,8 @@
 using EIP.BuildingBlocks.Data;
 using EIP.BuildingBlocks.Security;
-using EIP.Platform.Connector.Application;
-using EIP.Platform.Connector.Application.Abstractions;
-using EIP.Platform.Connector.Infrastructure;
+using EIP.Data.Connector.Application;
+using EIP.Data.Connector.Application.Abstractions;
+using EIP.Data.Connector.Infrastructure;
 using EIP.Worker.Sync;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
