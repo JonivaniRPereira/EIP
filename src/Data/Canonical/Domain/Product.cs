@@ -49,4 +49,21 @@ public sealed class Product : CanonicalEntity
 
         return new Product(Guid.NewGuid(), lineage, code, name, productType, isActive, categoryId, unitOfMeasure);
     }
+
+    /// <summary>Upsert idempotente (E3.4).</summary>
+    public void ApplyUpdate(
+        CanonicalLineage lineage,
+        string name,
+        ProductType productType,
+        bool isActive,
+        Guid? categoryId,
+        string? unitOfMeasure)
+    {
+        Name = name;
+        ProductType = productType;
+        IsActive = isActive;
+        CategoryId = categoryId;
+        UnitOfMeasure = unitOfMeasure;
+        RefreshLineage(lineage);
+    }
 }

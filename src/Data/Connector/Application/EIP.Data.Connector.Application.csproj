@@ -3,6 +3,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Domain\EIP.Data.Connector.Domain.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\EIP.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\DataLake\EIP.Data.DataLake.csproj" />
+    <ProjectReference Include="..\..\Pipeline\EIP.Data.Pipeline.csproj" />
   </ItemGroup>
 
 </Project>

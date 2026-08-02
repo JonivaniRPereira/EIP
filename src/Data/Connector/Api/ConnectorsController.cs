@@ -37,14 +37,20 @@ public sealed class ConnectorsController : ControllerBase
             return Problem(detail: "Tenant não selecionado.", statusCode: StatusCodes.Status403Forbidden);
         }
 
-        if (string.IsNullOrWhiteSpace(request.Name) || !Uri.TryCreate(request.BaseUrl, UriKind.Absolute, out _))
+        if (string.IsNullOrWhiteSpace(request.Name)
+            || !Uri.TryCreate(request.BaseUrl, UriKind.Absolute, out _)
+            || string.IsNullOrWhiteSpace(request.SourceEntity)
+            || request.CompanyId == Guid.Empty)
         {
-            return Problem(detail: "Name e BaseUrl (URL absoluta) são obrigatórios.", statusCode: StatusCodes.Status400BadRequest);
+            return Problem(
+                detail: "CompanyId, Name, BaseUrl (URL absoluta) e SourceEntity são obrigatórios.",
+                statusCode: StatusCodes.Status400BadRequest);
         }
 
-        var instanceId = await _connectorSyncService.RegisterInstanceAsync(tenantId.Value, request.Name, request.BaseUrl, cancellationToken);
+        var instanceId = await _connectorSyncService.RegisterInstanceAsync(
+            tenantId.Value, request.CompanyId, request.Name, request.BaseUrl, request.SourceEntity, cancellationToken);
 
-        var dto = new ConnectorInstanceDto(instanceId, request.Name, request.BaseUrl, "Active");
+        var dto = new ConnectorInstanceDto(instanceId, request.CompanyId, request.Name, request.BaseUrl, request.SourceEntity, "Active");
         return CreatedAtAction(nameof(Register), new { connectorInstanceId = instanceId }, dto);
     }
 

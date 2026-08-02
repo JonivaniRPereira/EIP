@@ -15,9 +15,9 @@ public sealed class ConnectorSyncService : IConnectorSyncService
         _publisher = publisher;
     }
 
-    public async Task<Guid> RegisterInstanceAsync(Guid tenantId, string name, string baseUrl, CancellationToken cancellationToken)
+    public async Task<Guid> RegisterInstanceAsync(Guid tenantId, Guid companyId, string name, string baseUrl, string sourceEntity, CancellationToken cancellationToken)
     {
-        var instance = ConnectorInstance.Create(tenantId, name, baseUrl);
+        var instance = ConnectorInstance.Create(tenantId, companyId, name, baseUrl, sourceEntity);
         await _store.SaveNewInstanceAsync(instance, cancellationToken);
         return instance.Id;
     }

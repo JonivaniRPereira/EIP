@@ -220,17 +220,69 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// Fonte de dados de referência para o único Connector Type da Fase 0 (REST genérico, E7.1) — um
+// Fonte de dados de referência para o único Connector Type da Fase 0/1 (REST genérico, E7.1) — um
 // stand-in local para "sistema externo", só para provar o fluxo de ponta a ponta sem depender de
 // internet/terceiros. Não é uma feature de produto; um `ConnectorInstance` real aponta para o ERP/
-// API de fato do cliente.
+// API de fato do cliente. Formato pensado para o mapeamento canônico da fatia Comercial (E3,
+// docs/roadmap/fase-1-backlog.md) — `code` é a chave de negócio que `customerCode`/`productCode`
+// referenciam em `/sample/sales-invoices`.
 app.MapGet("/api/v1/sample/customers", () => Results.Json(new[]
 {
-    new { id = 1, name = "Ana Souza", email = "ana.souza@example.com" },
-    new { id = 2, name = "Bruno Lima", email = "bruno.lima@example.com" },
-    new { id = 3, name = "Carla Nunes", email = "carla.nunes@example.com" },
-    new { id = 4, name = "Diego Alves", email = "diego.alves@example.com" },
-    new { id = 5, name = "Elisa Prado", email = "elisa.prado@example.com" },
+    new { code = "C001", name = "Ana Souza", email = "ana.souza@example.com", city = "São Paulo", stateOrRegion = "SP", countryCode = "BR", isActive = true },
+    new { code = "C002", name = "Bruno Lima", email = "bruno.lima@example.com", city = "Rio de Janeiro", stateOrRegion = "RJ", countryCode = "BR", isActive = true },
+    new { code = "C003", name = "Carla Nunes", email = "carla.nunes@example.com", city = "Belo Horizonte", stateOrRegion = "MG", countryCode = "BR", isActive = true },
+    new { code = "C004", name = "Diego Alves", email = "diego.alves@example.com", city = "Curitiba", stateOrRegion = "PR", countryCode = "BR", isActive = true },
+    new { code = "C005", name = "Elisa Prado", email = "elisa.prado@example.com", city = "Porto Alegre", stateOrRegion = "RS", countryCode = "BR", isActive = true },
+})).AllowAnonymous();
+
+app.MapGet("/api/v1/sample/products", () => Results.Json(new[]
+{
+    new { code = "P001", name = "Notebook Pro 14", productType = "Product", unitOfMeasure = "UN", isActive = true },
+    new { code = "P002", name = "Monitor UltraWide 29", productType = "Product", unitOfMeasure = "UN", isActive = true },
+    new { code = "P003", name = "Suporte Técnico Mensal", productType = "Service", unitOfMeasure = "UN", isActive = true },
+    new { code = "P004", name = "Licença de Software Anual", productType = "Service", unitOfMeasure = "UN", isActive = true },
+})).AllowAnonymous();
+
+app.MapGet("/api/v1/sample/sales-invoices", () => Results.Json(new[]
+{
+    new
+    {
+        invoiceNumber = "NF-0001",
+        issueDate = "2026-07-01",
+        customerCode = "C001",
+        status = "Issued",
+        currencyCode = "BRL",
+        items = new[]
+        {
+            new { lineNumber = 1, productCode = "P001", quantity = 1m, unitPrice = 5200.00m, discountAmount = 0m },
+            new { lineNumber = 2, productCode = "P003", quantity = 1m, unitPrice = 300.00m, discountAmount = 0m },
+        },
+    },
+    new
+    {
+        invoiceNumber = "NF-0002",
+        issueDate = "2026-07-03",
+        customerCode = "C002",
+        status = "Issued",
+        currencyCode = "BRL",
+        items = new[]
+        {
+            new { lineNumber = 1, productCode = "P002", quantity = 2m, unitPrice = 1800.00m, discountAmount = 100.00m },
+        },
+    },
+    new
+    {
+        invoiceNumber = "NF-0003",
+        issueDate = "2026-07-05",
+        customerCode = "C003",
+        status = "Issued",
+        currencyCode = "BRL",
+        items = new[]
+        {
+            new { lineNumber = 1, productCode = "P004", quantity = 1m, unitPrice = 1200.00m, discountAmount = 0m },
+            new { lineNumber = 2, productCode = "P003", quantity = 3m, unitPrice = 300.00m, discountAmount = 0m },
+        },
+    },
 })).AllowAnonymous();
 
 app.MapControllers();

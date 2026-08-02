@@ -209,19 +209,30 @@ de chave de negócio provados com `INSERT`s reais (sem contexto → 0 linhas; co
 Objetivo: fechar o fluxo `docs/04 §7` (Extração → Data Lake → Validação/Mapeamento → Canônico) para
 a fatia Comercial, estendendo a infraestrutura assíncrona já provada no E7 da Fase 0.
 
-- [ ] **E3.1** Estender a fonte de dados de referência: novos endpoints estáticos no Host
+- [x] **E3.1** Estender a fonte de dados de referência: novos endpoints estáticos no Host
       (`GET /api/v1/sample/products`, `GET /api/v1/sample/sales-invoices`) retornando um pequeno
       conjunto realista de faturas com itens, referenciando clientes/produtos de exemplo — mesma
       filosofia do `/api/v1/sample/customers` do E7 (stand-in local para sistema externo, não
       feature de produto).
   - *Aceite:* payload documentado, contém campos suficientes para mapear todos os campos
-    obrigatórios de `Customer`/`Product`/`SalesInvoice`/`SalesInvoiceItem`.
-- [ ] **E3.2** `ConnectorSyncProcessor` (E7) passa a gravar cada registro bruto extraído no Data
+    obrigatórios de `Customer`/`Product`/`SalesInvoice`/`SalesInvoiceItem`. ✅ Concluído —
+    `/api/v1/sample/customers` redesenhado (`code, name, email, city, stateOrRegion, countryCode,
+    isActive`) e os dois novos endpoints adicionados; 3 faturas de exemplo (`NF-0001..0003`)
+    referenciando clientes/produtos existentes por código. `ConnectorInstance` ganhou `CompanyId`
+    (obrigatório, `docs/05 §3`) e `SourceEntity` (declara qual entidade canônica a instância
+    sincroniza — `Id` da instância também serve como `SourceSystemId` do Modelo Canônico).
+- [x] **E3.2** `ConnectorSyncProcessor` (E7) passa a gravar cada registro bruto extraído no Data
       Lake (E1.2) — com linhagem completa — **antes** de qualquer transformação, nunca depois
       (`docs/04 §7`: conector só extrai/preserva/mapeia; nunca escreve direto no canônico).
   - *Depende de:* E1.2, E3.1.
   - *Aceite:* após um `SyncRun`, os objetos brutos existem no MinIO e são auditáveis via `RawObjectUri`.
-- [ ] **E3.3** Novo módulo `EIP.Data.Pipeline` (Application, consome `Data.Connector` +
+    ✅ Concluído — `IReferenceRestClient` passou de contar registros para retornar o conteúdo bruto
+    (`FetchRawContentAsync`); `ConnectorSyncProcessor` grava via `IRawObjectStore.PutAsync` (chave
+    `{tenantId}/{sourceSystemId}/{sourceEntity}/{yyyy}/{MM}/{dd}/{syncRunId}/{sequencial}.json`)
+    antes de chamar o Pipeline. Validado com infraestrutura real: os 3 objetos das sincronizações de
+    teste (customers/products/sales-invoices) apareceram no bucket `eip-datalake` do MinIO
+    (`mc ls --recursive`), com o prefixo de tenant correto.
+- [x] **E3.3** Novo módulo `EIP.Data.Pipeline` (Application, consome `Data.Connector` +
       `Data.Canonical` + `Data.DataLake`, nunca o inverso): orquestra, por `SyncRun`, a leitura dos
       objetos brutos gravados em E3.2, aplica o mapeamento fixo origem→canônico (E7 REST genérico →
       `Customer`/`Product`/`SalesInvoice`/`SalesInvoiceItem`), valida (`docs/04 §8.1`), resolve
@@ -230,13 +241,48 @@ a fatia Comercial, estendendo a infraestrutura assíncrona já provada no E7 da 
   - *Depende de:* E2.2, E2.4, E3.2.
   - *Aceite:* teste de integração ponta a ponta (Testcontainers) com um lote misto de registros
     válidos/inválidos: válidos viram canônico, inválidos viram quarentena — nunca os dois ao
-    mesmo tempo para o mesmo registro.
-- [ ] **E3.4** Idempotência do pipeline (`docs/04 §4.1`, `docs/05 §10.1`): reprocessar o mesmo
+    mesmo tempo para o mesmo registro. ✅ Concluído — `EIP.Data.Pipeline` (só `IPipelineProcessor`/
+    `PipelineProcessor`, sem Infrastructure própria: nenhum SDK externo, só EF Core via
+    `ICanonicalRecordStore`). Diferença deliberada em relação ao texto original desta tarefa: o
+    conteúdo bruto é passado em memória do `ConnectorSyncProcessor` direto para o Pipeline na mesma
+    chamada — nunca relido do Data Lake na mesma sincronização (o objeto já gravado em E3.2 continua
+    servindo para auditoria/reprocessamento futuro, não como intermediário obrigatório de toda
+    sincronização). Validado com infraestrutura real (Host + Gateway + Worker + SQL Server + MinIO):
+    sincronizações de customers/products/sales-invoices via `/api/v1/connectors/{id}/sync`
+    resultaram em 5 clientes + 4 produtos + 3 faturas + 5 itens no `canonical.*`, com
+    `CustomerId`/`ProductId` corretamente resolvidos e valores de cabeçalho (`GrossAmount`/
+    `DiscountAmount`/`NetAmount`) batendo com a soma dos itens. Caminho de quarentena (referência não
+    resolvida) coberto por teste de integração automatizado (ver E3.4) — nunca lança exceção que
+    aborta o lote.
+- [x] **E3.4** Idempotência do pipeline (`docs/04 §4.1`, `docs/05 §10.1`): reprocessar o mesmo
       `RawObjectUri`/`SyncRun` não duplica registros canônicos — usa a chave de negócio única
       (E2.3) como upsert, não insert cego.
   - *Depende de:* E2.3, E3.3.
   - *Aceite:* teste republica a mesma mensagem/objeto bruto (mesmo padrão de teste manual usado no
     E7 para provar idempotência do worker) e confirma que a contagem de registros canônicos não muda.
+    ✅ Concluído — novo projeto `tests/Integration/EIP.Data.Pipeline.IntegrationTests`
+    (Testcontainers, SQL Server real): `ProcessAsync_ReprocessingTheSameCustomer_...` reprocessa o
+    mesmo lote duas vezes e confirma exatamente 1 linha em `canonical.Customers`;
+    `ProcessAsync_SalesInvoiceWithUnresolvableCustomerCode_IsQuarantined_...` prova que uma
+    referência não resolvida vira 1 entrada de quarentena, zero faturas, e o `ProcessAsync` retorna
+    normalmente (`RejectedCount = 1`), nunca lança. Reforçado manualmente com infraestrutura real: o
+    `SyncRun` de customers foi disparado uma segunda vez (mesmo endpoint de origem) e
+    `canonical.Customers` continuou com exatamente 5 linhas.
+
+**Validação de fechamento do E3** (todas as 4 tarefas, 2026-08-02): `dotnet build`/`dotnet test`
+limpos na solução inteira (18 testes, incluindo os 2 novos de `EIP.Data.Pipeline.IntegrationTests`
+e o gate `RlsCoverageTests` da Fase 0, que continua cobrindo `canonical.*`/`connector.*` sem gaps
+após as novas colunas `ConnectorInstance.CompanyId`/`SourceEntity`). Ponta a ponta real (Host na
+porta `5080`, Gateway na `5000`, Worker consumindo RabbitMQ, SQL Server e MinIO via Docker):
+registrados 3 `ConnectorInstance` (customers/products/sales-invoices) para uma empresa de
+demonstração, sincronizados na ordem de dependência correta, e os 3 `SyncRun` terminaram
+`Succeeded` com as contagens esperadas. Durante essa validação, corrigido um bug pré-existente (não
+introduzido nesta sessão): `src/Host/Properties/launchSettings.json` e
+`src/Gateway/Properties/launchSettings.json` tinham portas geradas por scaffold (`5299`/`5176`) que
+nunca bateram com a convenção documentada em `docs/guides/ambiente-local.md` (`5080`/`5000`) nem com
+o cluster do YARP (`src/Gateway/appsettings.json`) — o Gateway respondia 502 para qualquer rota.
+Ajustado para `5080`/`5000` nos dois `launchSettings.json` (e a URL de exemplo em
+`src/Host/EIP.Host.http`), alinhando com o que já era esperado pelo resto do repositório.
 
 ## E4 — Qualidade e Reconciliação
 

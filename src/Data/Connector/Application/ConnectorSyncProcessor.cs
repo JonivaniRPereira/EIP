@@ -1,5 +1,7 @@
 using EIP.Data.Connector.Application.Abstractions;
 using EIP.Data.Connector.Application.Contracts;
+using EIP.Data.DataLake;
+using EIP.Data.Pipeline;
 
 namespace EIP.Data.Connector.Application;
 
@@ -7,11 +9,19 @@ public sealed class ConnectorSyncProcessor : IConnectorSyncProcessor
 {
     private readonly IConnectorSyncStore _store;
     private readonly IReferenceRestClient _restClient;
+    private readonly IRawObjectStore _rawObjectStore;
+    private readonly IPipelineProcessor _pipelineProcessor;
 
-    public ConnectorSyncProcessor(IConnectorSyncStore store, IReferenceRestClient restClient)
+    public ConnectorSyncProcessor(
+        IConnectorSyncStore store,
+        IReferenceRestClient restClient,
+        IRawObjectStore rawObjectStore,
+        IPipelineProcessor pipelineProcessor)
     {
         _store = store;
         _restClient = restClient;
+        _rawObjectStore = rawObjectStore;
+        _pipelineProcessor = pipelineProcessor;
     }
 
     public async Task ProcessAsync(SyncRequestedMessage message, CancellationToken cancellationToken)
@@ -42,8 +52,29 @@ public sealed class ConnectorSyncProcessor : IConnectorSyncProcessor
 
         try
         {
-            var recordsProcessed = await _restClient.FetchRecordCountAsync(instance.BaseUrl, cancellationToken);
-            run.Complete(recordsProcessed);
+            var rawContent = await _restClient.FetchRawContentAsync(instance.BaseUrl, cancellationToken);
+
+            var metadata = new RawObjectMetadata(
+                instance.TenantId,
+                SourceSystemId: instance.Id,
+                instance.SourceEntity,
+                ConnectorInstanceId: instance.Id,
+                SyncRunId: run.Id,
+                IngestedAt: DateTimeOffset.UtcNow);
+            var stored = await _rawObjectStore.PutAsync(metadata, rawContent, cancellationToken);
+
+            var pipelineRequest = new PipelineProcessingRequest(
+                instance.TenantId,
+                instance.CompanyId,
+                SourceSystemId: instance.Id,
+                SyncRunId: run.Id,
+                instance.SourceEntity,
+                message.CorrelationId,
+                RawObjectUri: stored.Key,
+                RawContent: rawContent);
+            var result = await _pipelineProcessor.ProcessAsync(pipelineRequest, cancellationToken);
+
+            run.Complete(result.AcceptedCount);
             await _store.SaveRunAsync(run, cancellationToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

@@ -60,4 +60,26 @@ public sealed class Customer : CanonicalEntity
 
         return new Customer(Guid.NewGuid(), lineage, code, name, isActive, taxId, email, city, stateOrRegion, countryCode);
     }
+
+    /// <summary>Upsert idempotente (E3.4): reaplica os campos de um registro de origem já existente,
+    /// sem criar uma nova linha nem duplicar a chave de negócio.</summary>
+    public void ApplyUpdate(
+        CanonicalLineage lineage,
+        string name,
+        bool isActive,
+        string? taxId,
+        string? email,
+        string? city,
+        string? stateOrRegion,
+        string? countryCode)
+    {
+        Name = name;
+        IsActive = isActive;
+        TaxId = taxId;
+        Email = email;
+        City = city;
+        StateOrRegion = stateOrRegion;
+        CountryCode = countryCode;
+        RefreshLineage(lineage);
+    }
 }

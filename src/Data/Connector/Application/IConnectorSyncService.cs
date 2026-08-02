@@ -17,8 +17,9 @@ public interface IConnectorSyncService
     /// <summary>Registra a instância do conector de referência (REST genérico) para o tenant
     /// autenticado. Substitui, na Fase 0, o Connector Registry completo de
     /// docs/05-Connector-Framework.md §4 (Draft/Configuring/Validating ficam para a Fase 1) — aqui
-    /// só existe o necessário para ter algo a sincronizar.</summary>
-    Task<Guid> RegisterInstanceAsync(Guid tenantId, string name, string baseUrl, CancellationToken cancellationToken);
+    /// só existe o necessário para ter algo a sincronizar. <paramref name="sourceEntity"/> declara
+    /// qual entidade canônica esta instância sincroniza (docs/roadmap/fase-1-backlog.md E3).</summary>
+    Task<Guid> RegisterInstanceAsync(Guid tenantId, Guid companyId, string name, string baseUrl, string sourceEntity, CancellationToken cancellationToken);
 
     Task<SyncRunRequestResult> RequestSyncAsync(Guid connectorInstanceId, Guid tenantId, string correlationId, CancellationToken cancellationToken);
 

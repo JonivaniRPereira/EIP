@@ -1,8 +1,13 @@
 using EIP.BuildingBlocks.Data;
 using EIP.BuildingBlocks.Security;
+using EIP.Data.Canonical.Application;
+using EIP.Data.Canonical.Infrastructure;
 using EIP.Data.Connector.Application;
 using EIP.Data.Connector.Application.Abstractions;
 using EIP.Data.Connector.Infrastructure;
+using EIP.Data.DataLake;
+using EIP.Data.DataLake.Infrastructure;
+using EIP.Data.Pipeline;
 using EIP.Worker.Sync;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +27,8 @@ builder.Services.AddSerilog(loggerConfiguration => loggerConfiguration
 
 var connectorConnectionString = builder.Configuration.GetConnectionString("ConnectorDb")
     ?? throw new InvalidOperationException("ConnectionStrings:ConnectorDb não configurado.");
+var canonicalConnectionString = builder.Configuration.GetConnectionString("CanonicalDb")
+    ?? throw new InvalidOperationException("ConnectionStrings:CanonicalDb não configurado.");
 var rabbitMqConnectionString = builder.Configuration.GetConnectionString("RabbitMQ")
     ?? throw new InvalidOperationException("ConnectionStrings:RabbitMQ não configurado.");
 
@@ -34,7 +41,18 @@ builder.Services.AddDbContextFactory<ConnectorDbContext>((sp, options) =>
     options.UseSqlServer(connectorConnectionString)
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 
+builder.Services.AddDbContextFactory<CanonicalDbContext>((sp, options) =>
+    options.UseSqlServer(canonicalConnectionString)
+        .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
+
 builder.Services.AddSingleton<IConnectorSyncStore, ConnectorSyncStore>();
+builder.Services.AddSingleton<ICanonicalRecordStore, CanonicalRecordStore>();
+
+var dataLakeOptions = builder.Configuration.GetSection(S3RawObjectStoreOptions.SectionName).Get<S3RawObjectStoreOptions>()
+    ?? throw new InvalidOperationException("Seção de configuração 'DataLake' não configurada.");
+builder.Services.AddRawObjectStore(dataLakeOptions);
+
+builder.Services.AddSingleton<IPipelineProcessor, PipelineProcessor>();
 
 builder.Services.AddHttpClient(HttpReferenceRestClient.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddSingleton<IReferenceRestClient, HttpReferenceRestClient>();

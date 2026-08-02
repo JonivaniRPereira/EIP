@@ -14,8 +14,10 @@ public sealed class ConnectorInstanceConfiguration : IEntityTypeConfiguration<Co
         builder.HasKey(i => i.Id);
 
         builder.Property(i => i.TenantId).IsRequired();
+        builder.Property(i => i.CompanyId).IsRequired();
         builder.Property(i => i.Name).HasMaxLength(200).IsRequired();
         builder.Property(i => i.BaseUrl).HasMaxLength(2000).IsRequired();
+        builder.Property(i => i.SourceEntity).HasMaxLength(100).IsRequired();
         builder.Property(i => i.Status).HasConversion<string>().HasMaxLength(30).IsRequired();
 
         builder.HasIndex(i => i.TenantId);

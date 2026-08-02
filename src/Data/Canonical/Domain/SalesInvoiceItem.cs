@@ -72,4 +72,10 @@ public sealed class SalesInvoiceItem : CanonicalEntity
 
         return new SalesInvoiceItem(Guid.NewGuid(), lineage, salesInvoiceId, lineNumber, productId, quantity, unitPrice, discountAmount, grossAmount, netAmount, description, taxAmount);
     }
+
+    /// <summary>Usado só pelo <c>ICanonicalRecordStore</c> (E3.4): o mapeador cria os itens com o
+    /// <see cref="SalesInvoiceId"/> do candidato de fatura (que pode ser um novo Id, ainda não
+    /// persistido) — se a fatura já existir (upsert), os itens precisam ser reatribuídos ao Id real
+    /// já existente antes de serem gravados.</summary>
+    public void ReassignInvoice(Guid salesInvoiceId) => SalesInvoiceId = salesInvoiceId;
 }

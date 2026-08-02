@@ -172,7 +172,7 @@ public sealed class ConnectorCrossTenantIsolationTests : IAsyncLifetime
         var tenantContextAccessor = _fixture.Services.GetRequiredService<ITenantContextAccessor>();
         var connectorDbFactory = _fixture.Services.GetRequiredService<IDbContextFactory<ConnectorDbContext>>();
 
-        var instance = ConnectorInstance.Create(_tenantBId, "Conector B (E7)", "http://localhost/sample");
+        var instance = ConnectorInstance.Create(_tenantBId, Guid.NewGuid(), "Conector B (E7)", "http://localhost/sample", "customers");
         var run = SyncRun.CreatePending(_tenantBId, instance.Id, Guid.NewGuid().ToString());
 
         tenantContextAccessor.Current = new TenantContext(_tenantBId);

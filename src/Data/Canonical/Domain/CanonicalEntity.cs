@@ -54,4 +54,24 @@ public abstract class CanonicalEntity : Entity<Guid>
     /// <summary>Exclusão lógica detectada na origem (docs/04 §4) — nunca um DELETE físico, para
     /// preservar a linhagem e permitir auditoria/reprocessamento.</summary>
     public void MarkDeleted() => IsDeleted = true;
+
+    /// <summary>Extrai a linhagem atual — usada pelo upsert (E3.4) para reaplicar a mesma linhagem
+    /// de um candidato recém-mapeado sobre um registro já existente, sem reconstruir os parâmetros
+    /// manualmente.</summary>
+    public CanonicalLineage ToLineage() => new(TenantId, CompanyId, SourceSystemId, SourceEntity, SourceRecordId, SourceUpdatedAt, SchemaVersion, CorrelationId, RawObjectUri);
+
+    /// <summary>Atualiza os campos de linhagem que mudam a cada reprocessamento (idempotência do
+    /// pipeline, docs/04 §4.1/E3.4) — <see cref="IngestedAt"/> nunca muda (é o momento da primeira
+    /// captura); <see cref="TenantId"/>/<see cref="CompanyId"/>/<see cref="SourceSystemId"/>/
+    /// <see cref="SourceEntity"/>/<see cref="SourceRecordId"/> definem a identidade do registro e
+    /// também nunca mudam num upsert (é o que identifica que é "o mesmo" registro).</summary>
+    protected void RefreshLineage(CanonicalLineage lineage)
+    {
+        SourceUpdatedAt = lineage.SourceUpdatedAt;
+        ProcessedAt = DateTimeOffset.UtcNow;
+        SchemaVersion = lineage.SchemaVersion;
+        CorrelationId = lineage.CorrelationId;
+        RawObjectUri = lineage.RawObjectUri;
+        IsDeleted = false;
+    }
 }

@@ -1,8 +1,8 @@
 namespace EIP.Data.Connector.Api.Contracts;
 
-public sealed record RegisterConnectorInstanceRequest(string Name, string BaseUrl);
+public sealed record RegisterConnectorInstanceRequest(Guid CompanyId, string Name, string BaseUrl, string SourceEntity);
 
-public sealed record ConnectorInstanceDto(Guid Id, string Name, string BaseUrl, string Status);
+public sealed record ConnectorInstanceDto(Guid Id, Guid CompanyId, string Name, string BaseUrl, string SourceEntity, string Status);
 
 public sealed record SyncRunDto(
     Guid Id,

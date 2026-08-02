@@ -17,6 +17,9 @@
   </Folder>
   <Folder Name="/src/Data/" />
   <Folder Name="/src/Data/Canonical/" />
+  <Folder Name="/src/Data/Canonical/Application/">
+    <Project Path="src/Data/Canonical/Application/EIP.Data.Canonical.Application.csproj" />
+  </Folder>
   <Folder Name="/src/Data/Canonical/Domain/">
     <Project Path="src/Data/Canonical/Domain/EIP.Data.Canonical.Domain.csproj" />
   </Folder>
@@ -41,6 +44,9 @@
   </Folder>
   <Folder Name="/src/Data/DataLake.Infrastructure/">
     <Project Path="src/Data/DataLake.Infrastructure/EIP.Data.DataLake.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/Pipeline/">
+    <Project Path="src/Data/Pipeline/EIP.Data.Pipeline.csproj" />
   </Folder>
   <Folder Name="/src/Platform/" />
   <Folder Name="/src/Platform/Identity/" />
@@ -78,6 +84,7 @@
   <Folder Name="/tests/" />
   <Folder Name="/tests/Integration/">
     <Project Path="tests/Integration/EIP.Data.DataLake.Infrastructure.IntegrationTests/EIP.Data.DataLake.Infrastructure.IntegrationTests.csproj" />
+    <Project Path="tests/Integration/EIP.Data.Pipeline.IntegrationTests/EIP.Data.Pipeline.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Host.IntegrationTests/EIP.Host.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Platform.Tenant.Infrastructure.IntegrationTests/EIP.Platform.Tenant.Infrastructure.IntegrationTests.csproj" />
   </Folder>

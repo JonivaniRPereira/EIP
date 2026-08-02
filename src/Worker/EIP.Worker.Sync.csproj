@@ -8,6 +8,11 @@
   <ItemGroup>
     <ProjectReference Include="..\Data\Connector\Application\EIP.Data.Connector.Application.csproj" />
     <ProjectReference Include="..\Data\Connector\Infrastructure\EIP.Data.Connector.Infrastructure.csproj" />
+    <ProjectReference Include="..\Data\Canonical\Application\EIP.Data.Canonical.Application.csproj" />
+    <ProjectReference Include="..\Data\Canonical\Infrastructure\EIP.Data.Canonical.Infrastructure.csproj" />
+    <ProjectReference Include="..\Data\DataLake\EIP.Data.DataLake.csproj" />
+    <ProjectReference Include="..\Data\DataLake.Infrastructure\EIP.Data.DataLake.Infrastructure.csproj" />
+    <ProjectReference Include="..\Data\Pipeline\EIP.Data.Pipeline.csproj" />
     <ProjectReference Include="..\BuildingBlocks\EIP.BuildingBlocks.csproj" />
     <ProjectReference Include="..\BuildingBlocks.Data\EIP.BuildingBlocks.Data.csproj" />
   </ItemGroup>

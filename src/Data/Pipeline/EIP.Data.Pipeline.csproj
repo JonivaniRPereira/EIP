@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Canonical\Application\EIP.Data.Canonical.Application.csproj" />
+    <ProjectReference Include="..\Canonical\Domain\EIP.Data.Canonical.Domain.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\EIP.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Shared\EIP.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

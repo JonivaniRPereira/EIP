@@ -87,4 +87,32 @@ public sealed class SalesInvoice : CanonicalEntity
         Status = SalesInvoiceStatus.Canceled;
         CanceledAt = canceledAt;
     }
+
+    /// <summary>Upsert idempotente (E3.4). <see cref="InvoiceNumber"/> não muda — é a chave de
+    /// negócio (junto com o restante da linhagem) que identifica que é "o mesmo" documento.</summary>
+    public void ApplyUpdate(
+        CanonicalLineage lineage,
+        DateOnly issueDate,
+        Guid customerId,
+        SalesInvoiceStatus status,
+        string currencyCode,
+        decimal grossAmount,
+        decimal discountAmount,
+        decimal netAmount,
+        string? series,
+        Guid? salesOrderId,
+        decimal? taxAmount)
+    {
+        IssueDate = issueDate;
+        CustomerId = customerId;
+        Status = status;
+        CurrencyCode = currencyCode;
+        GrossAmount = grossAmount;
+        DiscountAmount = discountAmount;
+        NetAmount = netAmount;
+        Series = series;
+        SalesOrderId = salesOrderId;
+        TaxAmount = taxAmount;
+        RefreshLineage(lineage);
+    }
 }
