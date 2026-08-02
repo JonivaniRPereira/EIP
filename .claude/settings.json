@@ -7,7 +7,11 @@
       "Bash(dotnet restore *)",
       "Bash(dotnet list *)",
       "Bash(curl -s \"https://api.github.com/advisories/GHSA-v5pm-xwqc-g5wc\")",
-      "Bash(docker manifest *)"
+      "Bash(docker manifest *)",
+      "Read(//c/Users/JONIVA~1.PER/AppData/Local/Temp/claude/c--Github-Jonivani-EIP/af38fc6c-f1d2-40eb-ab54-183a2ae05300/scratchpad/rmqcheck/**)",
+      "Bash(dotnet build *)",
+      "Bash(curl -s http://localhost:5000/api/v1/connectors/150ccfa0-5001-49b9-b60a-faeb30561799/sync -X POST -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZjBjYjcyNS01OGE4LTQwY2MtNmY4ZS0wOGRlZjAxODA3NTMiLCJlbWFpbCI6ImRlbW9AZWlwLmxvY2FsIiwianRpIjoiZTk5NWMyNTgtZjQ5Zi00NDIwLWIxNjUtM2M2ZDBmZjIxMWNlIiwidGVuYW50X2lkIjoiZTMwM2U2OTktZWYwNS00ZmIxLTk1M2MtMjA5ZGMyZjMyYWRlIiwicGVybWlzc2lvbnMiOiJ0ZW5hbnQudmlldyx0ZW5hbnQubWFuYWdlLG1lbWJlcnMudmlldyxtZW1iZXJzLm1hbmFnZSxjb21wYW5pZXMudmlldyxjb21wYW5pZXMubWFuYWdlLGNvbm5lY3Rvci52aWV3LGNvbm5lY3Rvci5tYW5hZ2UiLCJleHAiOjE3ODU2MjcwODYsImlzcyI6Imh0dHBzOi8vZWlwLmxvY2FsIiwiYXVkIjoiZWlwLWNsaWVudHMifQ.SGw-6IdN3w7-_Lb_FQkcJRUMVe5bTKRKFN8Ie_UpJvU')",
+      "Bash(curl -s -u eip_dev:Dev_OnlyChangeMe_123! -H 'Content-Type: application/json' -X POST http://localhost:15672/api/exchanges/%2F/eip.connector/publish -d '{ *)"
     ]
   }
 }
