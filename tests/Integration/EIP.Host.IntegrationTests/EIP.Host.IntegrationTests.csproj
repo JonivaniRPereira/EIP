@@ -23,6 +23,8 @@
     <ProjectReference Include="..\..\..\src\Platform\Tenant\Domain\EIP.Platform.Tenant.Domain.csproj" />
     <ProjectReference Include="..\..\..\src\Data\Connector\Infrastructure\EIP.Data.Connector.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Data\Connector\Domain\EIP.Data.Connector.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\Data\Warehouse\Domain\EIP.Data.Warehouse.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\Data\Warehouse\Infrastructure\EIP.Data.Warehouse.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\BuildingBlocks\EIP.BuildingBlocks.csproj" />
     <ProjectReference Include="..\..\Support\EIP.Testing.Infrastructure\EIP.Testing.Infrastructure.csproj" />
   </ItemGroup>

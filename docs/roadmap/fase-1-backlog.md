@@ -452,17 +452,56 @@ novo `EIP.Data.Warehouse.{Domain,Application,Infrastructure}` e nova abstração
 Objetivo: expor as métricas certificadas de exemplo de `docs/09-Data-Warehouse.md §9` para a fatia
 Comercial, sem construir um motor de métricas genérico (isso é Fase 2).
 
-- [ ] **E6.1** Definição versionada e testada das 3 métricas certificadas: Receita Líquida
+- [x] **E6.1** Definição versionada e testada das 3 métricas certificadas: Receita Líquida
       (soma de `NetAmount` em `FactSalesInvoiceItem`, excluindo documentos cancelados), Quantidade
       Faturada (soma de quantidade dos itens válidos), Ticket Médio (Receita Líquida / contagem
       distinta de faturas válidas). Cada métrica tem dono, versão e teste de reconciliação
       (`docs/09 §9`: "nenhuma métrica é oficial sem definição, dono, versão e teste de
-      reconciliação").
-- [ ] **E6.2** Endpoint versionado de consulta (`GET /api/v1/metrics/...` ou equivalente, a decidir
+      reconciliação"). ✅ Concluído — `CertifiedMetricDefinition`/`CertifiedMetrics`
+      (`EIP.Data.Semantic.Application`): 3 constantes estáticas (`net_revenue`, `invoiced_quantity`,
+      `average_ticket`), cada uma com nome, descrição, dono (`Comercial`) e versão (`1.0`) — definição
+      em código nesta fase, não um motor configurável/persistido (isso é Fase 2, conforme o objetivo
+      do épico). **Gap real encontrado e corrigido durante o design**: `FactSalesInvoiceItem` (E5)
+      não carregava o `Status` da fatura — sem isso, "excluindo documentos cancelados" exigiria voltar
+      ao Canônico a cada consulta de métrica, violando a separação de camadas (docs/09 §2). Adicionada
+      coluna `Status` (migration `AddStatusToFactSalesInvoiceItem`, aplicada sem backfill manual — a
+      recarga idempotente do E5.3 já resincroniza o valor correto na próxima sincronização, mesmo
+      padrão já aceito para colunas novas não nulas nesta fase). `IWarehouseLoadStore` ganhou
+      `ListFactSalesInvoiceItemsForMetricsAsync` (nova projeção `FactSalesInvoiceItemForMetrics`,
+      filtra por tenant/empresa/período comparando `DateKey` diretamente — sem precisar de junção com
+      `DimDate`). `IMetricsQueryService`/`MetricsQueryService` calculam as 3 métricas a partir dessa
+      projeção; Ticket Médio retorna `null` (nunca `0`) quando não há fatura válida, para o consumidor
+      nunca confundir "sem dado" com "zero". 2 testes de reconciliação novos (Testcontainers):
+      múltiplas faturas válidas + uma cancelada com valor bem maior (prova que a cancelada é
+      excluída e os agregados batem com o cálculo manual), e o caso "nenhuma fatura válida" (prova o
+      `null` do Ticket Médio).
+- [x] **E6.2** Endpoint versionado de consulta (`GET /api/v1/metrics/...` ou equivalente, a decidir
       o path exato durante a implementação seguindo `docs/06-API-Design.md`), filtrável por empresa
       e período, respeitando tenant/permissões (nova permissão `metrics.view`?, a definir).
   - *Depende de:* E5.3, E6.1.
   - *Aceite:* teste de isolamento cross-tenant nas métricas (tenant A não vê números de tenant B).
+    ✅ Concluído — novo módulo `EIP.Data.Semantic.Api`: `GET /api/v1/metrics/commercial` (filtros
+    opcionais `companyId`/`periodStart`/`periodEnd`), nova permissão `metrics.view`
+    (`EIP.Shared.Contracts.Metrics.MetricsPermissions`, concedida a Owner/Admin/Member — leitura
+    agregada, sem fluxo de gestão próprio). `TenantId` do filtro vem sempre do claim JWT autenticado,
+    nunca de input do cliente. Resposta sempre inclui a definição/dono/versão junto do valor
+    (docs/09 §11: "tabelas de DW não são expostas diretamente" — só valores agregados com
+    proveniência). Teste de isolamento cross-tenant novo (`EIP.Host.IntegrationTests`): semeia
+    `FactSalesInvoiceItem` diretamente para dois tenants com valores bem diferentes e prova que cada
+    tenant só vê o seu próprio `netRevenue` via HTTP real. Validado ao vivo (Host+Gateway+Worker+SQL
+    Server real): `GET /api/v1/metrics/commercial` sem filtro retornou os valores corretos batendo
+    com as 3 faturas de exemplo já sincronizadas (Receita Líquida 11100, Quantidade Faturada 8,
+    Ticket Médio 3700 — conferido à mão); filtro de período (`periodStart=periodEnd=2026-07-01`)
+    retornou corretamente só a NF-0001 (5500/2/5500).
+
+**Validação de fechamento do E6** (ambas as tarefas, 2026-08-03): `dotnet build`/`dotnet test`
+limpos na solução inteira (26 testes — 3 novos: 2 de reconciliação de métrica em
+`EIP.Data.Warehouse.IntegrationTests` e 1 de isolamento cross-tenant em `EIP.Host.IntegrationTests`),
+`dotnet format --verify-no-changes` limpo. Novos módulos `EIP.Data.Semantic.{Application,Api}`
+wireados no Host (`WarehouseDb` já usado pelo Worker desde E5, agora também pelo Host — precisa do
+Core Dimensional para responder consultas de métrica). Ponta a ponta real (Host+Gateway+Worker+
+SQL Server+RabbitMQ+MinIO): confirmados os valores exatos das 3 métricas certificadas e o filtro de
+período, ambos batendo com o cálculo manual esperado a partir dos dados de exemplo já conhecidos.
 
 ## E7 — Carga Incremental e Reprocessamento
 
@@ -529,7 +568,7 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 | E3 — Pipeline de Ingestão e Transformação | ✅ Concluído (2026-08) |
 | E4 — Qualidade e Reconciliação | ✅ Concluído (2026-08) |
 | E5 — Data Warehouse Inicial | ✅ Concluído (2026-08) |
-| E6 — Camada Semântica Mínima | Não iniciado |
+| E6 — Camada Semântica Mínima | ✅ Concluído (2026-08) |
 | E7 — Carga Incremental e Reprocessamento | Não iniciado |
 | E8 — Testes de Isolamento e Fechamento da Fase | Não iniciado |
 

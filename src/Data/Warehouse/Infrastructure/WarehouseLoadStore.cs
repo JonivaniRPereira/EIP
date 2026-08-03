@@ -227,6 +227,7 @@ public sealed class WarehouseLoadStore : IWarehouseLoadStore
                 candidate.RawObjectUri,
                 candidate.LoadBatchId,
                 candidate.InvoiceNumber,
+                candidate.Status,
                 candidate.Quantity,
                 candidate.GrossAmount,
                 candidate.DiscountAmount,
@@ -254,6 +255,40 @@ public sealed class WarehouseLoadStore : IWarehouseLoadStore
         var netAmountTotal = count == 0 ? 0m : await facts.SumAsync(f => f.NetAmount, cancellationToken);
 
         return (count, netAmountTotal);
+    }
+
+    public async Task<IReadOnlyList<FactSalesInvoiceItemForMetrics>> ListFactSalesInvoiceItemsForMetricsAsync(
+        Guid tenantId,
+        Guid? companyId,
+        DateOnly? periodStart,
+        DateOnly? periodEnd,
+        CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var query = db.FactSalesInvoiceItems.Where(f => f.TenantId == tenantId);
+
+        if (companyId is { } company)
+        {
+            var companyKeys = db.DimCompanies.Where(c => c.TenantId == tenantId && c.CompanyId == company).Select(c => c.CompanyKey);
+            query = query.Where(f => companyKeys.Contains(f.CompanyKey));
+        }
+
+        if (periodStart is { } start)
+        {
+            var startKey = DimDate.ToDateKey(start);
+            query = query.Where(f => f.DateKey >= startKey);
+        }
+
+        if (periodEnd is { } end)
+        {
+            var endKey = DimDate.ToDateKey(end);
+            query = query.Where(f => f.DateKey <= endKey);
+        }
+
+        return await query
+            .Select(f => new FactSalesInvoiceItemForMetrics(f.SalesInvoiceId, f.Status, f.Quantity, f.NetAmount))
+            .ToListAsync(cancellationToken);
     }
 
     private static DateTimeOffset ToUtcMidnight(DateOnly date) => new(date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);

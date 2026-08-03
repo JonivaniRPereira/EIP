@@ -48,6 +48,13 @@
   <Folder Name="/src/Data/Pipeline/">
     <Project Path="src/Data/Pipeline/EIP.Data.Pipeline.csproj" />
   </Folder>
+  <Folder Name="/src/Data/Semantic/" />
+  <Folder Name="/src/Data/Semantic/Api/">
+    <Project Path="src/Data/Semantic/Api/EIP.Data.Semantic.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/Semantic/Application/">
+    <Project Path="src/Data/Semantic/Application/EIP.Data.Semantic.Application.csproj" />
+  </Folder>
   <Folder Name="/src/Data/Warehouse/" />
   <Folder Name="/src/Data/Warehouse/Application/">
     <Project Path="src/Data/Warehouse/Application/EIP.Data.Warehouse.Application.csproj" />

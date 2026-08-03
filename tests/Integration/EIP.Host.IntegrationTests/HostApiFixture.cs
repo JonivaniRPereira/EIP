@@ -51,6 +51,7 @@ public sealed class HostApiFixture : IAsyncLifetime
                 new("ConnectionStrings:IdentityDb", connectionString),
                 new("ConnectionStrings:ConnectorDb", connectionString),
                 new("ConnectionStrings:CanonicalDb", connectionString),
+                new("ConnectionStrings:WarehouseDb", connectionString),
                 new("ConnectionStrings:Redis", "localhost:16399"),
                 new("ConnectionStrings:RabbitMQ", "amqp://guest:guest@localhost:16599/"),
             ])));

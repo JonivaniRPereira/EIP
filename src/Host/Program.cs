@@ -7,6 +7,9 @@ using EIP.Data.Canonical.Infrastructure;
 using EIP.Data.Connector.Application;
 using EIP.Data.Connector.Application.Abstractions;
 using EIP.Data.Connector.Infrastructure;
+using EIP.Data.Semantic.Application;
+using EIP.Data.Warehouse.Application;
+using EIP.Data.Warehouse.Infrastructure;
 using EIP.Platform.Identity.Application;
 using EIP.Platform.Identity.Application.Abstractions;
 using EIP.Platform.Identity.Domain;
@@ -71,6 +74,8 @@ var connectorConnectionString = builder.Configuration.GetConnectionString("Conne
     ?? throw new InvalidOperationException("ConnectionStrings:ConnectorDb não configurado.");
 var canonicalConnectionString = builder.Configuration.GetConnectionString("CanonicalDb")
     ?? throw new InvalidOperationException("ConnectionStrings:CanonicalDb não configurado.");
+var warehouseConnectionString = builder.Configuration.GetConnectionString("WarehouseDb")
+    ?? throw new InvalidOperationException("ConnectionStrings:WarehouseDb não configurado.");
 
 // Única forma de obter TenantDbContext no processo: IDbContextFactory (não DbContext escopado).
 // Registrar os dois ao mesmo tempo para o mesmo TContext causa erro de resolução de escopo do DI;
@@ -96,10 +101,16 @@ builder.Services.AddDbContextFactory<CanonicalDbContext>((sp, options) =>
     options.UseSqlServer(canonicalConnectionString)
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 
+builder.Services.AddDbContextFactory<WarehouseDbContext>((sp, options) =>
+    options.UseSqlServer(warehouseConnectionString)
+        .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
+
 builder.Services.AddScoped<IConnectorSyncStore, ConnectorSyncStore>();
 builder.Services.AddSingleton<IConnectorSyncPublisher>(_ => new RabbitMqConnectorSyncPublisher(rabbitMqConnectionString));
 builder.Services.AddScoped<IConnectorSyncService, ConnectorSyncService>();
 builder.Services.AddScoped<ICanonicalRecordStore, CanonicalRecordStore>();
+builder.Services.AddScoped<IWarehouseLoadStore, WarehouseLoadStore>();
+builder.Services.AddScoped<IMetricsQueryService, MetricsQueryService>();
 
 builder.Services.AddScoped<IMembershipDirectory, EIP.Platform.Tenant.Infrastructure.MembershipDirectory>();
 builder.Services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();

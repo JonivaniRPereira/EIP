@@ -21,6 +21,7 @@ public sealed class FactSalesInvoiceItemConfiguration : IEntityTypeConfiguration
         builder.Property(f => f.SourceRecordId).HasMaxLength(200).IsRequired();
         builder.Property(f => f.RawObjectUri).HasMaxLength(2000).IsRequired();
         builder.Property(f => f.InvoiceNumber).HasMaxLength(50).IsRequired();
+        builder.Property(f => f.Status).HasMaxLength(20).IsRequired();
 
         builder.Property(f => f.Quantity).HasPrecision(19, 4);
         builder.Property(f => f.GrossAmount).HasPrecision(19, 4);

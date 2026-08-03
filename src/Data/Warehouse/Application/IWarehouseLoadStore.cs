@@ -2,6 +2,11 @@ using EIP.Data.Warehouse.Domain;
 
 namespace EIP.Data.Warehouse.Application;
 
+/// <summary>Projeção mínima de <see cref="FactSalesInvoiceItem"/> para o cálculo de métricas
+/// certificadas (E6.1) — a camada semântica nunca precisa conhecer chaves substitutas/dimensões,
+/// só o necessário para agregação.</summary>
+public sealed record FactSalesInvoiceItemForMetrics(Guid SalesInvoiceId, string Status, decimal Quantity, decimal NetAmount);
+
 /// <summary>
 /// Acesso ao Core Dimensional do Warehouse (docs/09-Data-Warehouse.md §3.1), consumido pelo processo
 /// de carga (E5.3). A implementação (Infrastructure) abre uma conexão nova por operação via
@@ -68,4 +73,15 @@ public interface IWarehouseLoadStore
 
     /// <summary>Estado atual persistido no fato — usado pela reconciliação Canônico↔Fato (E5.4).</summary>
     Task<(int Count, decimal NetAmountTotal)> GetFactSalesInvoiceItemTotalsAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken);
+
+    /// <summary>Lote de itens de fatura para o cálculo das métricas certificadas (E6.1), filtrado por
+    /// empresa e/ou período de negócio (nunca por tenant de outro chamador — <paramref name="tenantId"/>
+    /// vem sempre do claim autenticado). O filtro de período compara diretamente a chave determinística
+    /// de <see cref="DimDate.DateKey"/>, sem precisar de junção com a dimensão de calendário.</summary>
+    Task<IReadOnlyList<FactSalesInvoiceItemForMetrics>> ListFactSalesInvoiceItemsForMetricsAsync(
+        Guid tenantId,
+        Guid? companyId,
+        DateOnly? periodStart,
+        DateOnly? periodEnd,
+        CancellationToken cancellationToken);
 }

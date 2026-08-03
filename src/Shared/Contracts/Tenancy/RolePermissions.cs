@@ -1,4 +1,5 @@
 using EIP.Shared.Contracts.Connectors;
+using EIP.Shared.Contracts.Metrics;
 
 namespace EIP.Shared.Contracts.Tenancy;
 
@@ -22,6 +23,7 @@ public static class RolePermissions
             TenantPermissions.CompaniesManage,
             ConnectorPermissions.ConnectorView,
             ConnectorPermissions.ConnectorManage,
+            MetricsPermissions.MetricsView,
         },
         ["Admin"] = new HashSet<string>
         {
@@ -32,12 +34,14 @@ public static class RolePermissions
             TenantPermissions.CompaniesManage,
             ConnectorPermissions.ConnectorView,
             ConnectorPermissions.ConnectorManage,
+            MetricsPermissions.MetricsView,
         },
         ["Member"] = new HashSet<string>
         {
             TenantPermissions.TenantView,
             TenantPermissions.CompaniesView,
             ConnectorPermissions.ConnectorView,
+            MetricsPermissions.MetricsView,
         },
     };
 

@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Data\Warehouse\Application\EIP.Data.Warehouse.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Data\Warehouse\Infrastructure\EIP.Data.Warehouse.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Data\Semantic\Application\EIP.Data.Semantic.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Data\Pipeline\EIP.Data.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\src\Data\Canonical\Application\EIP.Data.Canonical.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Data\Canonical\Infrastructure\EIP.Data.Canonical.Infrastructure.csproj" />

@@ -44,6 +44,11 @@ public sealed class FactSalesInvoiceItem
 
     public string InvoiceNumber { get; private set; }
 
+    /// <summary>Status da fatura no momento da carga (docs/09 §6.2: "preservar o documento/registro
+    /// original quando houver status de cancelamento") — o fato nunca é excluído por cancelamento,
+    /// só marcado; a camada semântica (E6) é quem filtra documentos cancelados das métricas.</summary>
+    public string Status { get; private set; }
+
     public int LineNumber { get; private set; }
 
     public decimal Quantity { get; private set; }
@@ -64,6 +69,7 @@ public sealed class FactSalesInvoiceItem
         SourceRecordId = string.Empty;
         RawObjectUri = string.Empty;
         InvoiceNumber = string.Empty;
+        Status = string.Empty;
     }
 
     private FactSalesInvoiceItem(
@@ -82,6 +88,7 @@ public sealed class FactSalesInvoiceItem
         string rawObjectUri,
         Guid loadBatchId,
         string invoiceNumber,
+        string status,
         int lineNumber,
         decimal quantity,
         decimal grossAmount,
@@ -104,6 +111,7 @@ public sealed class FactSalesInvoiceItem
         RawObjectUri = rawObjectUri;
         LoadBatchId = loadBatchId;
         InvoiceNumber = invoiceNumber;
+        Status = status;
         LineNumber = lineNumber;
         Quantity = quantity;
         GrossAmount = grossAmount;
@@ -129,6 +137,7 @@ public sealed class FactSalesInvoiceItem
         string rawObjectUri,
         Guid loadBatchId,
         string invoiceNumber,
+        string status,
         int lineNumber,
         decimal quantity,
         decimal grossAmount,
@@ -140,11 +149,12 @@ public sealed class FactSalesInvoiceItem
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceRecordId);
         ArgumentException.ThrowIfNullOrWhiteSpace(rawObjectUri);
         ArgumentException.ThrowIfNullOrWhiteSpace(invoiceNumber);
+        ArgumentException.ThrowIfNullOrWhiteSpace(status);
 
         return new FactSalesInvoiceItem(
             tenantId, tenantKey, companyKey, dateKey, customerKey, productKey, currencyKey,
             sourceSystemId, sourceEntity, sourceRecordId, salesInvoiceId, salesInvoiceItemId,
-            rawObjectUri, loadBatchId, invoiceNumber, lineNumber, quantity, grossAmount,
+            rawObjectUri, loadBatchId, invoiceNumber, status, lineNumber, quantity, grossAmount,
             discountAmount, taxAmount, netAmount);
     }
 
@@ -162,6 +172,7 @@ public sealed class FactSalesInvoiceItem
         string rawObjectUri,
         Guid loadBatchId,
         string invoiceNumber,
+        string status,
         decimal quantity,
         decimal grossAmount,
         decimal discountAmount,
@@ -179,6 +190,7 @@ public sealed class FactSalesInvoiceItem
         RawObjectUri = rawObjectUri;
         LoadBatchId = loadBatchId;
         InvoiceNumber = invoiceNumber;
+        Status = status;
         Quantity = quantity;
         GrossAmount = grossAmount;
         DiscountAmount = discountAmount;

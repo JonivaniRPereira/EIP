@@ -82,6 +82,7 @@ public sealed class WarehouseLoadService : IWarehouseLoadService
                     item.RawObjectUri,
                     batch.Id,
                     item.InvoiceNumber,
+                    item.Status.ToString(),
                     item.LineNumber,
                     item.Quantity,
                     item.GrossAmount,
