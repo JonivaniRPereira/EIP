@@ -100,6 +100,7 @@
   </Folder>
   <Folder Name="/tests/" />
   <Folder Name="/tests/Integration/">
+    <Project Path="tests/Integration/EIP.Data.Canonical.Infrastructure.IntegrationTests/EIP.Data.Canonical.Infrastructure.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Data.Connector.IntegrationTests/EIP.Data.Connector.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Data.DataLake.Infrastructure.IntegrationTests/EIP.Data.DataLake.Infrastructure.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Data.Pipeline.IntegrationTests/EIP.Data.Pipeline.IntegrationTests.csproj" />

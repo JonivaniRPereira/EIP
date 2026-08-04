@@ -3,7 +3,7 @@
 **Projeto:** Enterprise Intelligence Platform (EIP)
 **Versão:** 1.0
 **Status:** Oficial
-**Última atualização:** Agosto/2026
+**Última atualização:** Agosto/2026 — Fase 1 concluída e formalmente fechada em 2026-08-04
 
 ---
 
@@ -73,17 +73,51 @@ Copiados literalmente de `docs/15-Roadmap.md §5`. A Fase 1 só termina quando t
 com evidência real (não "os épicos estão codificados") — mesma disciplina aplicada na revisão de
 fechamento da Fase 0:
 
-- [ ] Uma sincronização é executada de ponta a ponta, reprocessável e auditada.
-- [ ] Dado bruto, registro canônico e fato analítico podem ser rastreados entre si.
-- [ ] Falhas de qualidade ficam em quarentena, sem corromper o DW.
-- [ ] Totais/contagens de dados críticos são reconciliados com a origem dentro do limite definido.
-- [ ] Tenant, empresa, cache, fila e Object Storage preservam isolamento em testes.
+- [x] Uma sincronização é executada de ponta a ponta, reprocessável e auditada.
+  - Ponta a ponta: E3.3 (Extração → Data Lake → Validação/Mapeamento → Canônico), E5.3 (→ Warehouse),
+    revalidado ao vivo no E8.2. Reprocessável: E7.1 (watermark incremental) + E7.2 (`reprocessFrom`
+    por período, nunca move o watermark automático) + E4.2 (reprocessamento de quarentena). Auditada:
+    `SyncRun` com contagens completas (`recordsProcessed`/`acceptedCount`/`updatedCount`/
+    `rejectedCount`/`deletedCount`, E4.1), `LoadBatch` para cada carga do Warehouse (E5.3),
+    idempotência provada (E3.4, E7 — reprocessar não duplica nem faz nada além do necessário).
+- [x] Dado bruto, registro canônico e fato analítico podem ser rastreados entre si.
+  - Teste automatizado: `WarehouseLoadServiceTests.LoadSalesInvoiceItemsAsync_TraceableAndIdempotent_...`
+    (E5.3). Validado ao vivo no E8.2: um registro específico (`NF-0003-2`) rastreado
+    `RawObjectUri` (objeto real no MinIO, `mc stat` com metadados de linhagem completos) →
+    `canonical.SalesInvoiceItems` (mesmo `RawObjectUri`) → `warehouse.FactSalesInvoiceItem` (mesmo
+    `SalesInvoiceItemId`/`RawObjectUri`) — valores (`NetAmount=900`) idênticos nas três camadas.
+- [x] Falhas de qualidade ficam em quarentena, sem corromper o DW.
+  - `CanonicalQuarantineEntry` (E2.4), `PipelineProcessor` roteia cada registro para canônico OU
+    quarentena, nunca os dois (E3.3, testado em `EIP.Data.Pipeline.IntegrationTests`), endpoints de
+    consulta/reprocessamento (E4.2, validado ao vivo com um mapeamento inválido de propósito — 5/5
+    registros em quarentena, zero no canônico).
+- [x] Totais/contagens de dados críticos são reconciliados com a origem dentro do limite definido.
+  - `CanonicalReconciliationService` (Canônico↔Origem, E4.3) e `WarehouseReconciliationService`
+    (Canônico↔Fato, E5.4), tolerância de 1% configurável por fração, ambos testados (Testcontainers,
+    caso dentro da tolerância e caso de divergência detectável) e confirmados ao vivo no E8.2
+    (contagem/soma exatas nos dois lados, sem nenhum aviso de divergência).
+- [x] Tenant, empresa, cache, fila e Object Storage preservam isolamento em testes.
+  - Tenant/empresa: `TenantIsolationTests` (Fase 0) + `CanonicalCrossTenantIsolationTests`/
+    `WarehouseCrossTenantIsolationTests` (E8.1, novos) + `ConnectorCrossTenantIsolationTests`/
+    `MetricsCrossTenantIsolationTests` (Fase 0/E6) — todos via RLS real (Testcontainers), nunca só a
+    nível de aplicação. Fila: `ConnectorSyncProcessorQueueTenantIsolationTests` (novo, E8.3 — gap
+    real encontrado e corrigido durante esta revisão, ver evidência do E8.3). Object Storage:
+    `EIP.Data.DataLake.Infrastructure.IntegrationTests` (E1.3, MinIO real via Testcontainers, prefixo
+    de tenant obrigatório, prova negativa de acesso cross-tenant). Cache: **não aplicável nesta
+    fase** — `Redis` está de pé (`docker-compose`) e com health check (`/health/ready`), mas nenhum
+    caminho de código desta fase lê/grava dado tenant-scoped nele ainda (Analytics Engine com cache é
+    Fase 2, `docs/15 §6`); não há o que isolar. Documentado aqui em vez de marcar `[x]` sem
+    evidência — revisitar quando a Fase 2 introduzir uso real de cache.
 
 Critério adicional obrigatório por conta da ADR-007 (mesmo texto usado para fechar a Fase 0):
 
-- [ ] Toda tabela com `TenantId` (agora incluindo `canonical.*` e `warehouse.*`) possui política RLS
+- [x] Toda tabela com `TenantId` (agora incluindo `canonical.*` e `warehouse.*`) possui política RLS
       ativa, e o gate automatizado (`RlsCoverageTests`, criado na revisão de fechamento da Fase 0)
       continua passando sem exceções adicionadas.
+  - `RlsCoverageTests` varre o catálogo do sistema (não depende de conhecer cada módulo) e continua
+    verde com `canonical.*`/`warehouse.*` incluídos automaticamente desde que `DatabaseMigrator.
+    MigrateAllAsync` passou a migrar `CanonicalDbContext`/`WarehouseDbContext` (E2.2/E5.1) — sem
+    exceções adicionadas nesta fase.
 
 ---
 
@@ -582,17 +616,65 @@ Objetivo: fechar o critério de saída "tenant, empresa, cache, fila e Object St
 isolamento em testes" e validar a Fase 1 inteira de ponta a ponta, mesmo rigor da revisão que fechou
 a Fase 0.
 
-- [ ] **E8.1** Testes cross-tenant automatizados cobrindo Canonical (`Customer`/`SalesInvoice`) e
+- [x] **E8.1** Testes cross-tenant automatizados cobrindo Canonical (`Customer`/`SalesInvoice`) e
       Warehouse (`FactSalesInvoiceItem`) — mesmo padrão de
       `ConnectorCrossTenantIsolationTests`/`RlsCoverageTests` criados no fechamento da Fase 0.
-  - *Depende de:* E2.2, E5.1.
-- [ ] **E8.2** Validação end-to-end real, com infraestrutura de verdade rodando (Host, Gateway,
+  - *Depende de:* E2.2, E5.1. ✅ Concluído — mesmo padrão de `TenantIsolationTests` (Fase 0, módulo
+    Tenant): via EF Core real contra SQL Server (Testcontainers), nunca SQL bruto. Novo projeto
+    `tests/Integration/EIP.Data.Canonical.Infrastructure.IntegrationTests`
+    (`CanonicalCrossTenantIsolationTests`, 5 testes: sem contexto → vazio; tenant A só vê o próprio;
+    filtro explícito pelo tenant B bloqueado pela RLS mesmo pedindo explicitamente; `INSERT` de
+    `Customer`/`SalesInvoice` com `TenantId` divergente do `SESSION_CONTEXT` rejeitado pelo block
+    predicate). Novo `WarehouseCrossTenantIsolationTests` no projeto já existente
+    `EIP.Data.Warehouse.IntegrationTests` (4 testes, mesmo padrão para `FactSalesInvoiceItem`) — as
+    chaves substitutas de dimensão (`TenantKey`/`CompanyKey`/`DateKey`/`CustomerKey`/`ProductKey`/
+    `CurrencyKey`) usam valores fixos arbitrários porque não há FK/navegação EF Core entre fato e
+    dimensões (mesma decisão deliberada de `docs/09 §5.1`), então não precisam de linhas de dimensão
+    reais para provar isolamento por `TenantId`. `Customer`/`Warehouse` (ao contrário do módulo
+    Tenant) não têm predicado de bypass de sistema — decisão deliberada, nenhum caso de uso desta
+    fase precisa de consulta cross-tenant nesses schemas, então nenhum teste de "contexto de sistema
+    vê tudo" foi escrito para eles (escreveria uma capacidade que não existe).
+- [x] **E8.2** Validação end-to-end real, com infraestrutura de verdade rodando (Host, Gateway,
       Worker(s), SQL Server, RabbitMQ, MinIO): disparar uma sincronização completa e confirmar,
       registro a registro, o rastro `RawObjectUri → registro canônico → linha de fato`, mais as
-      contagens de reconciliação batendo em cada etapa.
-- [ ] **E8.3** Revisão formal da seção 4 (Definition of Done) desta fase, com evidência por
+      contagens de reconciliação batendo em cada etapa. ✅ Concluído — sincronizados customers →
+      products → sales-invoices (ordem de dependência) contra o tenant/empresa de teste já
+      provisionado (E7); sales-invoices: `recordsProcessed=4, acceptedCount=4, rejectedCount=0`.
+      Rastreado um item específico (`SourceRecordId=NF-0003-2`) ponta a ponta: objeto bruto confirmado
+      no bucket `eip-datalake` do MinIO real (`mc stat`, metadados de linhagem — `TenantId`,
+      `ConnectorInstanceId`, `SourceSystemId`, `SyncRunId`, checksum SHA-256 — todos batendo) →
+      `canonical.SalesInvoiceItems` (mesmo `RawObjectUri`, `NetAmount=900`) →
+      `warehouse.FactSalesInvoiceItem` (mesmo `SalesInvoiceItemId`, mesmo `RawObjectUri`,
+      `NetAmount=900`, `Status=Issued`) — os três elos da cadeia batendo exatamente. Reconciliação
+      Canônico↔Fato (E5.4) conferida à mão além do "sem aviso" no log: `COUNT(*)`/`SUM(NetAmount)`
+      idênticos dos dois lados (6 itens, 11110.0000) para o `SourceSystemId` desta sincronização — log
+      do Worker sem nenhuma linha de aviso de reconciliação, confirmando que ambas as reconciliações
+      (E4.3 Canônico↔Origem e E5.4 Canônico↔Fato) rodaram dentro da tolerância.
+- [x] **E8.3** Revisão formal da seção 4 (Definition of Done) desta fase, com evidência por
       critério — mesmo processo aplicado à Fase 0 em 2026-08-01. Atualizar a tabela de rastreamento
-      (§7) e a memória do projeto.
+      (§7) e a memória do projeto. ✅ Concluído — revisão item a item da seção 4 (ver abaixo). **Gap
+      real encontrado durante a revisão**: o critério "tenant, empresa, cache, fila e Object Storage
+      preservam isolamento em testes" citava "fila" explicitamente, mas não havia nenhum teste
+      automatizado exercitando o isolamento na própria camada de fila/worker — só indiretamente via
+      HTTP (`ConnectorCrossTenantIsolationTests`). `ConnectorSyncProcessor` já tinha a defesa em
+      profundidade no código (`instance.TenantId != message.TenantId`, docs/05 §12), mas sem teste
+      cobrindo esse caminho especificamente pela fila. Corrigido com um teste novo,
+      `ConnectorSyncProcessorQueueTenantIsolationTests` (mesmo projeto do E7.1): um `SyncRun`
+      pertencente ao Tenant B referencia (por Guid adivinhado/enumerado) um `ConnectorInstance` real
+      do Tenant A — mesmo padrão de ataque IDOR já coberto na camada HTTP, aqui reproduzido na camada
+      de fila, onde não há claim JWT, só o `TenantId` da própria mensagem. Prova que o `SyncRun` falha
+      (`Instância de conector não encontrada para o tenant informado na mensagem`), a origem nunca é
+      extraída, e o watermark da instância real do Tenant A nunca é tocado.
+
+**Validação de fechamento do E8** (todas as 3 tarefas, 2026-08-04): `dotnet build`/`dotnet test`
+limpos na solução inteira (39 testes — 10 novos: 5 de `EIP.Data.Canonical.Infrastructure.
+IntegrationTests`, novo projeto, 4 de `WarehouseCrossTenantIsolationTests` e 1 de
+`ConnectorSyncProcessorQueueTenantIsolationTests`, além dos 29 já existentes ao fim do E7),
+`dotnet format --verify-no-changes` limpo. Ponta a ponta real (Host+Gateway+Worker+SQL Server+
+RabbitMQ+MinIO via `docker-compose`): rastro completo `RawObjectUri → canônico → fato` confirmado
+para um registro específico, com reconciliação Canônico↔Fato batendo exatamente (6 itens,
+NetAmount 11110.0000 dos dois lados). **Fase 1 — Definition of Done (§4): ✅ revisada e satisfeita em
+2026-08-04**, evidência por critério na seção 4.
 
 ---
 
@@ -628,6 +710,6 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 | E5 — Data Warehouse Inicial | ✅ Concluído (2026-08) |
 | E6 — Camada Semântica Mínima | ✅ Concluído (2026-08) |
 | E7 — Carga Incremental e Reprocessamento | ✅ Concluído (2026-08) |
-| E8 — Testes de Isolamento e Fechamento da Fase | Não iniciado |
+| E8 — Testes de Isolamento e Fechamento da Fase | ✅ Concluído (2026-08) |
 
 Atualizar esta tabela conforme os épicos avançam.
