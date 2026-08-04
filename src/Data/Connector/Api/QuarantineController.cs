@@ -74,7 +74,7 @@ public sealed class QuarantineController : ControllerBase
             ? existing
             : Guid.NewGuid().ToString();
 
-        var result = await _connectorSyncService.RequestSyncAsync(entry.ConnectorInstanceId, tenantId.Value, correlationId, cancellationToken);
+        var result = await _connectorSyncService.RequestSyncAsync(entry.ConnectorInstanceId, tenantId.Value, correlationId, reprocessFromUtc: null, cancellationToken);
         if (!result.Success)
         {
             return Problem(detail: result.Error, statusCode: StatusCodes.Status400BadRequest);

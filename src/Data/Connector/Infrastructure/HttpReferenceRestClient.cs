@@ -19,12 +19,23 @@ public sealed class HttpReferenceRestClient : IReferenceRestClient
         _httpClientFactory = httpClientFactory;
     }
 
-    public async Task<byte[]> FetchRawContentAsync(string baseUrl, CancellationToken cancellationToken)
+    public async Task<byte[]> FetchRawContentAsync(string baseUrl, DateTimeOffset? updatedSince, CancellationToken cancellationToken)
     {
+        var requestUrl = updatedSince is { } since
+            ? AppendUpdatedSinceQueryParam(baseUrl, since)
+            : baseUrl;
+
         var client = _httpClientFactory.CreateClient(HttpClientName);
-        using var response = await client.GetAsync(baseUrl, cancellationToken);
+        using var response = await client.GetAsync(requestUrl, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadAsByteArrayAsync(cancellationToken);
+    }
+
+    private static string AppendUpdatedSinceQueryParam(string baseUrl, DateTimeOffset updatedSince)
+    {
+        var separator = baseUrl.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        var encodedValue = Uri.EscapeDataString(updatedSince.ToString("O"));
+        return $"{baseUrl}{separator}updatedSince={encodedValue}";
     }
 }

@@ -62,51 +62,47 @@ builder.Services.AddExceptionHandler(_ => { });
 builder.Services.AddSingleton<ITenantContextAccessor, AsyncLocalTenantContextAccessor>();
 builder.Services.AddSingleton<TenantSessionContextInterceptor>();
 
-var tenantConnectionString = builder.Configuration.GetConnectionString("TenantDb")
-    ?? throw new InvalidOperationException("ConnectionStrings:TenantDb não configurado.");
-var identityConnectionString = builder.Configuration.GetConnectionString("IdentityDb")
-    ?? throw new InvalidOperationException("ConnectionStrings:IdentityDb não configurado.");
-var redisConnectionString = builder.Configuration.GetConnectionString("Redis")
-    ?? throw new InvalidOperationException("ConnectionStrings:Redis não configurado.");
-var rabbitMqConnectionString = builder.Configuration.GetConnectionString("RabbitMQ")
-    ?? throw new InvalidOperationException("ConnectionStrings:RabbitMQ não configurado.");
-var connectorConnectionString = builder.Configuration.GetConnectionString("ConnectorDb")
-    ?? throw new InvalidOperationException("ConnectionStrings:ConnectorDb não configurado.");
-var canonicalConnectionString = builder.Configuration.GetConnectionString("CanonicalDb")
-    ?? throw new InvalidOperationException("ConnectionStrings:CanonicalDb não configurado.");
-var warehouseConnectionString = builder.Configuration.GetConnectionString("WarehouseDb")
-    ?? throw new InvalidOperationException("ConnectionStrings:WarehouseDb não configurado.");
+// Lida sempre no momento da resolução do serviço (nunca em uma variável capturada no escopo do
+// top-level, antes de `builder.Build()`) — testes de integração (`WebApplicationFactory<Program>`,
+// `HostApiFixture`) sobrescrevem `ConnectionStrings:*` via `ConfigureAppConfiguration`, e essa
+// sobrescrita só existe em `IConfiguration` a partir do momento em que o host é de fato construído.
+// Ler antecipadamente (como antes) sempre devolvia o valor de `appsettings.json`, ignorando a
+// sobrescrita do teste — bug real encontrado durante o E7.1, mascarado até agora porque o SQL Server
+// do `docker-compose` local (mesma porta/credenciais do valor "dev only") normalmente estava de pé.
+static string GetRequiredConnectionString(IServiceProvider services, string name) =>
+    services.GetRequiredService<IConfiguration>().GetConnectionString(name)
+        ?? throw new InvalidOperationException($"ConnectionStrings:{name} não configurado.");
 
 // Única forma de obter TenantDbContext no processo: IDbContextFactory (não DbContext escopado).
 // Registrar os dois ao mesmo tempo para o mesmo TContext causa erro de resolução de escopo do DI;
 // a factory sozinha atende tanto controllers quanto o MembershipDirectory (que precisa abrir uma
 // conexão nova para usar a sentinela de sistema, ver EIP.Platform.Tenant.Infrastructure.MembershipDirectory).
 builder.Services.AddDbContextFactory<TenantDbContext>((sp, options) =>
-    options.UseSqlServer(tenantConnectionString)
+    options.UseSqlServer(GetRequiredConnectionString(sp, "TenantDb"))
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 
 // identity.RefreshTokens tem RLS obrigatória (ADR-007) mesmo o schema `identity` em geral não sendo
 // tenant-scoped — precisa do mesmo interceptor para o SESSION_CONTEXT ser definido (RefreshTokenStore
 // sempre roda sob a sentinela de sistema, ver comentário na própria classe).
 builder.Services.AddDbContext<AppIdentityDbContext>((sp, options) =>
-    options.UseSqlServer(identityConnectionString)
+    options.UseSqlServer(GetRequiredConnectionString(sp, "IdentityDb"))
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 
 // Mesmo motivo do TenantDbContext acima: só factory, nunca DbContext escopado ao mesmo tempo.
 builder.Services.AddDbContextFactory<ConnectorDbContext>((sp, options) =>
-    options.UseSqlServer(connectorConnectionString)
+    options.UseSqlServer(GetRequiredConnectionString(sp, "ConnectorDb"))
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 
 builder.Services.AddDbContextFactory<CanonicalDbContext>((sp, options) =>
-    options.UseSqlServer(canonicalConnectionString)
+    options.UseSqlServer(GetRequiredConnectionString(sp, "CanonicalDb"))
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 
 builder.Services.AddDbContextFactory<WarehouseDbContext>((sp, options) =>
-    options.UseSqlServer(warehouseConnectionString)
+    options.UseSqlServer(GetRequiredConnectionString(sp, "WarehouseDb"))
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 
 builder.Services.AddScoped<IConnectorSyncStore, ConnectorSyncStore>();
-builder.Services.AddSingleton<IConnectorSyncPublisher>(_ => new RabbitMqConnectorSyncPublisher(rabbitMqConnectionString));
+builder.Services.AddSingleton<IConnectorSyncPublisher>(sp => new RabbitMqConnectorSyncPublisher(GetRequiredConnectionString(sp, "RabbitMQ")));
 builder.Services.AddScoped<IConnectorSyncService, ConnectorSyncService>();
 builder.Services.AddScoped<ICanonicalRecordStore, CanonicalRecordStore>();
 builder.Services.AddScoped<IWarehouseLoadStore, WarehouseLoadStore>();
@@ -167,11 +163,11 @@ builder.Services.AddAuthorization(options =>
 // Health checks: "live" nunca depende de dependências externas (não derruba o pod por uma
 // dependência instável); "ready" cobre as dependências críticas do E1 (docs/14-DevOps.md §10).
 builder.Services.AddHealthChecks()
-    .AddSqlServer(tenantConnectionString, name: "tenant-db", tags: [ReadyTag])
-    .AddSqlServer(identityConnectionString, name: "identity-db", tags: [ReadyTag])
-    .AddRedis(redisConnectionString, name: "redis", tags: [ReadyTag])
+    .AddSqlServer(sp => GetRequiredConnectionString(sp, "TenantDb"), name: "tenant-db", tags: [ReadyTag])
+    .AddSqlServer(sp => GetRequiredConnectionString(sp, "IdentityDb"), name: "identity-db", tags: [ReadyTag])
+    .AddRedis(sp => GetRequiredConnectionString(sp, "Redis"), name: "redis", tags: [ReadyTag])
     .AddRabbitMQ(
-        _ => new RabbitMQ.Client.ConnectionFactory { Uri = new Uri(rabbitMqConnectionString) }.CreateConnectionAsync(),
+        sp => new RabbitMQ.Client.ConnectionFactory { Uri = new Uri(GetRequiredConnectionString(sp, "RabbitMQ")) }.CreateConnectionAsync(),
         name: "rabbitmq",
         tags: [ReadyTag]);
 
@@ -246,64 +242,103 @@ app.Use(async (context, next) =>
 // API de fato do cliente. Formato pensado para o mapeamento canônico da fatia Comercial (E3,
 // docs/roadmap/fase-1-backlog.md) — `code` é a chave de negócio que `customerCode`/`productCode`
 // referenciam em `/sample/sales-invoices`.
-app.MapGet("/api/v1/sample/customers", () => Results.Json(new[]
+//
+// `updatedAt` + `updatedSince` (E7.1, docs/04-Modelo-Canonico.md §11): extração incremental por
+// watermark. Os registros fixos têm `updatedAt` no passado (nunca aparecem de novo depois da
+// primeira sincronização); o registro "*099" tem `updatedAt` calculado a cada chamada
+// (`DateTimeOffset.UtcNow`), simulando um dado que continua mudando na origem — prova que o filtro
+// realmente varia entre execuções, não só na primeira.
+app.MapGet("/api/v1/sample/customers", (DateTimeOffset? updatedSince) =>
 {
-    new { code = "C001", name = "Ana Souza", email = "ana.souza@example.com", city = "São Paulo", stateOrRegion = "SP", countryCode = "BR", isActive = true },
-    new { code = "C002", name = "Bruno Lima", email = "bruno.lima@example.com", city = "Rio de Janeiro", stateOrRegion = "RJ", countryCode = "BR", isActive = true },
-    new { code = "C003", name = "Carla Nunes", email = "carla.nunes@example.com", city = "Belo Horizonte", stateOrRegion = "MG", countryCode = "BR", isActive = true },
-    new { code = "C004", name = "Diego Alves", email = "diego.alves@example.com", city = "Curitiba", stateOrRegion = "PR", countryCode = "BR", isActive = true },
-    new { code = "C005", name = "Elisa Prado", email = "elisa.prado@example.com", city = "Porto Alegre", stateOrRegion = "RS", countryCode = "BR", isActive = true },
-})).AllowAnonymous();
+    var records = new[]
+    {
+        new { code = "C001", name = "Ana Souza", email = "ana.souza@example.com", city = "São Paulo", stateOrRegion = "SP", countryCode = "BR", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero) },
+        new { code = "C002", name = "Bruno Lima", email = "bruno.lima@example.com", city = "Rio de Janeiro", stateOrRegion = "RJ", countryCode = "BR", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 2, 0, 0, 0, TimeSpan.Zero) },
+        new { code = "C003", name = "Carla Nunes", email = "carla.nunes@example.com", city = "Belo Horizonte", stateOrRegion = "MG", countryCode = "BR", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 3, 0, 0, 0, TimeSpan.Zero) },
+        new { code = "C004", name = "Diego Alves", email = "diego.alves@example.com", city = "Curitiba", stateOrRegion = "PR", countryCode = "BR", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 4, 0, 0, 0, TimeSpan.Zero) },
+        new { code = "C005", name = "Elisa Prado", email = "elisa.prado@example.com", city = "Porto Alegre", stateOrRegion = "RS", countryCode = "BR", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 5, 0, 0, 0, TimeSpan.Zero) },
+        new { code = "C099", name = "Cliente Sempre Atualizado (E7.1)", email = "sempre-atualizado@example.com", city = "São Paulo", stateOrRegion = "SP", countryCode = "BR", isActive = true, updatedAt = DateTimeOffset.UtcNow },
+    };
 
-app.MapGet("/api/v1/sample/products", () => Results.Json(new[]
-{
-    new { code = "P001", name = "Notebook Pro 14", productType = "Product", unitOfMeasure = "UN", isActive = true },
-    new { code = "P002", name = "Monitor UltraWide 29", productType = "Product", unitOfMeasure = "UN", isActive = true },
-    new { code = "P003", name = "Suporte Técnico Mensal", productType = "Service", unitOfMeasure = "UN", isActive = true },
-    new { code = "P004", name = "Licença de Software Anual", productType = "Service", unitOfMeasure = "UN", isActive = true },
-})).AllowAnonymous();
+    return Results.Json(records.Where(r => updatedSince is not { } since || r.updatedAt >= since));
+}).AllowAnonymous();
 
-app.MapGet("/api/v1/sample/sales-invoices", () => Results.Json(new[]
+app.MapGet("/api/v1/sample/products", (DateTimeOffset? updatedSince) =>
 {
-    new
+    var records = new[]
     {
-        invoiceNumber = "NF-0001",
-        issueDate = "2026-07-01",
-        customerCode = "C001",
-        status = "Issued",
-        currencyCode = "BRL",
-        items = new[]
-        {
-            new { lineNumber = 1, productCode = "P001", quantity = 1m, unitPrice = 5200.00m, discountAmount = 0m },
-            new { lineNumber = 2, productCode = "P003", quantity = 1m, unitPrice = 300.00m, discountAmount = 0m },
-        },
-    },
-    new
+        new { code = "P001", name = "Notebook Pro 14", productType = "Product", unitOfMeasure = "UN", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero) },
+        new { code = "P002", name = "Monitor UltraWide 29", productType = "Product", unitOfMeasure = "UN", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 2, 0, 0, 0, TimeSpan.Zero) },
+        new { code = "P003", name = "Suporte Técnico Mensal", productType = "Service", unitOfMeasure = "UN", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 3, 0, 0, 0, TimeSpan.Zero) },
+        new { code = "P004", name = "Licença de Software Anual", productType = "Service", unitOfMeasure = "UN", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 4, 0, 0, 0, TimeSpan.Zero) },
+        new { code = "P099", name = "Produto Sempre Atualizado (E7.1)", productType = "Product", unitOfMeasure = "UN", isActive = true, updatedAt = DateTimeOffset.UtcNow },
+    };
+
+    return Results.Json(records.Where(r => updatedSince is not { } since || r.updatedAt >= since));
+}).AllowAnonymous();
+
+app.MapGet("/api/v1/sample/sales-invoices", (DateTimeOffset? updatedSince) =>
+{
+    var records = new[]
     {
-        invoiceNumber = "NF-0002",
-        issueDate = "2026-07-03",
-        customerCode = "C002",
-        status = "Issued",
-        currencyCode = "BRL",
-        items = new[]
+        new
         {
-            new { lineNumber = 1, productCode = "P002", quantity = 2m, unitPrice = 1800.00m, discountAmount = 100.00m },
+            invoiceNumber = "NF-0001",
+            issueDate = "2026-07-01",
+            customerCode = "C001",
+            status = "Issued",
+            currencyCode = "BRL",
+            updatedAt = new DateTimeOffset(2026, 7, 1, 0, 0, 0, TimeSpan.Zero),
+            items = new[]
+            {
+                new { lineNumber = 1, productCode = "P001", quantity = 1m, unitPrice = 5200.00m, discountAmount = 0m },
+                new { lineNumber = 2, productCode = "P003", quantity = 1m, unitPrice = 300.00m, discountAmount = 0m },
+            },
         },
-    },
-    new
-    {
-        invoiceNumber = "NF-0003",
-        issueDate = "2026-07-05",
-        customerCode = "C003",
-        status = "Issued",
-        currencyCode = "BRL",
-        items = new[]
+        new
         {
-            new { lineNumber = 1, productCode = "P004", quantity = 1m, unitPrice = 1200.00m, discountAmount = 0m },
-            new { lineNumber = 2, productCode = "P003", quantity = 3m, unitPrice = 300.00m, discountAmount = 0m },
+            invoiceNumber = "NF-0002",
+            issueDate = "2026-07-03",
+            customerCode = "C002",
+            status = "Issued",
+            currencyCode = "BRL",
+            updatedAt = new DateTimeOffset(2026, 7, 3, 0, 0, 0, TimeSpan.Zero),
+            items = new[]
+            {
+                new { lineNumber = 1, productCode = "P002", quantity = 2m, unitPrice = 1800.00m, discountAmount = 100.00m },
+            },
         },
-    },
-})).AllowAnonymous();
+        new
+        {
+            invoiceNumber = "NF-0003",
+            issueDate = "2026-07-05",
+            customerCode = "C003",
+            status = "Issued",
+            currencyCode = "BRL",
+            updatedAt = new DateTimeOffset(2026, 7, 5, 0, 0, 0, TimeSpan.Zero),
+            items = new[]
+            {
+                new { lineNumber = 1, productCode = "P004", quantity = 1m, unitPrice = 1200.00m, discountAmount = 0m },
+                new { lineNumber = 2, productCode = "P003", quantity = 3m, unitPrice = 300.00m, discountAmount = 0m },
+            },
+        },
+        new
+        {
+            invoiceNumber = "NF-E7-ALWAYS",
+            issueDate = "2026-07-07",
+            customerCode = "C099",
+            status = "Issued",
+            currencyCode = "BRL",
+            updatedAt = DateTimeOffset.UtcNow,
+            items = new[]
+            {
+                new { lineNumber = 1, productCode = "P099", quantity = 1m, unitPrice = 10.00m, discountAmount = 0m },
+            },
+        },
+    };
+
+    return Results.Json(records.Where(r => updatedSince is not { } since || r.updatedAt >= since));
+}).AllowAnonymous();
 
 app.MapControllers();
 

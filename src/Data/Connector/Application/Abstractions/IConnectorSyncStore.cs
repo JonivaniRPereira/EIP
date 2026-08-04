@@ -16,6 +16,10 @@ public interface IConnectorSyncStore
 
     Task SaveNewInstanceAsync(ConnectorInstance instance, CancellationToken cancellationToken);
 
+    /// <summary>Persiste mudanças em uma instância já existente (E7.1: avanço de watermark) — nunca
+    /// usado para criação, ver <see cref="SaveNewInstanceAsync"/>.</summary>
+    Task SaveInstanceAsync(ConnectorInstance instance, CancellationToken cancellationToken);
+
     Task SaveNewRunAsync(SyncRun run, CancellationToken cancellationToken);
 
     Task<SyncRun?> FindRunAsync(Guid syncRunId, CancellationToken cancellationToken);

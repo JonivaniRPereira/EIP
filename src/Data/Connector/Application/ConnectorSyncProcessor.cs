@@ -72,7 +72,16 @@ public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
 
         try
         {
-            var rawContent = await _restClient.FetchRawContentAsync(instance.BaseUrl, cancellationToken);
+            // Capturado ANTES da extração (E7.1, docs/04 §11): se o watermark fosse gravado só
+            // depois, um registro atualizado na origem entre o início da extração e o fim do
+            // processamento seria perdido na próxima sincronização incremental.
+            var extractionStartedAt = DateTimeOffset.UtcNow;
+
+            // Reprocessamento manual por período (E7.2) usa a data explícita da mensagem, ignorando
+            // o watermark salvo — nunca o contrário, para não pular um período nunca sincronizado.
+            var updatedSince = message.ReprocessFromUtc ?? instance.LastWatermark;
+
+            var rawContent = await _restClient.FetchRawContentAsync(instance.BaseUrl, updatedSince, cancellationToken);
 
             var metadata = new RawObjectMetadata(
                 instance.TenantId,
@@ -96,6 +105,15 @@ public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
 
             run.Complete(result.ExtractedCount, result.AcceptedCount, result.UpdatedCount, result.RejectedCount, result.DeletedCount);
             await _store.SaveRunAsync(run, cancellationToken);
+
+            // Só avança o watermark automático em sincronizações normais — um reprocessamento manual
+            // por período (E7.2) nunca move a cadência automática para frente, já que pode cobrir só
+            // uma janela do passado sem garantia de continuidade até agora.
+            if (message.ReprocessFromUtc is null)
+            {
+                instance.AdvanceWatermark(extractionStartedAt);
+                await _store.SaveInstanceAsync(instance, cancellationToken);
+            }
 
             // Reconciliação Canônico↔Origem (docs/04 §8.3, E4.3) — só para sales-invoices, onde
             // "totais por período/origem" fazem sentido de negócio. Nunca falha o SyncRun por conta

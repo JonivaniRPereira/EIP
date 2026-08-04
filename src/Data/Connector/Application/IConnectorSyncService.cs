@@ -21,7 +21,11 @@ public interface IConnectorSyncService
     /// qual entidade canônica esta instância sincroniza (docs/roadmap/fase-1-backlog.md E3).</summary>
     Task<Guid> RegisterInstanceAsync(Guid tenantId, Guid companyId, string name, string baseUrl, string sourceEntity, CancellationToken cancellationToken);
 
-    Task<SyncRunRequestResult> RequestSyncAsync(Guid connectorInstanceId, Guid tenantId, string correlationId, CancellationToken cancellationToken);
+    /// <summary><paramref name="reprocessFromUtc"/> (E7.2) reconstrói um período específico — quando
+    /// informado, ignora o watermark salvo só para esta execução, sem avançá-lo depois (nunca move a
+    /// cadência automática, docs/09 §7.2: "reconstruir um intervalo sem apagar dados não
+    /// relacionados" — o upsert idempotente do Pipeline/Warehouse já garante isso).</summary>
+    Task<SyncRunRequestResult> RequestSyncAsync(Guid connectorInstanceId, Guid tenantId, string correlationId, DateTimeOffset? reprocessFromUtc, CancellationToken cancellationToken);
 
     /// <summary>Consulta o relatório de execução (docs/05 §9) — o resultado auditável da
     /// sincronização exigido por E7.2.</summary>

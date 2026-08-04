@@ -54,12 +54,13 @@ public sealed class ConnectorsController : ControllerBase
         return CreatedAtAction(nameof(Register), new { connectorInstanceId = instanceId }, dto);
     }
 
-    /// <summary>Dispara uma sincronização assíncrona (E7.1/E7.2). Retorna 202 com o <c>SyncRunId</c>
+    /// <summary>Dispara uma sincronização assíncrona (E7.1). Retorna 202 com o <c>SyncRunId</c>
     /// — o cliente consulta o progresso em <see cref="GetSyncRun"/>, nunca espera o resultado nesta
-    /// chamada.</summary>
+    /// chamada. <paramref name="reprocessFrom"/> (E7.2) reconstrói um período específico, ignorando
+    /// o watermark salvo só para esta execução — nunca o avança depois.</summary>
     [HttpPost("{connectorInstanceId:guid}/sync")]
     [RequirePermission(ConnectorPermissions.ConnectorManage)]
-    public async Task<IActionResult> RequestSync(Guid connectorInstanceId, CancellationToken cancellationToken)
+    public async Task<IActionResult> RequestSync(Guid connectorInstanceId, [FromQuery] DateTimeOffset? reprocessFrom, CancellationToken cancellationToken)
     {
         var tenantId = GetAuthenticatedTenantId();
         if (tenantId is null)
@@ -71,7 +72,7 @@ public sealed class ConnectorsController : ControllerBase
             ? existing
             : Guid.NewGuid().ToString();
 
-        var result = await _connectorSyncService.RequestSyncAsync(connectorInstanceId, tenantId.Value, correlationId, cancellationToken);
+        var result = await _connectorSyncService.RequestSyncAsync(connectorInstanceId, tenantId.Value, correlationId, reprocessFrom, cancellationToken);
         if (!result.Success)
         {
             return Problem(detail: result.Error, statusCode: StatusCodes.Status400BadRequest);

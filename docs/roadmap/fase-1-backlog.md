@@ -508,15 +508,73 @@ período, ambos batendo com o cálculo manual esperado a partir dos dados de exe
 Objetivo: fechar `docs/09 §7.2`/`docs/04 §11` — sincronização incremental, não só carga completa
 repetida.
 
-- [ ] **E7.1** Estratégia de watermark por `ConnectorInstance` (`docs/04 §11`: "frequência de
+- [x] **E7.1** Estratégia de watermark por `ConnectorInstance` (`docs/04 §11`: "frequência de
       sincronização, estratégia incremental"): guardar o último `SourceUpdatedAt`/checkpoint
       processado com sucesso, e usá-lo para limitar a próxima extração. Para o conector de
       referência REST genérico (dado estático), isso pode ser validado com um dataset de exemplo
       que varia entre execuções (ex.: parâmetro de "atualizado desde" no endpoint de amostra do E3.1).
-  - *Depende de:* E3.1, E3.3.
-- [ ] **E7.2** Reprocessamento por período/entidade (`docs/09 §7.2`): capacidade de reconstruir um
+  - *Depende de:* E3.1, E3.3. ✅ Concluído — `ConnectorInstance.LastWatermark` (nulo = "nunca
+    sincronizado", nunca retrocede via `AdvanceWatermark`), capturado **antes** da extração (não
+    depois) para nunca perder um registro atualizado durante o próprio processamento da
+    sincronização. `IReferenceRestClient.FetchRawContentAsync` ganhou `updatedSince`, repassado como
+    query string `?updatedSince=` ao endpoint de origem (o filtro é decisão da origem, nunca aplicado
+    no cliente — um filtro local exigiria buscar tudo de qualquer forma). Endpoints de amostra
+    (`/api/v1/sample/{customers,products,sales-invoices}`) ganharam `updatedAt` por registro e um
+    registro extra "sempre atualizado" (`C099`/`P099`/`NF-E7-ALWAYS`, com `updatedAt =
+    DateTimeOffset.UtcNow` a cada chamada) para provar que o filtro varia de fato entre execuções, não
+    só na primeira. `ConnectorSyncProcessor` só avança o watermark em sincronizações automáticas
+    (`ReprocessFromUtc is null`) — ver E7.2. 3 testes de integração novos (Testcontainers,
+    `EIP.Data.Connector.IntegrationTests`, novo projeto): primeira sincronização automática busca sem
+    watermark e o avança; segunda sincronização usa o watermark salvo da primeira; reprocessamento
+    manual usa a data explícita e nunca avança o watermark. Validado ao vivo (Host+Gateway+Worker+SQL
+    Server+RabbitMQ real): 1ª sincronização de customers aceitou 6 registros (5 fixos + `C099`) e
+    avançou o watermark; 2ª sincronização (sem reprocessamento) processou só 1 registro (`C099`,
+    `updatedCount=1`) — os 5 fixos não reapareceram, confirmando o filtro `updatedSince` funcionando
+    fim a fim contra o endpoint real.
+  - **Bug real encontrado e corrigido durante a validação ao vivo** (pré-existente, não introduzido
+    nesta sessão, mas exposto por ela): `src/Host/Program.cs` lia todas as `ConnectionStrings:*` em
+    variáveis locais logo após `WebApplication.CreateBuilder(args)`, **antes** de `builder.Build()`.
+    `WebApplicationFactory<Program>` (usado por `HostApiFixture`, `EIP.Host.IntegrationTests`)
+    sobrescreve `ConnectionStrings:*` via `ConfigureAppConfiguration`, mas essa sobrescrita só existe
+    em `IConfiguration` a partir do momento em que o host é de fato construído — ler antes sempre
+    devolvia o valor "dev only" de `appsettings.json` (`Server=localhost,1433;...`), ignorando por
+    completo a connection string do SQL Server efêmero do teste. Ficou mascarado até agora porque o
+    SQL Server do `docker-compose` local costumava estar de pé na mesma porta/credenciais — os testes
+    "passavam" acidentalmente contra o banco de desenvolvimento persistente, não contra o container
+    efêmero isolado que a suíte pretende usar (uma falha real de isolamento de teste, inclusive para
+    os testes de isolamento cross-tenant). Exposto porque o `docker-compose` estava parado no início
+    desta sessão: as 8 chamadas de `/api/v1/auth/register` em `EIP.Host.IntegrationTests` falhavam
+    com 500 (timeout de conexão para `localhost,1433`). Corrigido movendo toda leitura de
+    `ConnectionStrings:*` para dentro dos delegates de registro do DI (`sp.GetRequiredService<
+    IConfiguration>().GetConnectionString(...)`, incluindo os health checks via os overloads
+    `Func<IServiceProvider, string>` de `AddSqlServer`/`AddRedis`/`AddRabbitMQ`), nunca mais em uma
+    variável capturada antes do `Build()`. `dotnet test` (29 testes, toda a solução) e `dotnet format
+    --verify-no-changes` limpos após a correção.
+- [x] **E7.2** Reprocessamento por período/entidade (`docs/09 §7.2`): capacidade de reconstruir um
       intervalo específico sem apagar dados não relacionados — reaproveita o mecanismo de
-      reprocessamento de quarentena do E4.2, generalizado para "reprocessar este período".
+      reprocessamento de quarentena do E4.2, generalizado para "reprocessar este período". ✅
+      Concluído junto com E7.1 (mesmo mecanismo) — `POST /api/v1/connectors/{id}/sync?reprocessFrom=`
+      (query param opcional, `DateTimeOffset`) ignora o `LastWatermark` salvo só para aquela execução
+      e nunca o avança depois (`ConnectorSyncProcessor` só chama `AdvanceWatermark` quando
+      `ReprocessFromUtc is null`) — nunca apaga dados não relacionados porque o upsert idempotente do
+      Pipeline/Warehouse (E3.4/E5.3) já garante isso por chave de negócio, sem depender de uma janela
+      de exclusão. `SyncRequestedMessage.ReprocessFromUtc` propaga a data pela fila assíncrona (E7).
+      Validado ao vivo: reprocessamento manual com `reprocessFrom=2026-01-01` reprocessou os 6
+      registros de novo (`acceptedCount=6, updatedCount=6`, todos já existiam) mesmo com um watermark
+      mais recente salvo (da 2ª sincronização automática); consultado o banco depois, `LastWatermark`
+      continuava exatamente no valor da 2ª sincronização automática — confirmando que o
+      reprocessamento manual nunca o move.
+
+**Validação de fechamento do E7** (ambas as tarefas, 2026-08-04): `dotnet build`/`dotnet test` limpos
+na solução inteira (29 testes — 3 novos de `EIP.Data.Connector.IntegrationTests`, novo projeto, além
+dos 26 já existentes), `dotnet format --verify-no-changes` limpo. Ponta a ponta real (Host+Gateway+
+Worker+SQL Server+RabbitMQ real via `docker-compose`, tenant/empresa/conector provisionados ao vivo):
+1ª sincronização de customers aceitou 6 registros e avançou o watermark; 2ª sincronização automática
+processou só o registro "sempre atualizado" (`updatedCount=1`); reprocessamento manual por período
+(`reprocessFrom=2026-01-01`) reprocessou os 6 registros de novo sem mover o watermark salvo. Bug de
+isolamento de teste em `EIP.Host.IntegrationTests` (connection strings lidas antes de `Build()`,
+mascarando a sobrescrita do `WebApplicationFactory`) encontrado e corrigido durante esta validação —
+ver evidência no E7.1.
 
 ## E8 — Testes de Isolamento e Fechamento da Fase
 
@@ -569,7 +627,7 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 | E4 — Qualidade e Reconciliação | ✅ Concluído (2026-08) |
 | E5 — Data Warehouse Inicial | ✅ Concluído (2026-08) |
 | E6 — Camada Semântica Mínima | ✅ Concluído (2026-08) |
-| E7 — Carga Incremental e Reprocessamento | Não iniciado |
+| E7 — Carga Incremental e Reprocessamento | ✅ Concluído (2026-08) |
 | E8 — Testes de Isolamento e Fechamento da Fase | Não iniciado |
 
 Atualizar esta tabela conforme os épicos avançam.

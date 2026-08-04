@@ -17,7 +17,8 @@ public sealed record SyncRequestedMessage(
     Guid ConnectorInstanceId,
     Guid TenantId,
     string CorrelationId,
-    string ContractVersion)
+    string ContractVersion,
+    DateTimeOffset? ReprocessFromUtc = null)
 {
     public const string CurrentContractVersion = "1.0";
 }

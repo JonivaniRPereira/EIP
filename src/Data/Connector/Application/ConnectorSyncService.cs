@@ -22,7 +22,7 @@ public sealed class ConnectorSyncService : IConnectorSyncService
         return instance.Id;
     }
 
-    public async Task<SyncRunRequestResult> RequestSyncAsync(Guid connectorInstanceId, Guid tenantId, string correlationId, CancellationToken cancellationToken)
+    public async Task<SyncRunRequestResult> RequestSyncAsync(Guid connectorInstanceId, Guid tenantId, string correlationId, DateTimeOffset? reprocessFromUtc, CancellationToken cancellationToken)
     {
         var instance = await _store.FindInstanceAsync(connectorInstanceId, cancellationToken);
 
@@ -47,7 +47,8 @@ public sealed class ConnectorSyncService : IConnectorSyncService
             instance.Id,
             tenantId,
             correlationId,
-            SyncRequestedMessage.CurrentContractVersion);
+            SyncRequestedMessage.CurrentContractVersion,
+            reprocessFromUtc);
 
         try
         {

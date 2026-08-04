@@ -33,6 +33,13 @@ public sealed class ConnectorSyncStore : IConnectorSyncStore
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task SaveInstanceAsync(ConnectorInstance instance, CancellationToken cancellationToken)
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        dbContext.ConnectorInstances.Update(instance);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task SaveNewRunAsync(SyncRun run, CancellationToken cancellationToken)
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);

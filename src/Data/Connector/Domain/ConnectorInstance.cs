@@ -29,6 +29,13 @@ public sealed class ConnectorInstance : Entity<Guid>
     public string BaseUrl { get; private set; }
     public string SourceEntity { get; private set; }
     public ConnectorInstanceStatus Status { get; private set; }
+
+    /// <summary>Estratégia de watermark (docs/04-Modelo-Canonico.md §11, E7.1): marca até quando a
+    /// origem já foi extraída com sucesso. Nulo significa "nunca sincronizado" — a próxima extração
+    /// busca tudo, sem filtro de "atualizado desde". Capturado no início da extração (não no fim),
+    /// para nunca perder um registro atualizado durante o próprio processamento da sincronização.</summary>
+    public DateTimeOffset? LastWatermark { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
@@ -69,5 +76,20 @@ public sealed class ConnectorInstance : Entity<Guid>
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceEntity);
 
         return new ConnectorInstance(Guid.NewGuid(), tenantId, companyId, name, baseUrl, sourceEntity);
+    }
+
+    /// <summary>Avança o watermark após uma sincronização automática bem-sucedida (E7.1). Nunca
+    /// retrocede — um reprocessamento manual por período (E7.2) usa uma data explícita só para
+    /// aquela execução e não passa por aqui, exatamente para não mover a cadência automática para
+    /// frente/trás por engano.</summary>
+    public void AdvanceWatermark(DateTimeOffset newWatermark)
+    {
+        if (LastWatermark is { } current && newWatermark <= current)
+        {
+            return;
+        }
+
+        LastWatermark = newWatermark;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

@@ -9,5 +9,9 @@ namespace EIP.Data.Connector.Application.Abstractions;
 /// </summary>
 public interface IReferenceRestClient
 {
-    Task<byte[]> FetchRawContentAsync(string baseUrl, CancellationToken cancellationToken);
+    /// <summary>Extração incremental (E7.1, docs/04-Modelo-Canonico.md §11): quando
+    /// <paramref name="updatedSince"/> é informado, é repassado ao endpoint de origem como filtro de
+    /// "atualizado desde" — nunca aplicado aqui no cliente (a origem decide o que retornar; um
+    /// filtro local exigiria buscar tudo de qualquer forma, anulando o ganho da incrementalidade).</summary>
+    Task<byte[]> FetchRawContentAsync(string baseUrl, DateTimeOffset? updatedSince, CancellationToken cancellationToken);
 }
