@@ -63,6 +63,8 @@ public sealed class MetricsCrossTenantIsolationTests : IAsyncLifetime
         await using (var warehouseDb = await warehouseDbFactory.CreateDbContextAsync())
         {
             await warehouseDb.FactSalesInvoiceItems.Where(f => f.TenantId == _tenantAId || f.TenantId == _tenantBId).ExecuteDeleteAsync();
+            await warehouseDb.DimCustomers.Where(c => c.TenantId == _tenantAId || c.TenantId == _tenantBId).ExecuteDeleteAsync();
+            await warehouseDb.DimProducts.Where(p => p.TenantId == _tenantAId || p.TenantId == _tenantBId).ExecuteDeleteAsync();
         }
 
         var tenantDbFactory = _fixture.Services.GetRequiredService<IDbContextFactory<TenantDbContext>>();
@@ -148,34 +150,48 @@ public sealed class MetricsCrossTenantIsolationTests : IAsyncLifetime
         var tenantContextAccessor = _fixture.Services.GetRequiredService<ITenantContextAccessor>();
         var warehouseDbFactory = _fixture.Services.GetRequiredService<IDbContextFactory<WarehouseDbContext>>();
 
-        var fact = FactSalesInvoiceItem.Create(
-            tenantId,
-            tenantKey: 1,
-            companyKey: 1,
-            dateKey: 20260101,
-            customerKey: 1,
-            productKey: 1,
-            currencyKey: 1,
-            sourceSystemId: Guid.NewGuid(),
-            sourceEntity: "sales-invoices",
-            sourceRecordId: $"NF-ISOLATION-{Guid.NewGuid():N}-1",
-            salesInvoiceId: Guid.NewGuid(),
-            salesInvoiceItemId: Guid.NewGuid(),
-            rawObjectUri: $"tests/{Guid.NewGuid():N}.json",
-            loadBatchId: Guid.NewGuid(),
-            invoiceNumber: "NF-ISOLATION",
-            status: "Issued",
-            lineNumber: 1,
-            quantity: 1m,
-            grossAmount: netAmount,
-            discountAmount: 0m,
-            taxAmount: null,
-            netAmount: netAmount);
-
         tenantContextAccessor.Current = new TenantContext(tenantId);
         try
         {
             await using var db = await warehouseDbFactory.CreateDbContextAsync();
+
+            // A camada semântica (Fase 2, E1.1) resolve nome de cliente/produto via junção com as
+            // dimensões pela chave substituta — precisa de uma linha real, não só um inteiro
+            // arbitrário sem correspondência (que o processo de carga de verdade nunca produziria).
+            var customer = DimCustomer.CreateCurrentVersion(
+                tenantId, Guid.NewGuid(), $"ISO-C-{Guid.NewGuid():N}", "Cliente Isolamento",
+                email: null, city: null, stateOrRegion: null, countryCode: null, isActive: true, DateTimeOffset.UtcNow);
+            var product = DimProduct.CreateCurrentVersion(
+                tenantId, Guid.NewGuid(), $"ISO-P-{Guid.NewGuid():N}", "Produto Isolamento", "Product",
+                categoryKey: null, unitOfMeasure: null, isActive: true, DateTimeOffset.UtcNow);
+            db.DimCustomers.Add(customer);
+            db.DimProducts.Add(product);
+            await db.SaveChangesAsync();
+
+            var fact = FactSalesInvoiceItem.Create(
+                tenantId,
+                tenantKey: 1,
+                companyKey: 1,
+                dateKey: 20260101,
+                customerKey: customer.CustomerKey,
+                productKey: product.ProductKey,
+                currencyKey: 1,
+                sourceSystemId: Guid.NewGuid(),
+                sourceEntity: "sales-invoices",
+                sourceRecordId: $"NF-ISOLATION-{Guid.NewGuid():N}-1",
+                salesInvoiceId: Guid.NewGuid(),
+                salesInvoiceItemId: Guid.NewGuid(),
+                rawObjectUri: $"tests/{Guid.NewGuid():N}.json",
+                loadBatchId: Guid.NewGuid(),
+                invoiceNumber: "NF-ISOLATION",
+                status: "Issued",
+                lineNumber: 1,
+                quantity: 1m,
+                grossAmount: netAmount,
+                discountAmount: 0m,
+                taxAmount: null,
+                netAmount: netAmount);
+
             db.FactSalesInvoiceItems.Add(fact);
             await db.SaveChangesAsync();
         }

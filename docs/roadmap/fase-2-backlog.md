@@ -92,13 +92,34 @@ Critério adicional obrigatório por conta da ADR-007 (mesmo texto usado para fe
 Objetivo: fechar `docs/10-Analytics-Engine.md` para o dataset `sales`, com contrato declarativo real
 (nunca SQL do cliente), cache seguro e guardrails mínimos.
 
-- [ ] **E1.1** Estender `EIP.Data.Semantic.Application` com uma capacidade de consulta dimensional:
+- [x] **E1.1** Estender `EIP.Data.Semantic.Application` com uma capacidade de consulta dimensional:
       agrupar `FactSalesInvoiceItem` por `date.month`/`customer`/`product`/`product.category`,
       aplicando os mesmos filtros de exclusão de documentos cancelados já usados pelas 3 métricas
       certificadas (E6, Fase 1). Continua sendo a única camada que efetivamente toca o Warehouse.
-  - *Depende de:* Fase 1 E5/E6.
-  - *Aceite:* teste de integração prova que agrupar por `date.month` com 2 meses de dados retorna 2
-    linhas com os agregados corretos, batendo com o cálculo manual.
+  - *Depende de:* Fase 1 E5/E6. ✅ Concluído — `product.category` deliberadamente **não** implementado
+    (achado real durante o design, não hipotético): `DimProduct.CategoryKey` é sempre nulo nesta fase
+    (o conector de referência nunca ingere categoria, mesma lacuna já documentada desde a Fase 1,
+    E5.1) — agrupar por uma dimensão sempre vazia seria uma funcionalidade de fachada. `IAnalyticsQueryService`/
+    `AnalyticsQueryService` (novo, `EIP.Data.Semantic.Application`) suportam `DateMonth`/`Customer`/
+    `Product`. `IWarehouseLoadStore.ListFactSalesInvoiceItemsForMetricsAsync` estendido (join com
+    `DimCustomers`/`DimProducts` por chave substituta) para trazer `CustomerId`/`CustomerName`/
+    `ProductId`/`ProductName`/`DateKey` — agrupamento sempre pela chave de negócio durável
+    (`CustomerId`/`ProductId`), nunca pela chave substituta versionada de SCD2, para nunca separar o
+    mesmo cliente/produto em dois grupos só porque uma versão de dimensão mudou no meio do período.
+    Fórmula das 3 métricas extraída para `CommercialMetricsCalculator` (compartilhada entre o
+    agregado único do E6.1 e o novo agrupamento — nunca duplicada). 2 testes de integração novos
+    (Testcontainers, `EIP.Data.Warehouse.IntegrationTests`): agrupar por `date.month` com dados em
+    janeiro/fevereiro retorna 2 linhas com os agregados corretos (inclusive excluindo uma fatura
+    cancelada), batendo com o cálculo manual; agrupar por `customer` nunca mistura dois clientes.
+    **Regressão real encontrada e corrigida durante a validação**: o novo `JOIN` obrigatório com
+    `DimCustomers`/`DimProducts` quebrou `MetricsCrossTenantIsolationTests` (Fase 1, E6.2) — o teste
+    semeava `FactSalesInvoiceItem` diretamente com `customerKey`/`productKey` arbitrários (`1`), sem
+    nenhuma linha de dimensão correspondente (atalho válido quando a métrica só somava valores, mas
+    que o processo de carga real nunca produziria — toda carga de verdade sempre resolve/cria a
+    dimensão antes do fato). Corrigido semeando `DimCustomer`/`DimProduct` reais no teste e usando as
+    chaves substitutas geradas, em vez de afrouxar o `JOIN` para `LEFT JOIN` (que mascararia uma
+    inconsistência de dados real caso ela algum dia ocorra em produção). `dotnet test` (41 testes, toda
+    a solução) e `dotnet format --verify-no-changes` limpos após a correção.
 - [ ] **E1.2** Novo módulo `EIP.Intelligence.Analytics.{Application,Api}` (primeiro módulo fora de
       `Platform`/`Data`, `docs/00`): catálogo do dataset `sales` em código (nome técnico, métricas,
       dimensões, `Owner`, versão — mesmo padrão de `CertifiedMetrics`) + contrato declarativo de
@@ -263,7 +284,7 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 
 | Épico | Status |
 |---|---|
-| E1 — Analytics Engine | Não iniciado |
+| E1 — Analytics Engine | Em andamento (E1.1 concluído) |
 | E2 — Dashboard Builder: domínio e persistência | Não iniciado |
 | E3 — Dashboard Builder: API | Não iniciado |
 | E4 — Frontend: visualização e criação de dashboard | Não iniciado |

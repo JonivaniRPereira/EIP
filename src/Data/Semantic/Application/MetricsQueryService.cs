@@ -8,8 +8,6 @@ namespace EIP.Data.Semantic.Application;
 /// §6.2).</summary>
 public sealed class MetricsQueryService : IMetricsQueryService
 {
-    private const string CanceledStatus = "Canceled";
-
     private readonly IWarehouseLoadStore _warehouseLoadStore;
 
     public MetricsQueryService(IWarehouseLoadStore warehouseLoadStore)
@@ -22,19 +20,8 @@ public sealed class MetricsQueryService : IMetricsQueryService
         var items = await _warehouseLoadStore.ListFactSalesInvoiceItemsForMetricsAsync(
             filter.TenantId, filter.CompanyId, filter.PeriodStart, filter.PeriodEnd, cancellationToken);
 
-        var validItems = items.Where(i => i.Status != CanceledStatus).ToList();
+        var validItems = items.Where(i => i.Status != CommercialMetricsCalculator.CanceledStatus).ToList();
 
-        var netRevenue = validItems.Sum(i => i.NetAmount);
-        var invoicedQuantity = validItems.Sum(i => i.Quantity);
-        var distinctInvoiceCount = validItems.Select(i => i.SalesInvoiceId).Distinct().Count();
-
-        // Nenhuma fatura válida no filtro: Ticket Médio não tem significado (evita divisão por
-        // zero) — retorna nulo, não zero, para o consumidor não confundir "sem dado" com "zero".
-        decimal? averageTicket = distinctInvoiceCount == 0 ? null : netRevenue / distinctInvoiceCount;
-
-        return new CommercialMetricsResult(
-            new CertifiedMetricValue(CertifiedMetrics.NetRevenue, netRevenue),
-            new CertifiedMetricValue(CertifiedMetrics.InvoicedQuantity, invoicedQuantity),
-            new CertifiedMetricValue(CertifiedMetrics.AverageTicket, averageTicket));
+        return CommercialMetricsCalculator.Compute(validItems);
     }
 }

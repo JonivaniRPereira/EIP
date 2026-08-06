@@ -287,7 +287,18 @@ public sealed class WarehouseLoadStore : IWarehouseLoadStore
         }
 
         return await query
-            .Select(f => new FactSalesInvoiceItemForMetrics(f.SalesInvoiceId, f.Status, f.Quantity, f.NetAmount))
+            .Join(db.DimCustomers.Where(c => c.TenantId == tenantId), f => f.CustomerKey, c => c.CustomerKey, (f, c) => new { f, c })
+            .Join(db.DimProducts.Where(p => p.TenantId == tenantId), fc => fc.f.ProductKey, p => p.ProductKey, (fc, p) => new { fc.f, fc.c, p })
+            .Select(x => new FactSalesInvoiceItemForMetrics(
+                x.f.SalesInvoiceId,
+                x.f.Status,
+                x.f.Quantity,
+                x.f.NetAmount,
+                x.f.DateKey,
+                x.c.CustomerId,
+                x.c.Name,
+                x.p.ProductId,
+                x.p.Name))
             .ToListAsync(cancellationToken);
     }
 
