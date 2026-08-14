@@ -35,6 +35,9 @@ public sealed class AnalyticsQueryService : IAnalyticsQueryService
             .ToList();
     }
 
+    public Task<DateTimeOffset?> GetDataFreshnessAsync(Guid tenantId, CancellationToken cancellationToken) =>
+        _warehouseLoadStore.GetLastSuccessfulLoadAtAsync(tenantId, cancellationToken);
+
     // DateKey é sempre YYYYMMDD (docs/09 §5.1) — extrai ano/mês por aritmética, sem precisar de
     // junção com DimDate, mesmo princípio já usado no filtro de período de
     // ListFactSalesInvoiceItemsForMetricsAsync.

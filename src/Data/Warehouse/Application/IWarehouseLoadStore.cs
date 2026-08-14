@@ -99,4 +99,11 @@ public interface IWarehouseLoadStore
         DateOnly? periodStart,
         DateOnly? periodEnd,
         CancellationToken cancellationToken);
+
+    /// <summary>"Frescor" do dado (docs/10-Analytics-Engine.md §5.3, campo <c>dataFreshnessAt</c>) —
+    /// <see cref="LoadBatch.FinishedAt"/> da última carga concluída com sucesso para o tenant, ou
+    /// <see langword="null"/> se nenhuma carga jamais terminou (tenant sem dado ainda no Warehouse).
+    /// Nunca considera cargas em andamento ou falhas, que não representam dado disponível para
+    /// consulta.</summary>
+    Task<DateTimeOffset?> GetLastSuccessfulLoadAtAsync(Guid tenantId, CancellationToken cancellationToken);
 }

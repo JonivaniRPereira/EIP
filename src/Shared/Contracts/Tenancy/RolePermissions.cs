@@ -1,3 +1,4 @@
+using EIP.Shared.Contracts.Analytics;
 using EIP.Shared.Contracts.Connectors;
 using EIP.Shared.Contracts.Metrics;
 
@@ -24,6 +25,7 @@ public static class RolePermissions
             ConnectorPermissions.ConnectorView,
             ConnectorPermissions.ConnectorManage,
             MetricsPermissions.MetricsView,
+            AnalyticsPermissions.AnalyticsQuery,
         },
         ["Admin"] = new HashSet<string>
         {
@@ -35,6 +37,7 @@ public static class RolePermissions
             ConnectorPermissions.ConnectorView,
             ConnectorPermissions.ConnectorManage,
             MetricsPermissions.MetricsView,
+            AnalyticsPermissions.AnalyticsQuery,
         },
         ["Member"] = new HashSet<string>
         {
@@ -42,6 +45,7 @@ public static class RolePermissions
             TenantPermissions.CompaniesView,
             ConnectorPermissions.ConnectorView,
             MetricsPermissions.MetricsView,
+            AnalyticsPermissions.AnalyticsQuery,
         },
     };
 

@@ -65,6 +65,14 @@
   <Folder Name="/src/Data/Warehouse/Infrastructure/">
     <Project Path="src/Data/Warehouse/Infrastructure/EIP.Data.Warehouse.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Intelligence/" />
+  <Folder Name="/src/Intelligence/Analytics/" />
+  <Folder Name="/src/Intelligence/Analytics/Api/">
+    <Project Path="src/Intelligence/Analytics/Api/EIP.Intelligence.Analytics.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Intelligence/Analytics/Application/">
+    <Project Path="src/Intelligence/Analytics/Application/EIP.Intelligence.Analytics.Application.csproj" />
+  </Folder>
   <Folder Name="/src/Platform/" />
   <Folder Name="/src/Platform/Identity/" />
   <Folder Name="/src/Platform/Identity/Api/">

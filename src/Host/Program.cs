@@ -10,6 +10,7 @@ using EIP.Data.Connector.Infrastructure;
 using EIP.Data.Semantic.Application;
 using EIP.Data.Warehouse.Application;
 using EIP.Data.Warehouse.Infrastructure;
+using EIP.Intelligence.Analytics.Application;
 using EIP.Platform.Identity.Application;
 using EIP.Platform.Identity.Application.Abstractions;
 using EIP.Platform.Identity.Domain;
@@ -107,6 +108,8 @@ builder.Services.AddScoped<IConnectorSyncService, ConnectorSyncService>();
 builder.Services.AddScoped<ICanonicalRecordStore, CanonicalRecordStore>();
 builder.Services.AddScoped<IWarehouseLoadStore, WarehouseLoadStore>();
 builder.Services.AddScoped<IMetricsQueryService, MetricsQueryService>();
+builder.Services.AddScoped<IAnalyticsQueryService, AnalyticsQueryService>();
+builder.Services.AddScoped<IDeclarativeAnalyticsQueryService, DeclarativeAnalyticsQueryService>();
 
 builder.Services.AddScoped<IMembershipDirectory, EIP.Platform.Tenant.Infrastructure.MembershipDirectory>();
 builder.Services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();

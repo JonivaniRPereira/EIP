@@ -302,5 +302,16 @@ public sealed class WarehouseLoadStore : IWarehouseLoadStore
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<DateTimeOffset?> GetLastSuccessfulLoadAtAsync(Guid tenantId, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await db.LoadBatches
+            .Where(b => b.TenantId == tenantId && b.Status == LoadBatchStatus.Succeeded)
+            .OrderByDescending(b => b.FinishedAt)
+            .Select(b => b.FinishedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     private static DateTimeOffset ToUtcMidnight(DateOnly date) => new(date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
 }

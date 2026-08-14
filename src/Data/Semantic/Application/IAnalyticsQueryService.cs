@@ -33,4 +33,9 @@ public sealed record AnalyticsDimensionRow(string DimensionKey, string Dimension
 public interface IAnalyticsQueryService
 {
     Task<IReadOnlyList<AnalyticsDimensionRow>> QueryCommercialByDimensionAsync(AnalyticsQueryFilter filter, CancellationToken cancellationToken);
+
+    /// <summary>Frescor do dado consultável (docs/10-Analytics-Engine.md §5.3) — repassa
+    /// <c>IWarehouseLoadStore.GetLastSuccessfulLoadAtAsync</c> sem transformação; o Analytics Engine
+    /// (Fase 2, E1.2) nunca acessa o Warehouse diretamente, só este contrato já publicado.</summary>
+    Task<DateTimeOffset?> GetDataFreshnessAsync(Guid tenantId, CancellationToken cancellationToken);
 }

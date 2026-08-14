@@ -120,13 +120,40 @@ Objetivo: fechar `docs/10-Analytics-Engine.md` para o dataset `sales`, com contr
     chaves substitutas geradas, em vez de afrouxar o `JOIN` para `LEFT JOIN` (que mascararia uma
     inconsistência de dados real caso ela algum dia ocorra em produção). `dotnet test` (41 testes, toda
     a solução) e `dotnet format --verify-no-changes` limpos após a correção.
-- [ ] **E1.2** Novo módulo `EIP.Intelligence.Analytics.{Application,Api}` (primeiro módulo fora de
+- [x] **E1.2** Novo módulo `EIP.Intelligence.Analytics.{Application,Api}` (primeiro módulo fora de
       `Platform`/`Data`, `docs/00`): catálogo do dataset `sales` em código (nome técnico, métricas,
       dimensões, `Owner`, versão — mesmo padrão de `CertifiedMetrics`) + contrato declarativo de
       consulta (`dataset`/`metrics`/`dimensions`/`filters`/`orderBy`/`limit`, `docs/10 §5.1`),
       validado contra o catálogo antes de qualquer execução. `TenantId` sempre do claim JWT, nunca do
       payload.
-  - *Depende de:* E1.1.
+  - *Depende de:* E1.1. ✅ Concluído — `AnalyticsCatalog` (`EIP.Intelligence.Analytics.Application`)
+    publica o dataset `sales` (3 métricas certificadas reaproveitadas do E6.1, 3 dimensões do E1.1);
+    `DeclarativeAnalyticsQueryService` valida dataset/métricas/dimensões/filtros/orderBy/limit contra
+    o catálogo (nunca lança exceção para erro de validação — retorna `AnalyticsQueryExecutionResult`
+    com mensagem clara, mesmo padrão de `ConnectorSyncService`) e só então delega a execução a
+    `IAnalyticsQueryService` (`EIP.Data.Semantic.Application`, contrato já publicado do E1.1) — nunca
+    acessa `EIP.Data.Warehouse.*` diretamente, conforme `docs/00`. Reduções deliberadas desta fase
+    (documentadas em código, mesmo espírito do §3 desta tabela): exatamente 1 dimensão por consulta
+    (o agrupamento do E1.1 só suporta uma), filtros restritos a `date` (`between`) e `company.id`
+    (`equals`), no máximo 1 critério de ordenação. Novo endpoint `POST /api/v1/analytics/query`
+    (`EIP.Intelligence.Analytics.Api`) protegido por nova permissão `analytics.query`
+    (`EIP.Shared.Contracts.Analytics.AnalyticsPermissions`, concedida a todos os papéis — mesma
+    política de `metrics.view`); criada agora em vez de esperar o E3.3 original, já que o endpoint
+    precisa de autorização real desde já, não de um `[Authorize]` genérico temporário. **Extensão
+    retroativa ao E1.1** (pequena, aditiva, sem alterar comportamento existente): `IWarehouseLoadStore`
+    ganhou `GetLastSuccessfulLoadAtAsync` e `IAnalyticsQueryService` ganhou `GetDataFreshnessAsync`
+    (repassa sem transformação) para atender ao "frescor" exigido por `docs/10 §5.3` — sem essa
+    extensão a métrica de frescor não existiria em lugar nenhum da stack. 5 novos testes de integração
+    (`EIP.Host.IntegrationTests/AnalyticsQueryTests`, via `WebApplicationFactory` real + SQL Server
+    efêmero Testcontainers, mesmo padrão de `MetricsCrossTenantIsolationTests`): métrica inexistente,
+    dataset inexistente e mais de 1 dimensão retornam 400 sem executar; consulta válida (`date.month`)
+    retorna 2 linhas com metadados completos (`dataset`, `semanticVersion`, `rowCount`,
+    `dataFreshnessAt` não nulo após semear um `LoadBatch` concluído); isolamento cross-tenant provado
+    (tenant B nunca vê o dado de tenant A). 46/46 testes passando na solução inteira (41 anteriores +
+    5 novos), `dotnet build`/`dotnet format --verify-no-changes`/`dotnet list package --vulnerable`
+    limpos. **Não validado com o stack `docker-compose` completo ao vivo nesta tarefa** (só com
+    Testcontainers) — mesmo padrão de validação já aceito para o E1.1 desta mesma fase; a validação
+    end-to-end com infraestrutura real de verdade é o E5.2, que fecha a fase inteira.
   - *Aceite:* `POST /api/v1/analytics/query` com um campo/métrica/dimensão inexistente retorna erro
     claro (nunca executa); uma consulta válida retorna dados + metadados (`docs/10 §5.3`: dataset,
     versão semântica, `executedAt`, frescor, contagem de linhas).
@@ -284,7 +311,7 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 
 | Épico | Status |
 |---|---|
-| E1 — Analytics Engine | Em andamento (E1.1 concluído) |
+| E1 — Analytics Engine | Em andamento (E1.1, E1.2 concluídos) |
 | E2 — Dashboard Builder: domínio e persistência | Não iniciado |
 | E3 — Dashboard Builder: API | Não iniciado |
 | E4 — Frontend: visualização e criação de dashboard | Não iniciado |

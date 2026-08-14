@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Data\Semantic\Application\EIP.Data.Semantic.Application.csproj" />
+  </ItemGroup>
+
+</Project>
