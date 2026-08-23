@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EIP — Enterprise Intelligence Platform</title>
+<meta name="description" content="Uma Plataforma. Todo Insight de Negócio. Conecte qualquer ERP/CRM, padronize os dados em um modelo canônico e entregue dashboards, IA conversacional e automação.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; }
+  .eip-root {
+    font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+    background: #0A0F1C;
+    color: #F4F7FB;
+    line-height: 1.55;
+    overflow-x: hidden;
+    --accent: #22D3EE;
+    --accent2: #A78BFA;
+  }
+  .eip-root h1, .eip-root h2, .eip-root h3 {
+    font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .eip-root a { color: var(--accent); text-decoration: none; }
+  .eip-root a:hover { color: var(--accent2); }
+  .eip-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+
+  .eip-container { max-width: 1160px; margin: 0 auto; padding: 0 32px; }
+  .eip-section { padding: 96px 0; }
+
+  .eip-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #B9C6DE;
+    background: #121A2E;
+    border: 1px solid #22314F;
+    padding: 7px 14px 7px 10px;
+    border-radius: 999px;
+  }
+  .eip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
+
+  .eip-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 15px;
+    padding: 13px 24px; border-radius: 8px; cursor: pointer; border: 1px solid transparent;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    white-space: nowrap;
+  }
+  .eip-btn:hover { transform: translateY(-1px); }
+  .eip-btn-primary { background: var(--accent); color: #06121C; }
+  .eip-btn-primary:hover { background: var(--accent); color: #06121C; filter: brightness(1.08); }
+  .eip-btn-secondary { background: transparent; border-color: #2A3B5C; color: #F4F7FB; }
+  .eip-btn-secondary:hover { border-color: var(--accent); color: #F4F7FB; }
+
+  .eip-card {
+    background: #10182B;
+    border: 1px solid #1E2A45;
+    border-radius: 14px;
+    padding: 28px;
+  }
+
+  .eip-icon-badge {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: #16223B;
+    border: 1px solid #263A5F;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent);
+    flex: none;
+  }
+
+  .eip-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .eip-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+
+  .eip-pill {
+    display: inline-flex; align-items: center;
+    font-size: 14px; font-weight: 500; color: #C7D2E6;
+    background: #121A2E; border: 1px solid #22314F;
+    padding: 9px 16px; border-radius: 8px;
+  }
+
+  .eip-nav-link {
+    font-size: 14.5px; font-weight: 500; color: #B9C6DE !important;
+  }
+  .eip-nav-link:hover { color: #F4F7FB !important; }
+
+  @keyframes eipPulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+    100% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--accent) 0%, transparent); }
+  }
+  .eip-pulse { animation: eipPulse 1.8s ease-out infinite; }
+
+  @media (max-width: 900px) {
+    .eip-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .eip-hero-h1 { font-size: 42px !important; }
+    .eip-section { padding: 72px 0 !important; }
+    .eip-nav-links { display: none !important; }
+    .eip-flow-row { flex-direction: column !important; }
+    .eip-flow-arrow { transform: rotate(90deg); }
+    .eip-two-col { grid-template-columns: 1fr !important; }
+    .eip-hero-badges { flex-direction: column !important; align-items: flex-start !important; }
+    .eip-hero-graph { display: none !important; }
+  }
+  @media (max-width: 620px) {
+    .eip-grid-3 { grid-template-columns: 1fr; }
+    .eip-grid-2 { grid-template-columns: 1fr; }
+    .eip-container { padding: 0 20px; }
+    .eip-hero-h1 { font-size: 34px !important; }
+    .eip-h2 { font-size: 28px !important; }
+    .eip-cta-row { flex-direction: column; align-items: stretch !important; }
+    .eip-roadmap-track { flex-direction: column !important; }
+    .eip-roadmap-line { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="eip-root">
+
+  <!-- NAV -->
+  <div style="position: sticky; top: 0; z-index: 40; background: rgba(10,15,28,0.86); backdrop-filter: blur(10px); border-bottom: 1px solid #1A2440;">
+    <div class="eip-container" style="display: flex; align-items: center; justify-content: space-between; height: 76px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 30px; height: 30px; border-radius: 8px; background: var(--accent); display:flex; align-items:center; justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06121C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 12 9 6 13 10 21 2"/><polyline points="21 8 21 2 15 2"/></svg>
+        </div>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 19px; letter-spacing: -0.01em;">EIP</span>
+      </div>
+      <div class="eip-nav-links" style="display: flex; align-items: center; gap: 30px;">
+        <a class="eip-nav-link" href="#visao">Visão</a>
+        <a class="eip-nav-link" href="#recursos">Plataforma</a>
+        <a class="eip-nav-link" href="#como-funciona">Como funciona</a>
+        <a class="eip-nav-link" href="#ia">IA</a>
+        <a class="eip-nav-link" href="#conectores">Conectores</a>
+        <a class="eip-nav-link" href="#roadmap">Roadmap</a>
+      </div>
+      <a href="#contato" class="eip-btn eip-btn-primary" style="padding: 10px 20px; font-size: 14px;">Solicitar demonstração</a>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div style="position: relative; padding-top: 88px; padding-bottom: 96px; overflow: hidden;">
+    <div style="position: absolute; top: -180px; left: 50%; transform: translateX(-50%); width: 900px; height: 560px; background: radial-gradient(ellipse at center, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 68%); pointer-events: none;"></div>
+    <svg class="eip-hero-graph" style="position: absolute; right: -60px; top: 60px; width: 480px; height: 480px; opacity: 0.5; pointer-events: none;" viewBox="0 0 400 400" fill="none">
+      <circle cx="330" cy="80" r="5" fill="var(--accent)"/>
+      <circle cx="230" cy="150" r="4" fill="var(--accent2)"/>
+      <circle cx="360" cy="220" r="3.5" fill="var(--accent)"/>
+      <circle cx="260" cy="290" r="4.5" fill="var(--accent2)"/>
+      <circle cx="150" cy="220" r="3" fill="#3A4C74"/>
+      <circle cx="340" cy="330" r="4" fill="var(--accent)"/>
+      <line x1="330" y1="80" x2="230" y2="150" stroke="#2A3B5C" stroke-width="1"/>
+      <line x1="230" y1="150" x2="360" y2="220" stroke="#2A3B5C" stroke-width="1"/>
+      <line x1="360" y1="220" x2="260" y2="290" stroke="#2A3B5C" stroke-width="1"/>
+      <line x1="260" y1="290" x2="150" y2="220" stroke="#2A3B5C" stroke-width="1"/>
+      <line x1="230" y1="150" x2="150" y2="220" stroke="#2A3B5C" stroke-width="1"/>
+      <line x1="260" y1="290" x2="340" y2="330" stroke="#2A3B5C" stroke-width="1"/>
+    </svg>
+    <div class="eip-container" style="position: relative;">
+      <div style="max-width: 760px;">
+        <div class="eip-hero-badges" style="display: flex; align-items: center; gap: 10px; margin-bottom: 28px;">
+          <span class="eip-eyebrow"><span class="eip-dot eip-pulse"></span>Em desenvolvimento ativo — Fase 2 em andamento</span>
+        </div>
+        <h1 class="eip-hero-h1" style="font-size: 60px; font-weight: 700; line-height: 1.08; margin-bottom: 24px;">
+          Uma Plataforma.<br/>Todo Insight de Negócio.
+        </h1>
+        <p style="font-size: 19px; color: #B9C6DE; max-width: 620px; margin-bottom: 36px;">
+          A camada de inteligência corporativa que conecta seus sistemas, padroniza os dados em um
+          modelo único e entrega decisão — com IA nativa, isolamento real de tenant e segurança
+          desde a primeira linha de código.
+        </p>
+        <div class="eip-cta-row" style="display: flex; align-items: center; gap: 14px;">
+          <a href="#contato" class="eip-btn eip-btn-primary">Solicitar demonstração</a>
+          <a href="#como-funciona" class="eip-btn eip-btn-secondary">Ver como funciona</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISÃO -->
+  <div id="visao" class="eip-section" style="border-top: 1px solid #161F38;">
+    <div class="eip-container">
+      <div class="eip-two-col" style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center;">
+        <div>
+          <span class="eip-eyebrow" style="margin-bottom: 20px;"><span class="eip-dot"></span>Visão</span>
+          <h2 class="eip-h2" style="font-size: 38px; font-weight: 700; margin: 20px 0 20px; line-height: 1.15;">
+            Não é só mais uma ferramenta de BI.
+          </h2>
+          <p style="font-size: 17px; color: #B9C6DE; margin-bottom: 16px;">
+            Enquanto ERPs executam os processos operacionais da empresa, a EIP conecta essas
+            informações, padroniza os dados, aplica inteligência artificial e entrega conhecimento
+            para apoiar decisões estratégicas.
+          </p>
+          <p style="font-size: 17px; color: #B9C6DE;">
+            Ela não foi projetada para substituir o que já funciona — foi projetada para se tornar
+            a camada de inteligência corporativa das organizações, dando sentido a tudo o que os
+            sistemas de origem já produzem.
+          </p>
+        </div>
+        <div class="eip-card" style="padding: 0; overflow: hidden;">
+          <div style="padding: 22px 24px; border-bottom: 1px solid #1E2A45;">
+            <span style="font-size: 12.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #7B8CB0;">ERP / CRM</span>
+            <ul style="margin: 14px 0 0; padding-left: 18px; color: #B9C6DE; font-size: 15px; line-height: 1.9;">
+              <li>Executa os processos operacionais</li>
+              <li>Um sistema por vez</li>
+              <li>Dado preso à origem</li>
+            </ul>
+          </div>
+          <div style="padding: 22px 24px;">
+            <span style="font-size: 12.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent);">EIP</span>
+            <ul style="margin: 14px 0 0; padding-left: 18px; color: #F4F7FB; font-size: 15px; line-height: 1.9;">
+              <li>Conecta múltiplos sistemas</li>
+              <li>Padroniza em um modelo canônico único</li>
+              <li>Aplica IA e entrega decisão</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECURSOS / CARACTERÍSTICAS -->
+  <div id="recursos" class="eip-section" style="background: #0C1224; border-top: 1px solid #161F38; border-bottom: 1px solid #161F38;">
+    <div class="eip-container">
+      <div style="max-width: 620px; margin-bottom: 52px;">
+        <span class="eip-eyebrow"><span class="eip-dot"></span>Plataforma</span>
+        <h2 class="eip-h2" style="font-size: 36px; font-weight: 700; margin: 20px 0 14px;">Construída para escala corporativa desde o primeiro commit.</h2>
+        <p style="font-size: 16.5px; color: #B9C6DE;">Nove princípios de arquitetura que não são promessa de roadmap — são pré-requisito de cada linha de código.</p>
+      </div>
+
+      <div class="eip-grid-3">
+        <div class="eip-card">
+          <div class="eip-icon-badge"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 6 3 12 8 18"/><polyline points="16 6 21 12 16 18"/></svg></div>
+          <h3 style="font-size: 18px; font-weight: 600; margin: 18px 0 8px;">API First</h3>
+          <p style="font-size: 14.5px; color: #93A3C2; margin: 0;">Toda capacidade da plataforma é exposta como API desde o início — nunca uma tela sem contrato por trás.</p>
+        </div>
+        <div class="eip-card">
+          <div class="eip-icon-badge"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div>
+          <h3 style="font-size: 18px; font-weight: 600; margin: 18px 0 8px;">Cloud Native</h3>
+          <p style="font-size: 14.5px; color: #93A3C2; margin: 0;">Contêineres, escalabilidade horizontal e infraestrutura como código — sem dependência de servidor fixo.</p>
+        </div>
+        <div class="eip-card">
+          <div class="eip-icon-badge"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+          <h3 style="font-size: 18px; font-weight: 600; margin: 18px 0 8px;">Multi-Tenant</h3>
+          <p style="font-size: 14.5px; color: #93A3C2; margin: 0;">Isolamento real entre organizações, com Row-Level Security ativa em toda tabela sensível — sem exceção.</p>
+        </div>
+        <div class="eip-card">
+          <div class="eip-icon-badge"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><line x1="8.3" y1="10.7" x2="15.7" y2="6.3"/><line x1="8.3" y1="13.3" x2="15.7" y2="17.7"/></svg></div>
+          <h3 style="font-size: 18px; font-weight: 600; margin: 18px 0 8px;">Multi-ERP</h3>
+          <p style="font-size: 14.5px; color: #93A3C2; margin: 0;">Um framework de conectores extensível — Protheus, SAP, Dynamics ou qualquer sistema próprio.</p>
+        </div>
+        <div class="eip-card">
+          <div class="eip-icon-badge"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v6c0 1.66 3.13 3 7 3s7-1.34 7-3V5"/><path d="M5 11v6c0 1.66 3.13 3 7 3s7-1.34 7-3v-6"/></svg></div>
+          <h3 style="font-size: 18px; font-weight: 600; margin: 18px 0 8px;">Multi Banco de Dados</h3>
+          <p style="font-size: 14.5px; color: #93A3C2; margin: 0;">SQL Server, PostgreSQL, MySQL e mais — a origem do dado nunca limita a profundidade da análise.</p>
+        </div>
+        <div class="eip-card">
+          <div class="eip-icon-badge"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2"/><circle cx="4" cy="6" r="1.4"/><circle cx="20" cy="6" r="1.4"/><circle cx="4" cy="18" r="1.4"/><circle cx="20" cy="18" r="1.4"/><line x1="5.3" y1="7.1" x2="10.4" y2="10.8"/><line x1="18.7" y1="7.1" x2="13.6" y2="10.8"/><line x1="5.3" y1="16.9" x2="10.4" y2="13.2"/><line x1="18.7" y1="16.9" x2="13.6" y2="13.2"/></svg></div>
+          <h3 style="font-size: 18px; font-weight: 600; margin: 18px 0 8px;">IA First</h3>
+          <p style="font-size: 14.5px; color: #93A3C2; margin: 0;">Inteligência artificial nativa da plataforma — não um recurso adicionado depois, por cima.</p>
+        </div>
+        <div class="eip-card">
+          <div class="eip-icon-badge"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></div>
+          <h3 style="font-size: 18px; font-weight: 600; margin: 18px 0 8px;">Arquitetura Modular</h3>
+          <p style="font-size: 14.5px; color: #93A3C2; margin: 0;">Cada domínio evolui de forma independente, com fronteiras explícitas entre módulos.</p>
+        </div>
+        <div class="eip-card">
+          <div class="eip-icon-badge"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+          <h3 style="font-size: 18px; font-weight: 600; margin: 18px 0 8px;">Event-Driven</h3>
+          <p style="font-size: 14.5px; color: #93A3C2; margin: 0;">Processamento assíncrono e resiliente via mensageria, do dado bruto ao dashboard publicado.</p>
+        </div>
+        <div class="eip-card">
+          <div class="eip-icon-badge"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V5z"/><polyline points="9 12 11 14 15 9"/></svg></div>
+          <h3 style="font-size: 18px; font-weight: 600; margin: 18px 0 8px;">Segurança por Design</h3>
+          <p style="font-size: 14.5px; color: #93A3C2; margin: 0;">Row-Level Security obrigatória em cada tabela multi-tenant desde a primeira migration — nunca opcional.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMO FUNCIONA -->
+  <div id="como-funciona" class="eip-section">
+    <div class="eip-container">
+      <div style="max-width: 620px; margin-bottom: 52px;">
+        <span class="eip-eyebrow"><span class="eip-dot"></span>Como funciona</span>
+        <h2 class="eip-h2" style="font-size: 36px; font-weight: 700; margin: 20px 0 14px;">Do dado bruto à decisão, em uma linha só.</h2>
+        <p style="font-size: 16.5px; color: #B9C6DE;">Cada etapa do pipeline preserva a origem do dado (lineage) e nunca expõe o gestor a uma consulta SQL.</p>
+      </div>
+
+      <div class="eip-flow-row" style="display: flex; align-items: stretch; gap: 0;">
+        <div class="eip-card" style="flex: 1; min-width: 0;">
+          <div class="eip-icon-badge"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="1.2"/><rect x="3" y="14" width="18" height="6" rx="1.2"/><line x1="7" y1="7" x2="7.01" y2="7"/><line x1="7" y1="17" x2="7.01" y2="17"/></svg></div>
+          <h3 style="font-size: 15.5px; font-weight: 600; margin: 16px 0 6px;">Fontes</h3>
+          <p style="font-size: 13px; color: #93A3C2; margin: 0;">ERP, CRM, bancos e APIs</p>
+        </div>
+        <div class="eip-flow-arrow" style="display: flex; align-items: center; justify-content: center; width: 36px; color: #3A4C74; flex: none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
+        <div class="eip-card" style="flex: 1; min-width: 0;">
+          <div class="eip-icon-badge"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><line x1="8.3" y1="10.7" x2="15.7" y2="6.3"/><line x1="8.3" y1="13.3" x2="15.7" y2="17.7"/></svg></div>
+          <h3 style="font-size: 15.5px; font-weight: 600; margin: 16px 0 6px;">Conector</h3>
+          <p style="font-size: 13px; color: #93A3C2; margin: 0;">Extração com lineage completo</p>
+        </div>
+        <div class="eip-flow-arrow" style="display: flex; align-items: center; justify-content: center; width: 36px; color: #3A4C74; flex: none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
+        <div class="eip-card" style="flex: 1; min-width: 0;">
+          <div class="eip-icon-badge"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/></svg></div>
+          <h3 style="font-size: 15.5px; font-weight: 600; margin: 16px 0 6px;">Modelo Canônico</h3>
+          <p style="font-size: 13px; color: #93A3C2; margin: 0;">Um único formato, qualquer origem</p>
+        </div>
+        <div class="eip-flow-arrow" style="display: flex; align-items: center; justify-content: center; width: 36px; color: #3A4C74; flex: none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
+        <div class="eip-card" style="flex: 1; min-width: 0;">
+          <div class="eip-icon-badge"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v6c0 1.66 3.13 3 7 3s7-1.34 7-3V5"/><path d="M5 11v6c0 1.66 3.13 3 7 3s7-1.34 7-3v-6"/></svg></div>
+          <h3 style="font-size: 15.5px; font-weight: 600; margin: 16px 0 6px;">Data Warehouse</h3>
+          <p style="font-size: 13px; color: #93A3C2; margin: 0;">Histórico dimensional, pronto pra análise</p>
+        </div>
+        <div class="eip-flow-arrow" style="display: flex; align-items: center; justify-content: center; width: 36px; color: #3A4C74; flex: none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
+        <div class="eip-card" style="flex: 1; min-width: 0; border-color: color-mix(in srgb, var(--accent) 45%, #1E2A45);">
+          <div class="eip-icon-badge" style="background: color-mix(in srgb, var(--accent) 16%, #16223B); border-color: color-mix(in srgb, var(--accent) 50%, #263A5F);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2"/><circle cx="4" cy="6" r="1.4"/><circle cx="20" cy="6" r="1.4"/><circle cx="4" cy="18" r="1.4"/><circle cx="20" cy="18" r="1.4"/><line x1="5.3" y1="7.1" x2="10.4" y2="10.8"/><line x1="18.7" y1="7.1" x2="13.6" y2="10.8"/><line x1="5.3" y1="16.9" x2="10.4" y2="13.2"/><line x1="18.7" y1="16.9" x2="13.6" y2="13.2"/></svg></div>
+          <h3 style="font-size: 15.5px; font-weight: 600; margin: 16px 0 6px;">Analytics + IA</h3>
+          <p style="font-size: 13px; color: #93A3C2; margin: 0;">Métricas certificadas, consulta declarativa</p>
+        </div>
+        <div class="eip-flow-arrow" style="display: flex; align-items: center; justify-content: center; width: 36px; color: #3A4C74; flex: none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
+        <div class="eip-card" style="flex: 1; min-width: 0;">
+          <div class="eip-icon-badge"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="1.5"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+          <h3 style="font-size: 15.5px; font-weight: 600; margin: 16px 0 6px;">Dashboard</h3>
+          <p style="font-size: 13px; color: #93A3C2; margin: 0;">Decisão para o gestor autorizado</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IA -->
+  <div id="ia" class="eip-section" style="background: #0C1224; border-top: 1px solid #161F38; border-bottom: 1px solid #161F38;">
+    <div class="eip-container">
+      <div class="eip-two-col" style="display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 64px; align-items: center;">
+        <div>
+          <span class="eip-eyebrow"><span class="eip-dot"></span>Inteligência Artificial</span>
+          <h2 class="eip-h2" style="font-size: 36px; font-weight: 700; margin: 20px 0 16px; line-height: 1.15;">Converse com os dados da sua empresa.</h2>
+          <p style="font-size: 16.5px; color: #B9C6DE; margin-bottom: 20px;">
+            A IA é um componente nativo da plataforma, não um chatbot anexado depois. Chat com os
+            dados corporativos, geração automática de dashboards, recomendações, previsões e
+            detecção de anomalias — tudo consultando o mesmo modelo canônico já governado.
+          </p>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            <span class="eip-pill">Chat com dados</span>
+            <span class="eip-pill">Geração de dashboards</span>
+            <span class="eip-pill">Previsões</span>
+            <span class="eip-pill">Detecção de anomalias</span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; justify-content: flex-end;">
+            <div class="eip-card" style="padding: 14px 18px; max-width: 320px; border-color: color-mix(in srgb, var(--accent) 40%, #1E2A45);">
+              <p style="margin: 0; font-size: 14.5px;">Como está minha empresa hoje?</p>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end;">
+            <div class="eip-card" style="padding: 14px 18px; max-width: 320px; border-color: color-mix(in srgb, var(--accent) 40%, #1E2A45);">
+              <p style="margin: 0; font-size: 14.5px;">Por que minha margem caiu?</p>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end;">
+            <div class="eip-card" style="padding: 14px 18px; max-width: 320px; border-color: color-mix(in srgb, var(--accent) 40%, #1E2A45);">
+              <p style="margin: 0; font-size: 14.5px;">Quais clientes devo cobrar primeiro?</p>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end;">
+            <div class="eip-card" style="padding: 14px 18px; max-width: 360px; border-color: color-mix(in srgb, var(--accent) 40%, #1E2A45);">
+              <p style="margin: 0; font-size: 14.5px;">Faça uma previsão de vendas para os próximos 90 dias.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONECTORES -->
+  <div id="conectores" class="eip-section">
+    <div class="eip-container">
+      <div style="max-width: 620px; margin-bottom: 40px;">
+        <span class="eip-eyebrow"><span class="eip-dot"></span>Ecossistema</span>
+        <h2 class="eip-h2" style="font-size: 36px; font-weight: 700; margin: 20px 0 14px;">Conecta com o que sua empresa já usa.</h2>
+        <p style="font-size: 16.5px; color: #B9C6DE;">Toda a camada de Analytics e IA funciona independentemente do ERP escolhido pelo cliente.</p>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+        <span class="eip-pill">ERP Protheus</span>
+        <span class="eip-pill">SAP</span>
+        <span class="eip-pill">Sankhya</span>
+        <span class="eip-pill">Omie</span>
+        <span class="eip-pill">Senior</span>
+        <span class="eip-pill">Oracle</span>
+        <span class="eip-pill">Microsoft Dynamics</span>
+        <span class="eip-pill">Odoo</span>
+        <span class="eip-pill">APIs REST</span>
+        <span class="eip-pill">SQL Server</span>
+        <span class="eip-pill">PostgreSQL</span>
+        <span class="eip-pill">MySQL</span>
+        <span class="eip-pill">Oracle Database</span>
+        <span class="eip-pill">CSV</span>
+        <span class="eip-pill">Excel</span>
+        <span class="eip-pill">XML</span>
+        <span class="eip-pill">JSON</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROADMAP / STATUS -->
+  <div id="roadmap" class="eip-section" style="background: #0C1224; border-top: 1px solid #161F38; border-bottom: 1px solid #161F38;">
+    <div class="eip-container">
+      <div style="max-width: 660px; margin-bottom: 52px;">
+        <span class="eip-eyebrow"><span class="eip-dot"></span>Status do desenvolvimento</span>
+        <h2 class="eip-h2" style="font-size: 36px; font-weight: 700; margin: 20px 0 14px;">Construída com rigor de engenharia, fase a fase.</h2>
+        <p style="font-size: 16.5px; color: #B9C6DE;">Cada fase só é dada como concluída após validação real contra infraestrutura de verdade e revisão formal de critérios de saída — nunca por "está quase pronto".</p>
+      </div>
+
+      <div class="eip-roadmap-track" style="display: flex; position: relative; gap: 0;">
+        <div class="eip-roadmap-line" style="position: absolute; top: 7px; left: 20px; right: 20px; height: 1px; background: #22314F; z-index: 0;"></div>
+
+        <div style="flex: 1; position: relative; z-index: 1; padding: 0 10px;">
+          <div style="width: 15px; height: 15px; border-radius: 50%; background: #34D399; margin-bottom: 14px;"></div>
+          <span style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #34D399;">Concluída</span>
+          <h3 style="font-size: 15px; font-weight: 600; margin: 6px 0 4px;">Fase 0 — Fundação</h3>
+          <p style="font-size: 13px; color: #93A3C2; margin: 0;">Auth, multi-tenant, CI, observabilidade</p>
+        </div>
+        <div style="flex: 1; position: relative; z-index: 1; padding: 0 10px;">
+          <div style="width: 15px; height: 15px; border-radius: 50%; background: #34D399; margin-bottom: 14px;"></div>
+          <span style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #34D399;">Concluída</span>
+          <h3 style="font-size: 15px; font-weight: 600; margin: 6px 0 4px;">Fase 1 — Pipeline de Dados</h3>
+          <p style="font-size: 13px; color: #93A3C2; margin: 0;">Conector, modelo canônico, warehouse</p>
+        </div>
+        <div style="flex: 1; position: relative; z-index: 1; padding: 0 10px;">
+          <div style="width: 15px; height: 15px; border-radius: 50%; background: var(--accent); margin-bottom: 14px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent);"></div>
+          <span style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent);">Em andamento</span>
+          <h3 style="font-size: 15px; font-weight: 600; margin: 6px 0 4px;">Fase 2 — Analytics e Dashboards</h3>
+          <p style="font-size: 13px; color: #93A3C2; margin: 0;">Analytics Engine declarativo + Dashboard Builder</p>
+        </div>
+        <div style="flex: 1; position: relative; z-index: 1; padding: 0 10px;">
+          <div style="width: 15px; height: 15px; border-radius: 50%; background: #16223B; border: 1px solid #2A3B5C; margin-bottom: 14px;"></div>
+          <span style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #7E92B7;">Planejada</span>
+          <h3 style="font-size: 15px; font-weight: 600; margin: 6px 0 4px;">Fase 3 — Expansão Piloto</h3>
+          <p style="font-size: 13px; color: #93A3C2; margin: 0;">Novos domínios de negócio</p>
+        </div>
+        <div style="flex: 1; position: relative; z-index: 1; padding: 0 10px;">
+          <div style="width: 15px; height: 15px; border-radius: 50%; background: #16223B; border: 1px solid #2A3B5C; margin-bottom: 14px;"></div>
+          <span style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #7E92B7;">Planejada</span>
+          <h3 style="font-size: 15px; font-weight: 600; margin: 6px 0 4px;">Fase 4 — IA Assistida</h3>
+          <p style="font-size: 13px; color: #93A3C2; margin: 0;">Agentes especializados</p>
+        </div>
+        <div style="flex: 1; position: relative; z-index: 1; padding: 0 10px;">
+          <div style="width: 15px; height: 15px; border-radius: 50%; background: #16223B; border: 1px solid #2A3B5C; margin-bottom: 14px;"></div>
+          <span style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #7E92B7;">Planejada</span>
+          <h3 style="font-size: 15px; font-weight: 600; margin: 6px 0 4px;">Fase 5/6 — Escala</h3>
+          <p style="font-size: 13px; color: #93A3C2; margin: 0;">Automação, marketplace, SDK</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA FINAL -->
+  <div id="contato" class="eip-section" style="text-align: center;">
+    <div class="eip-container" style="max-width: 640px;">
+      <h2 style="font-size: 34px; font-weight: 700; margin: 0 0 16px; line-height: 1.2;">Pronto para transformar dados em decisão?</h2>
+      <p style="font-size: 16.5px; color: #B9C6DE; margin: 0 0 32px;">
+        Fale com o time e entenda como a EIP pode conectar seus sistemas ao primeiro dashboard
+        confiável.
+      </p>
+      <div class="eip-cta-row" style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 18px;">
+        <a href="#" class="eip-btn eip-btn-primary">Solicitar demonstração</a>
+        <a href="#" class="eip-btn eip-btn-secondary">Falar com o time</a>
+      </div>
+      <p class="eip-mono" style="font-size: 13px; color: #7E92B7; margin: 0;">[e-mail de contato]</p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="border-top: 1px solid #161F38; padding: 40px 0;">
+    <div class="eip-container" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 22px; height: 22px; border-radius: 6px; background: var(--accent); display:flex; align-items:center; justify-content:center;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#06121C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 12 9 6 13 10 21 2"/><polyline points="21 8 21 2 15 2"/></svg>
+        </div>
+        <span style="font-size: 13.5px; color: #7E92B7;">EIP — Enterprise Intelligence Platform</span>
+      </div>
+      <p style="font-size: 13px; color: #7E92B7; margin: 0; text-align: right;">Projeto em desenvolvimento. Licença a ser definida antes da primeira versão pública.</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
