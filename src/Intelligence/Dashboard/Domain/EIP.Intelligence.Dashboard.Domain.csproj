@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\EIP.BuildingBlocks.csproj" />
+    <!-- Reaproveita literalmente o contrato declarativo do E1.2 (AnalyticsQueryDefinition) para
+         Widget.QueryDefinition — "mesmo contrato do E1.2", docs/roadmap/fase-2-backlog.md, E2.1.
+         Desvio deliberado do padrão "Domain sem dependências externas": os dois módulos vivem sob
+         Intelligence/ e o contrato já é a superfície pública e estável do Analytics Engine; duplicar
+         seus campos aqui só criaria dessincronia sem nenhum ganho de isolamento real. -->
+    <ProjectReference Include="..\..\Analytics\Application\EIP.Intelligence.Analytics.Application.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -19,5 +19,26 @@ export const routes: Routes = [
     canActivate: [tenantGuard],
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
   },
+  {
+    path: 'dashboards',
+    canActivate: [tenantGuard],
+    loadComponent: () => import('./features/dashboards/dashboard-list/dashboard-list').then((m) => m.DashboardList),
+  },
+  {
+    path: 'dashboards/new',
+    canActivate: [tenantGuard],
+    loadComponent: () => import('./features/dashboards/dashboard-form/dashboard-form').then((m) => m.DashboardForm),
+  },
+  {
+    path: 'dashboards/:id',
+    canActivate: [tenantGuard],
+    loadComponent: () =>
+      import('./features/dashboards/dashboard-viewer/dashboard-viewer').then((m) => m.DashboardViewer),
+  },
+  {
+    path: 'dashboards/:id/edit',
+    canActivate: [tenantGuard],
+    loadComponent: () => import('./features/dashboards/dashboard-form/dashboard-form').then((m) => m.DashboardForm),
+  },
   { path: '**', redirectTo: 'login' },
 ];

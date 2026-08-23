@@ -22,3 +22,17 @@ public sealed record AnalyticsQueryMetadataDto(string Dataset, string SemanticVe
 /// mesmo nível, exatamente como no exemplo de docs/10 §5.3) — nunca a separação interna
 /// dimensão/métrica usada pela camada de aplicação.</summary>
 public sealed record AnalyticsQueryResponse(IReadOnlyList<IReadOnlyDictionary<string, object?>> Data, AnalyticsQueryMetadataDto Metadata);
+
+/// <summary>Item do catálogo publicado por <c>GET /api/v1/analytics/datasets</c> (E1.3) — mesmos
+/// nomes técnicos aceitos por <see cref="AnalyticsQueryRequest"/>, para o frontend nunca precisar de
+/// hardcode duplicado do catálogo.</summary>
+public sealed record AnalyticsMetricSummaryDto(string Name, string DisplayName, string Description);
+
+public sealed record AnalyticsDimensionSummaryDto(string Name, string DisplayName, string Description);
+
+public sealed record AnalyticsDatasetSummaryDto(
+    string Name,
+    string Owner,
+    string SemanticVersion,
+    IReadOnlyList<AnalyticsMetricSummaryDto> Metrics,
+    IReadOnlyList<AnalyticsDimensionSummaryDto> Dimensions);

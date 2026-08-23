@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { firstValueFrom } from 'rxjs';
@@ -16,7 +17,7 @@ interface TenantDto {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [MatButtonModule, MatCardModule],
+  imports: [RouterLink, MatButtonModule, MatCardModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

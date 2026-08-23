@@ -25,6 +25,26 @@ public sealed class AnalyticsController : ControllerBase
         _queryService = queryService;
     }
 
+    [HttpGet("datasets")]
+    [RequirePermission(AnalyticsPermissions.AnalyticsQuery)]
+    public ActionResult<IReadOnlyList<AnalyticsDatasetSummaryDto>> ListDatasets()
+    {
+        return Ok(AnalyticsCatalog.All.Select(ToSummaryDto).ToList());
+    }
+
+    [HttpGet("datasets/{id}")]
+    [RequirePermission(AnalyticsPermissions.AnalyticsQuery)]
+    public ActionResult<AnalyticsDatasetSummaryDto> GetDataset(string id)
+    {
+        var dataset = AnalyticsCatalog.Find(id);
+        if (dataset is null)
+        {
+            return Problem(detail: $"Dataset '{id}' não encontrado.", statusCode: StatusCodes.Status404NotFound);
+        }
+
+        return Ok(ToSummaryDto(dataset));
+    }
+
     [HttpPost("query")]
     [RequirePermission(AnalyticsPermissions.AnalyticsQuery)]
     public async Task<ActionResult<AnalyticsQueryResponse>> Query(AnalyticsQueryRequest request, CancellationToken cancellationToken)
@@ -65,6 +85,14 @@ public sealed class AnalyticsController : ControllerBase
 
         return Ok(response);
     }
+
+    private static AnalyticsDatasetSummaryDto ToSummaryDto(AnalyticsDatasetDefinition dataset) =>
+        new(
+            dataset.Name,
+            dataset.Owner,
+            dataset.SemanticVersion,
+            dataset.Metrics.Values.Select(m => new AnalyticsMetricSummaryDto(m.Name, m.DisplayName, m.Description)).ToList(),
+            dataset.Dimensions.Values.Select(d => new AnalyticsDimensionSummaryDto(d.Name, d.DisplayName, d.Description)).ToList());
 
     private static IReadOnlyDictionary<string, object?> ToFlatRow(AnalyticsQueryRow row)
     {

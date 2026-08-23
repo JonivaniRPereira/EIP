@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Testcontainers.Minio" Version="4.13.0" />
     <PackageReference Include="Testcontainers.MsSql" Version="4.13.0" />
+    <PackageReference Include="Testcontainers.Redis" Version="4.14.0" />
     <PackageReference Include="xunit.core" Version="2.9.3" />
   </ItemGroup>
 
@@ -19,6 +20,7 @@
     <ProjectReference Include="..\..\..\src\Data\Connector\Infrastructure\EIP.Data.Connector.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Data\DataLake.Infrastructure\EIP.Data.DataLake.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Data\Warehouse\Infrastructure\EIP.Data.Warehouse.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Intelligence\Dashboard\Infrastructure\EIP.Intelligence.Dashboard.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

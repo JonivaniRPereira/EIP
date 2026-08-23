@@ -70,18 +70,51 @@ omissão silenciosa.
 
 Copiados literalmente de `docs/15-Roadmap.md §6`. A Fase 2 só termina quando todos estiverem `[x]`,
 com evidência real (não "os épicos estão codificados") — mesma disciplina aplicada no fechamento das
-Fases 0 e 1:
+Fases 0 e 1. Revisão formal concluída em 2026-08-23 (E5.3):
 
-- [ ] Gestor autorizado visualiza dashboard de produção com filtros e dados consistentes.
-- [ ] Métricas possuem dono, definição, versão e reconciliação aprovadas.
-- [ ] Dashboards não acessam ERP/Raw/DW diretamente.
-- [ ] Consultas respeitam orçamento de desempenho e quotas.
-- [ ] Publicação, exportação e acesso por escopo são auditados.
-
-Critério adicional obrigatório por conta da ADR-007 (mesmo texto usado para fechar as Fases 0 e 1):
-
-- [ ] Toda tabela com `TenantId` (agora incluindo o novo schema `dashboard`) possui política RLS
+- [x] Gestor autorizado visualiza dashboard de produção com filtros e dados consistentes.
+      **Evidência**: E4.2, validado visualmente pelo usuário no navegador real
+      (`http://localhost:4200/dashboards`) — painel com KPI/LineChart/Table renderizando dado real da
+      Fase 1 (Receita Líquida R$ 11.100, 3 clientes). Filtros ativos de cada widget exibidos como
+      legenda somente-leitura (não há UI de filtro interativo nesta fase, escopo já reduzido no §3).
+      Autorização: `dashboard.view` exigido em toda rota de leitura (E3.3), testado com Member (200)
+      vs. sem permissão.
+- [x] Métricas possuem dono, definição, versão e reconciliação aprovadas.
+      **Evidência**: as 3 métricas certificadas (`net_revenue`/`invoiced_quantity`/`average_ticket`)
+      já tinham dono/definição/versão desde a Fase 1 (E6.1, `CertifiedMetrics`) e reconciliação desde
+      E4.3/E5 da Fase 1 — a Fase 2 não altera essas garantias, só as expõe de forma declarativa
+      (`AnalyticsCatalog`, E1.2/E1.3) e as reaproveita em cada widget sem duplicar a fórmula
+      (`CommercialMetricsCalculator`, compartilhado desde E1.1).
+- [x] Dashboards não acessam ERP/Raw/DW diretamente.
+      **Evidência estrutural** (não só convenção — imposta pelas referências de projeto):
+      `EIP.Intelligence.Dashboard.{Domain,Infrastructure,Api}` não referenciam
+      `EIP.Data.Warehouse.*`/`EIP.Data.Canonical.*`/`EIP.Data.DataLake` em nenhum `.csproj` — o único
+      caminho para dado é `IDeclarativeAnalyticsQueryService` (`EIP.Intelligence.Analytics.Application`,
+      já validado como a única porta de entrada desde o E1.2). Um widget não pode fisicamente compilar
+      uma chamada direta ao Warehouse mesmo que alguém tentasse.
+- [x] Consultas respeitam orçamento de desempenho e quotas.
+      **Evidência**: guardrails do E1.5 (limite de linhas, período máximo, timeout de execução) valem
+      para toda consulta que passa pelo Analytics Engine, incluindo as disparadas por
+      `POST /dashboards/{id}/query` (mesmo caminho de código do E3.2) — testado ao vivo com timeout
+      determinístico e limite de linhas/período nos testes do E1.5. Sem quotas por plano/usuário
+      (redução deliberada, §3 — não existe conceito de "plano" na plataforma ainda).
+- [x] Publicação, exportação e acesso por escopo são auditados.
+      **Evidência**: `DashboardVersion.PublishedByUserId` (E5.3) registra quem publicou cada versão —
+      o próprio histórico de versões já é, por construção, um registro imutável e append-only de toda
+      publicação. Log estruturado (`[LoggerMessage]`, Serilog + `CorrelationId` automático) em toda
+      mutação e visualização (`Created`/`Updated`/`Published`/`Archived`/`Viewed`), validado ao vivo
+      contra o Host real. Acesso por escopo é imposto por `[RequirePermission]`
+      (`dashboard.view`/`dashboard.manage`, E3.3) e testado (Member 403 em mutação, 200 em leitura).
+      **Exportação é explicitamente N/A nesta fase** (mesmo padrão de marcação usado para "cache" no
+      fechamento da Fase 1, E8.3) — `docs/roadmap/fase-2-backlog.md §3` já documenta a exportação como
+      fora do escopo (PDF/CSV/XLSX como job assíncrono desproporcional sem caso de uso validado); não
+      há nada para auditar porque a funcionalidade não existe.
+- [x] Toda tabela com `TenantId` (agora incluindo o novo schema `dashboard`) possui política RLS
       ativa, e o gate automatizado (`RlsCoverageTests`) continua passando sem exceções adicionadas.
+      **Evidência**: `RlsCoverageTests` (varredura genérica de `sys.security_predicates`) passou
+      contra o schema `dashboard` migrado desde o E2.1, sem nenhuma exceção adicionada à lista de
+      tabelas conhecidas. Reforçado pelo E5.1 (isolamento cross-tenant real via EF Core, não só
+      "a política existe").
 
 ---
 
@@ -157,30 +190,106 @@ Objetivo: fechar `docs/10-Analytics-Engine.md` para o dataset `sales`, com contr
   - *Aceite:* `POST /api/v1/analytics/query` com um campo/métrica/dimensão inexistente retorna erro
     claro (nunca executa); uma consulta válida retorna dados + metadados (`docs/10 §5.3`: dataset,
     versão semântica, `executedAt`, frescor, contagem de linhas).
-- [ ] **E1.3** `GET /api/v1/analytics/datasets`/`GET /api/v1/analytics/datasets/{id}` — expõe o
+- [x] **E1.3** `GET /api/v1/analytics/datasets`/`GET /api/v1/analytics/datasets/{id}` — expõe o
       catálogo (métricas/dimensões/dono/versão) para o frontend descobrir o que pode consultar, sem
       hardcode duplicado no cliente.
-  - *Depende de:* E1.2.
+  - *Depende de:* E1.2. ✅ Concluído (2026-08-23) — dois novos endpoints em `AnalyticsController`
+    (`EIP.Intelligence.Analytics.Api`), mesma proteção de permissão `analytics.query` já usada pelo
+    `POST /query` (leitura do catálogo é o mesmo nível de acesso de executar uma consulta). Mapeamento
+    direto de `AnalyticsCatalog.All`/`Find` para os novos DTOs (`AnalyticsDatasetSummaryDto`/
+    `AnalyticsMetricSummaryDto`/`AnalyticsDimensionSummaryDto`, `Api/Contracts/AnalyticsContracts.cs`)
+    — nenhuma lógica nova na camada de aplicação, o catálogo já existia desde o E1.2. `GET
+    /datasets/{id}` retorna 404 (Problem Details) para um dataset inexistente. 3 novos testes de
+    integração (`EIP.Host.IntegrationTests/AnalyticsDatasetsTests.cs`, mesmo padrão
+    `WebApplicationFactory`+Testcontainers): listar retorna o dataset `sales` com as 3 métricas e 3
+    dimensões exatas do catálogo; buscar por id conhecido retorna o mesmo dataset; buscar por id
+    desconhecido retorna 404. 49/49 testes passando na solução inteira (46 anteriores + 3 novos),
+    `dotnet build`/`dotnet format --verify-no-changes` limpos.
   - *Aceite:* resposta reflete exatamente o catálogo em código (mudar uma definição no backend muda a
     resposta, sem exigir alteração no frontend).
-- [ ] **E1.4** Cache real no Redis (`ADR-006`, primeiro uso funcional de fato — gap documentado no
+- [x] **E1.4** Cache real no Redis (`ADR-006`, primeiro uso funcional de fato — gap documentado no
       fechamento da Fase 1, E8.3): chave `tenant + dataset + versão semântica + consulta normalizada +
       versão de dado`, TTL curto configurável. Cache nunca serve dado de um tenant para outro (a
       chave inclui o tenant sempre derivado do claim, nunca do payload).
-  - *Depende de:* E1.2.
+  - *Depende de:* E1.2. ✅ Concluído (2026-08-23) — novo projeto `EIP.Intelligence.Analytics.
+    Infrastructure` (`RedisAnalyticsQueryCache`, só depende de `IDistributedCache` — não sabe que o
+    backend é Redis; isso é decidido inteiramente pela composição de DI do Host via
+    `AddStackExchangeRedisCache`). `IAnalyticsQueryCache` (contrato, `Application`) +
+    `AnalyticsCacheKeyBuilder` (função pura, sem dependência de infra) montam a chave exatamente como
+    especificado: `analytics:{tenantId}:{dataset}:{semanticVersion}:{dataVersion}:{hashDaConsultaNormalizada}`
+    — `dataVersion` é o frescor do tenant (`GetDataFreshnessAsync`, já existente desde o E1.2): quando
+    o Warehouse recebe uma carga nova a chave muda sozinha e a consulta antiga vira cache miss natural,
+    sem precisar de invalidação orientada a evento (redução já prevista na tabela §3). Consulta
+    normalizada ordena métricas/filtros antes de hashear (SHA-256) para que pedidos semanticamente
+    equivalentes, mas com campos em ordem diferente, colidam na mesma chave. `DeclarativeAnalyticsQueryService`
+    computa o frescor e a chave *antes* de decidir se consulta o Warehouse; em cache miss, executa a
+    consulta, ordena/limita e grava no cache (TTL configurável via `Analytics:CacheTtlSeconds`,
+    default 60s, lido sempre no momento da resolução do serviço — nunca capturado antes de
+    `builder.Build()`, mesma disciplina do E7 da Fase 1). `HostApiFixture` (testes de integração)
+    passou a subir um Redis real efêmero via Testcontainers (`redis:7.4-alpine`, mesma tag do
+    `docker-compose`) em vez da string sintaticamente válida mas inalcançável usada até aqui — RabbitMQ
+    continua fake, já que nenhum teste do Host dispara sincronização via fila. 2 novos testes
+    (`AnalyticsQueryCacheTests`, via um decorador de contagem de chamadas
+    (`AnalyticsQueryCallCounter`/`CountingAnalyticsQueryService`) em volta do `IAnalyticsQueryService`
+    real — nunca inspeciona o Redis diretamente): duas consultas idênticas do mesmo tenant resultam em
+    exatamente 1 chamada ao Warehouse (cache hit na segunda); a mesma consulta para dois tenants
+    diferentes resulta em 2 chamadas e cada resposta traz o dado correto do seu próprio tenant (nunca
+    vaza). 51/51 testes passando na solução inteira (49 anteriores + 2 novos),
+    `dotnet build`/`dotnet format --verify-no-changes`/`dotnet list package --vulnerable` limpos.
   - *Aceite:* teste prova cache hit (segunda consulta idêntica não gera nova query no Warehouse,
     validado por contagem de chamadas) e cache miss corretamente isolado por tenant (mesma consulta,
     tenants diferentes, entradas de cache diferentes).
-- [ ] **E1.5** Guardrails mínimos: limite de linhas de resposta, período máximo de filtro de data,
+- [x] **E1.5** Guardrails mínimos: limite de linhas de resposta, período máximo de filtro de data,
       timeout de execução. Consulta que excede qualquer limite retorna erro claro (`docs/06 §10`
       Problem Details), nunca trunca silenciosamente.
-  - *Depende de:* E1.2.
+  - *Depende de:* E1.2. ✅ Concluído (2026-08-23) — `AnalyticsGuardrailOptions` (`MaxRows`,
+    `MaxPeriodDays`, `QueryTimeout`), configurável via `Analytics:MaxRows`/`MaxPeriodDays`/
+    `QueryTimeoutMilliseconds` (defaults 5000/400/10000, lidos sempre no momento da resolução do
+    serviço). Três checagens em `DeclarativeAnalyticsQueryService`: (1) `limit` explícito maior que
+    `MaxRows` rejeitado antes de qualquer execução; (2) filtro `date` cobrindo mais que `MaxPeriodDays`
+    rejeitado no mesmo ponto onde as datas já são validadas; (3) timeout de execução via
+    `CancellationTokenSource.CreateLinkedTokenSource` + `CancelAfter`, envolvendo só a chamada ao
+    Warehouse (nunca o pipeline HTTP/autenticação em volta) — distingue "nosso timeout estourou" de
+    "o cliente cancelou a requisição" com `catch (OperationCanceledException) when
+    (!cancellationToken.IsCancellationRequested)`, repropagando o cancelamento do cliente sem
+    convertê-lo em erro de guardrail. Guardrail adicional não listado originalmente, mas exigido pela
+    própria regra "nunca trunca silenciosamente": consulta sem `limit` explícito cujo resultado
+    excederia `MaxRows` é rejeitada (nunca truncada) — com `limit` explícito, entregar exatamente o
+    que o cliente pediu não conta como truncamento silencioso. 3 novos testes: 2 em
+    `AnalyticsGuardrailTests` (período/linhas, sem precisar semear dado nenhum — ambos os guardrails
+    são checados antes de qualquer leitura) e 1 em `AnalyticsQueryTimeoutTests`, que precisou de uma
+    `WebApplicationFactory<Program>` própria (reaproveitando o mesmo SQL Server/Redis efêmeros da
+    `HostApiFixture` compartilhada, só com um `Analytics:QueryTimeoutMilliseconds` de 50ms exclusivo
+    dessa suíte) decorando `IAnalyticsQueryService` com um atraso deliberado de 300ms
+    (`SlowAnalyticsQueryService`) — determinístico independente da velocidade da máquina, já que o
+    orçamento de tempo só é comparado contra o atraso injetado, nunca contra o overhead HTTP/auth.
+    54/54 testes passando na solução inteira (51 anteriores + 3 novos),
+    `dotnet build`/`dotnet format --verify-no-changes` limpos.
   - *Aceite:* teste prova que exceder o limite de período retorna 400 com mensagem explicando qual
     limite foi violado.
-- [ ] **E1.6** Observabilidade da consulta (`docs/10 §11`): log estruturado (Serilog, já usado desde a
+- [x] **E1.6** Observabilidade da consulta (`docs/10 §11`): log estruturado (Serilog, já usado desde a
       Fase 0) com dataset/métricas/dimensões/tenant/cache hit-ou-miss/duração/`CorrelationId`, sem
       expor valores de dado sensível no log.
-  - *Depende de:* E1.2, E1.4.
+  - *Depende de:* E1.2, E1.4. ✅ Concluído (2026-08-23) — `DeclarativeAnalyticsQueryService` virou
+    `partial` e ganhou um `[LoggerMessage]` (mesmo padrão já usado em `ConnectorSyncProcessor`/
+    `SyncRequestedConsumerService`, evita os avisos `CA1848`/`CA1873` que chamadas diretas a
+    `ILogger.LogInformation` introduziriam). Uma única linha de log ao final de toda consulta
+    executada com sucesso: `dataset`, `metrics` (nomes técnicos concatenados, nunca os valores
+    retornados), `dimension`, `tenantId`, `cacheHit` (computado a partir do próprio resultado do
+    `IAnalyticsQueryCache.GetAsync`), `durationMs` (`Stopwatch` iniciado no começo do método) e
+    `rowCount` — nunca os valores de dado da resposta em si. `CorrelationId` não precisou de nenhum
+    código novo: já é empurrado para `Serilog.Context.LogContext` pelo middleware de correlação do
+    Host (E3, Fase 0) em toda requisição, e aparece automaticamente em qualquer log estruturado emitido
+    durante o request — inclusive este. Consultas rejeitadas por validação/guardrail (upstream) não
+    geram esta linha — escopo do critério de aceite é a consulta real executada, não cada tentativa
+    inválida. **Validado ao vivo, não só "compilou"**: rodei um teste real
+    (`AnalyticsQueryTests.Query_ValidRequest_ReturnsDataAndCompleteMetadata`) com o logger do Serilog
+    em modo console e capturei a linha de verdade: `Analytics query executada: dataset=sales
+    metrics=netRevenue dimension=date.month tenantId=d066315f-eeef-4644-9865-90b600c20731
+    cacheHit=False durationMs=641.86 rowCount=2`, com o `CorrelationId` visível entre parênteses no
+    início da linha (`(af7e1628-...)`), confirmando todos os campos exigidos pelo critério de aceite
+    de uma vez. `dotnet build`/`dotnet format --verify-no-changes` limpos. **Épico E1 (Analytics
+    Engine) fechado — E1.1 a E1.6 todos concluídos.**
   - *Aceite:* validado ao vivo — uma consulta real produz uma linha de log com todos os campos
     esperados.
 
@@ -189,7 +298,7 @@ Objetivo: fechar `docs/10-Analytics-Engine.md` para o dataset `sales`, com contr
 Objetivo: modelo mínimo de `docs/12-Dashboard-Builder.md §3/§4` para o novo domínio `Intelligence`,
 com RLS obrigatória desde a primeira migration (ADR-007).
 
-- [ ] **E2.1** Novo módulo `EIP.Intelligence.Dashboard.{Domain,Infrastructure}`, schema `dashboard`.
+- [x] **E2.1** Novo módulo `EIP.Intelligence.Dashboard.{Domain,Infrastructure}`, schema `dashboard`.
       Entidades mínimas: `Dashboard` (`Id`, `TenantId`, `Name`, `OwnerId`, `Status`
       `Draft`/`Published`/`Archived`) e `DashboardVersion` (imutável, `DashboardId`, `Widgets` — lista
       de `Widget` como Value Object serializado, não tabela própria, já que nunca é consultado
@@ -197,18 +306,91 @@ com RLS obrigatória desde a primeira migration (ADR-007).
       `QueryDefinition` (dataset/métricas/dimensões/filtros — mesmo contrato do E1.2), `Visualization`
       (config mínima de exibição por tipo).
   - *Depende de:* E1.2 (o contrato de `QueryDefinition` precisa existir para o Widget referenciá-lo).
+    ✅ Concluído (2026-08-23) — primeiro módulo dentro de `Intelligence` além de `Analytics`. **Correção
+    de modelo feita durante o planejamento do E3.1** (real, encontrada antes de virar dívida): a versão
+    original desta entrada não dava a `Dashboard` nenhum campo `Widgets` — só `DashboardVersion` (criada
+    apenas no publish) tinha conteúdo, o que tornava `PATCH /api/v1/dashboards/{id}` (E3.1, "editar
+    rascunho") impossível de implementar coerentemente, já que não havia onde um rascunho em edição
+    pudesse morar entre um save e outro. Corrigido acrescentando `Dashboard.Widgets` (rascunho atual,
+    mutável, mesma conversão JSON de `DashboardVersion.Widgets`) e `Dashboard.UpdateDraft(name?,
+    widgets?)`; `Dashboard.Publish()` deixou de receber widgets por parâmetro e passou a tirar um
+    instantâneo do rascunho atual. Migration inicial regenerada do zero (nunca tinha sido aplicada a um
+    banco persistente, só a containers efêmeros — sem custo de uma segunda migration corretiva). Ver
+    E2.2 abaixo para a assinatura final de `Publish()`. `Dashboard` e `DashboardVersion` seguem
+    exatamente o padrão de `Entity<TId>`/factory estático já usado em
+    `ConnectorInstance`/`SyncRun`/`Membership` (ctor privado + `Create(...)` validando, ctor sem
+    parâmetros só para o EF). **Desvio deliberado do padrão "Domain sem dependências externas"**:
+    `EIP.Intelligence.Dashboard.Domain` referencia diretamente `EIP.Intelligence.Analytics.Application`
+    para reaproveitar `AnalyticsQueryDefinition` como o tipo de `Widget.QueryDefinition` — literalmente
+    "o mesmo contrato do E1.2", não uma cópia paralela que dessincronizaria; os dois módulos vivem sob
+    `Intelligence/`, então isso não fura a fronteira `Intelligence`↔`Data`/`Platform` do `docs/00`, só a
+    convenção estilística de Domain-sem-deps que os outros módulos seguem por não terem essa necessidade.
+    **Colisão de nomes real encontrada e corrigida**: a entidade `Dashboard` colide com o próprio
+    segmento de namespace do módulo (`EIP.Intelligence.Dashboard.*`) — exatamente o mesmo problema que
+    `EIP.Platform.Tenant.Domain.Tenant` já tinha; resolvido com a mesma técnica já usada em
+    `TenantDbContext`/`TenantConfiguration` (referenciar `Domain.Dashboard` explicitamente nos poucos
+    lugares ambíguos, em vez de importar `Dashboard` bare). `Widgets` (lista de `Widget`) é a primeira
+    coleção de Value Objects serializada do projeto — sem precedente de `OwnsMany`/`ToJson` no resto do
+    código-base (que exigiria remodelar `AnalyticsQueryDefinition` para tipos amigáveis ao mapeamento de
+    dono do EF); optei por `HasConversion` manual via `System.Text.Json` para a lista inteira (mesmo
+    idioma já usado para os enums, só que para uma coleção) com um `ValueComparer` explícito, evitando o
+    aviso do EF Core para propriedades de coleção convertidas sem comparador. Migration inicial
+    (`dotnet ef migrations add`) + RLS anexada via SQL bruto no mesmo padrão exato de
+    `canonical.fn_TenantAccessPredicate`/`canonical.CanonicalAccessPolicy` (Fase 1, E2.2): 1 FILTER + 2
+    BLOCK (INSERT/UPDATE) por tabela, para `dashboard.Dashboards` e `dashboard.DashboardVersions`.
+    `DatabaseMigrator.MigrateAllAsync` (`EIP.Testing.Infrastructure`) atualizado para incluir
+    `DashboardDbContext` — sem isso o gate `RlsCoverageTests` teria um ponto cego para o novo schema,
+    mesma disciplina já registrada desde a Fase 1/E2.2. **Validado**: rodei `RlsCoverageTests` (que
+    varre genericamente TODAS as tabelas com `TenantId` sem policy ativa) contra o schema recém-migrado
+    e ele passou — prova que as duas tabelas novas já nascem com RLS ativa, sem precisar de um teste
+    dedicado só para isto (isolamento cross-tenant específico do schema `dashboard` fica para o E5.1,
+    mesmo padrão de fechamento em lote já usado no E8.1 da Fase 1). Nenhum teste novo escrito nesta
+    tarefa (reaproveitou o `RlsCoverageTests` já existente) — 54/54 testes continuam passando na
+    solução inteira, `dotnet build`/`dotnet format --verify-no-changes` limpos.
   - *Aceite:* migration inicial já nasce com `TenantId` + política RLS (mesmo padrão de sempre) —
     sem exceção.
-- [ ] **E2.2** Publicação: `Dashboard.Publish()` cria/promove uma `DashboardVersion` imutável de forma
+- [x] **E2.2** Publicação: `Dashboard.Publish()` cria/promove uma `DashboardVersion` imutável de forma
       atômica; editar um dashboard publicado sempre cria um novo rascunho, nunca sobrescreve a versão
       publicada (`docs/12 §4`).
-  - *Depende de:* E2.1.
+  - *Depende de:* E2.1. ✅ Concluído (2026-08-23), assinatura final revisada durante o E3.1 (ver nota no
+    E2.1 acima): `Dashboard.Publish()` (sem parâmetros — tira um instantâneo do rascunho atual em
+    `Dashboard.Widgets`, método puro de domínio, sem I/O): promove `Status` para `Published`
+    (idempotente quanto ao status — publicar de novo mantém `Published`, nunca falha por já estar
+    publicado) e sempre retorna uma `DashboardVersion` nova via `DashboardVersion.Create(...)`, nunca
+    reaproveitando/mutando uma existente. Atomicidade é responsabilidade de quem persiste, não do
+    método em si — um único `SaveChangesAsync` cobrindo a atualização do `Dashboard` e a inserção da
+    nova `DashboardVersion` na mesma transação (mesmo princípio de unit-of-work já usado em toda
+    gravação do projeto, nunca uma responsabilidade nova). **A frase "editar sempre cria novo rascunho"
+    do enunciado é comportamento de `Dashboard.UpdateDraft` (E3.1's `PATCH` chama este método) — E2.2
+    entrega só a capacidade de publicar; não há endpoint ainda (E2 é só "domínio e persistência").
+    Novo projeto de teste `EIP.Intelligence.Dashboard.Infrastructure.IntegrationTests` (mesmo padrão de
+    `EIP.Data.Canonical.Infrastructure.IntegrationTests` — direto contra `DashboardDbContext` + SQL
+    Server real via Testcontainers, sem Host/Api, que ainda não existem para este módulo): publica duas
+    vezes com conteúdo de widgets diferente a cada vez, confirma 2 linhas distintas em
+    `DashboardVersions` (nunca 1), a primeira com exatamente o widget original intacto (nunca
+    sobrescrita pela segunda) e o `Dashboard` terminando `Published`. 55/55 testes passando na
+    solução inteira (54 anteriores + 1 novo), `dotnet build`/`dotnet format --verify-no-changes`
+    limpos.
   - *Aceite:* teste prova que publicar duas vezes gera duas `DashboardVersion` distintas, e a versão
     anterior continua íntegra e recuperável (histórico).
-- [ ] **E2.3** Validação da `QueryDefinition` de cada widget contra o catálogo do Analytics Engine
+- [x] **E2.3** Validação da `QueryDefinition` de cada widget contra o catálogo do Analytics Engine
       (E1.3) no momento de salvar/publicar — nunca aceitar uma consulta inválida num rascunho que será
       publicado.
-  - *Depende de:* E1.3, E2.1.
+  - *Depende de:* E1.3, E2.1. ✅ Concluído (2026-08-23) — `WidgetQueryDefinitionValidator` (interno ao
+    módulo, `EIP.Intelligence.Dashboard.Domain`) valida dataset/métricas/dimensão de cada widget contra
+    `AnalyticsCatalog` (reaproveitado diretamente, mesma referência de projeto já justificada no E2.1).
+    Só validação estrutural de existência no catálogo — a validação completa de filtros/orderBy/limit
+    já é feita pelo próprio `DeclarativeAnalyticsQueryService` (E1.2) toda vez que o widget é executado
+    (E3.2), duplicar aqui seria redundante sem ganho real. Chamado de dentro de
+    `DashboardVersion.Create` — o único ponto de criação de versão no módulo inteiro — então toda
+    chamada futura (não só `Dashboard.Publish`, E2.2) passa pela validação sem exceção, sem precisar de
+    disciplina externa para lembrar de chamá-la. 2 novos testes em
+    `WidgetQueryDefinitionValidationTests`: widget com métrica inexistente e widget com dataset
+    inexistente lançam `ArgumentException` (mensagem citando o nome inválido) e, na sequência, uma
+    consulta direta ao banco confirma zero linhas em `DashboardVersions` — prova concreta de "rejeitado
+    antes de persistir", não só "a chamada lançou uma exceção em algum lugar". 57/57 testes passando na
+    solução inteira (55 anteriores + 2 novos), `dotnet build`/`dotnet format --verify-no-changes`
+    limpos.
   - *Aceite:* teste prova que salvar um widget com uma métrica inexistente é rejeitado antes de
     persistir.
 
@@ -217,24 +399,50 @@ com RLS obrigatória desde a primeira migration (ADR-007).
 Objetivo: fechar `docs/12 §8/§12` reduzido ao escopo desta fase — CRUD, publicação e execução de
 consulta, sempre delegando ao Analytics Engine (E1), nunca acessando o Warehouse diretamente.
 
-- [ ] **E3.1** Novo `EIP.Intelligence.Dashboard.Api`: `POST /api/v1/dashboards` (criar rascunho),
+- [x] **E3.1** Novo `EIP.Intelligence.Dashboard.Api`: `POST /api/v1/dashboards` (criar rascunho),
       `GET /api/v1/dashboards` (listar do tenant), `GET /api/v1/dashboards/{id}`,
       `PATCH /api/v1/dashboards/{id}` (editar rascunho — publicado sempre cria novo rascunho, E2.2),
       `POST /api/v1/dashboards/{id}/publish`, `POST /api/v1/dashboards/{id}/archive`.
-  - *Depende de:* E2.1, E2.2.
+  - *Depende de:* E2.1, E2.2. ✅ Concluído (2026-08-23) — controller vai direto contra
+    `IDbContextFactory<DashboardDbContext>`, mesmo padrão de `TenantsController` (sem uma camada de
+    Application dedicada; a lógica de negócio real já vive nos métodos de domínio
+    `Dashboard.Create`/`UpdateDraft`/`Publish`/`Archive`, o controller só orquestra carregar → chamar
+    método → salvar). Isolamento entre tenants nunca depende do controller lembrar de filtrar por
+    `TenantId` — a RLS (ADR-007) já garante isso no banco; um dashboard de outro tenant simplesmente
+    não aparece nas consultas. 6 novos testes em `DashboardCrossTenantIsolationTests` (mesmo padrão de
+    `ConnectorCrossTenantIsolationTests`): `GetById`/`Update`/`Publish`/`Archive` para o dashboard do
+    tenant B retornam 404 mesmo adulterando o Id na rota; `List` nunca inclui dashboards de outro
+    tenant; criar sem token retorna 401.
   - *Aceite:* teste de isolamento cross-tenant (tenant A não lê/edita/publica dashboard de tenant B,
     mesmo adulterando o Id na rota — mesmo padrão de `ConnectorCrossTenantIsolationTests`).
-- [ ] **E3.2** `POST /api/v1/dashboards/{id}/query` (ou por widget) — executa a `QueryDefinition` de
+- [x] **E3.2** `POST /api/v1/dashboards/{id}/query` (ou por widget) — executa a `QueryDefinition` de
       cada widget do dashboard publicado (ou do rascunho, se o solicitante for o dono) via o Analytics
       Engine (E1.2), nunca lendo `warehouse.*` diretamente deste módulo.
-  - *Depende de:* E1.2, E3.1.
+  - *Depende de:* E1.2, E3.1. ✅ Concluído (2026-08-23) — **simplificação deliberada da nuance
+    "publicado vs. rascunho se dono"**: o endpoint sempre executa `Dashboard.Widgets` (o conteúdo
+    atual), nunca relê `DashboardVersion` (que existe só como trilha histórica imutável, nunca
+    reconsultada para "o que este widget mostra agora"). Justificativa: assim que `Publish()` acontece,
+    `Widgets` e a última `DashboardVersion` são idênticos por construção; só divergem quando há edições
+    não publicadas — e aí mostrar o rascunho mais recente (em vez de uma versão obsoleta) é o
+    comportamento correto para quem já tem `dashboard.view`, que neste MVP é uma permissão de tenant
+    inteiro, nunca por dono (`docs/12 §3`: "compartilhamento é binário... sem granularidade por
+    usuário"). Isso tornou a nuance de "dono" do enunciado original sem efeito prático — documentado
+    aqui em vez de implementar uma distinção owner-based que contradiria a própria decisão de
+    compartilhamento binário já fixada no §3 deste backlog. 1 novo teste (`DashboardQueryTests`): cria
+    e publica um dashboard com 1 widget `netRevenue`/`date.month`, chama
+    `POST /api/v1/dashboards/{id}/query` e `POST /api/v1/analytics/query` com o mesmo `QueryDefinition`
+    lado a lado, confirma dataset/rowCount/soma de `netRevenue` idênticos nos dois caminhos.
   - *Aceite:* teste prova que o resultado bate com o mesmo `QueryDefinition` executado direto via
     `POST /api/v1/analytics/query` — mesmo caminho de código, só orquestrado por dashboard/widget.
-- [ ] **E3.3** Novas permissões `dashboard.view`/`dashboard.manage` e `analytics.query`
+- [x] **E3.3** Novas permissões `dashboard.view`/`dashboard.manage` e `analytics.query`
       (`EIP.Shared.Contracts`, mesmo padrão de `MetricsPermissions`/`ConnectorPermissions`) — Owner/
       Admin ganham manage+view, Member ganha só view, todos ganham `analytics.query` (mesma politica
       de leitura agregada já usada para `metrics.view` na Fase 1).
-  - *Depende de:* E3.1.
+  - *Depende de:* E3.1. ✅ Concluído (2026-08-23) — `DashboardPermissions` novo em
+    `EIP.Shared.Contracts.Dashboards`, `RolePermissions` atualizado (Owner/Admin: view+manage; Member:
+    só view; `analytics.query` já existia desde a Fase 2 E1.2, concedida a todos os papéis). 4 novos
+    testes em `DashboardPermissionTests`: Member consegue `GetById` (200), mas `Publish`/`Archive`/
+    `Update` retornam 403.
   - *Aceite:* teste prova que um Member recebe 403 ao tentar publicar/arquivar um dashboard, mas
     consegue visualizá-lo.
 
@@ -243,20 +451,56 @@ consulta, sempre delegando ao Analytics Engine (E1), nunca acessando o Warehouse
 Objetivo: fechar o critério de saída "gestor autorizado visualiza dashboard de produção com filtros e
 dados consistentes" — a parte do MVP que precisa ser genuinamente real, não só a API.
 
-- [ ] **E4.1** Página de listagem de dashboards do tenant autenticado (Angular, reaproveitando
+- [x] **E4.1** Página de listagem de dashboards do tenant autenticado (Angular, reaproveitando
       `AuthService`/roteamento já existentes da Fase 0).
-  - *Depende de:* E3.1.
-- [ ] **E4.2** Página de visualização de um dashboard publicado: renderiza KPI (valor + rótulo),
+  - *Depende de:* E3.1. ✅ Concluído (2026-08-23) — `features/dashboards/dashboard-list` (mesma
+    convenção de arquivo de `features/dashboard`: classe sem sufixo `Component`, `.html`/`.scss`/
+    `.spec.ts` irmãos, Tailwind + Angular Material). Primeira vez que `MatTableModule` é usado no
+    projeto (só Button/Card/FormField/Input/List/ProgressSpinner existiam até aqui) — natural para uma
+    listagem tabular com colunas fixas. Rota `/dashboards` protegida por `tenantGuard` (mesmo guard de
+    `/dashboard`). Link "Ver painéis" adicionado à tela de boas-vindas da Fase 0 para navegar até aqui.
+- [x] **E4.2** Página de visualização de um dashboard publicado: renderiza KPI (valor + rótulo),
       Line chart (ECharts, já declarado no stack — `docs/03`) e Table com dado real vindo de E3.2;
       exibe frescor dos dados e filtros ativos (`docs/12 §10`, mínimo de acessibilidade: título,
       descrição, alternativa textual do valor principal de cada widget).
-  - *Depende de:* E3.2, E4.1.
+  - *Depende de:* E3.2, E4.1. ✅ Concluído (2026-08-23) — primeiro uso de Apache ECharts no frontend.
+    `npm install echarts`; `shared/echart-line/echart-line.ts` importa só os módulos necessários
+    (`echarts/core` + `LineChart`/`GridComponent`/`TooltipComponent`/`CanvasRenderer`) em vez do
+    pacote `echarts` completo — reduziu o chunk lazy de `dashboard-viewer` de 1,14 MB para 507 KB
+    (transferência estimada 310 KB → 147 KB). `dashboard-viewer` busca `GetById` (metadados/widgets) e
+    `POST .../query` (dados) em paralelo, casando `widgets[i]` com `results[i]` por índice (mesma
+    ordem, já que ambos iteram `Dashboard.Widgets`). Kpi soma a métrica principal em todas as linhas
+    retornadas (nunca mostra só a primeira linha silenciosamente, já que o Analytics Engine sempre
+    agrupa por 1 dimensão — nem sempre resulta em exatamente 1 linha). Acessibilidade mínima: cada
+    widget é uma `<section aria-label>`; Kpi e LineChart têm um `<span class="sr-only">` com a
+    alternativa textual completa do valor/série. Tabela renderizada com HTML semântico simples (não
+    `MatTableModule`) porque as colunas variam por widget — dinamizar `matColumnDef` por linha exigiria
+    complexidade desproporcional ao ganho. **Validado visualmente pelo usuário no navegador real**
+    (não só "a chamada HTTP funciona"): subi a stack completa (infra Docker + Host + Gateway +
+    `ng serve`), criei um usuário de teste, dei a ele uma Membership Owner no tenant "Empresa Demo" já
+    existente no banco de dev (reaproveitando 5 linhas de fato/3 cargas concluídas de sessões
+    anteriores — sem precisar ressincronizar conectores), criei e publiquei um painel com os 3 tipos de
+    widget via API real (`curl`) confirmando Receita Líquida R$ 11.100 e 3 clientes na tabela, e pedi
+    para o usuário abrir `http://localhost:4200/dashboards` e confirmar visualmente — usuário confirmou
+    ("validado"). **Limitação honesta**: nenhuma ferramenta de automação de navegador local estava
+    disponível nesta sessão para eu mesmo tirar screenshot (mesma limitação já registrada no
+    fechamento do E6 da Fase 0) — a confirmação visual veio do usuário, não de mim.
   - *Aceite:* validado visualmente pelo usuário no navegador (mesmo padrão pendente desde o E6 da
     Fase 0) — não basta a chamada HTTP funcionar, precisa aparecer certo na tela.
-- [ ] **E4.3** Criação/edição mínima: formulário para criar um dashboard e adicionar widgets um a um
+- [x] **E4.3** Criação/edição mínima: formulário para criar um dashboard e adicionar widgets um a um
       (dataset/métricas/dimensões/tipo — sem editor visual de posicionamento livre, ver §3) + botão de
       publicar.
   - *Depende de:* E3.1, E1.3 (para popular os campos disponíveis a partir do catálogo real).
+    ✅ Concluído (2026-08-23) — `features/dashboards/dashboard-form` cobre criar (`/dashboards/new`) e
+    editar (`/dashboards/:id/edit`) com o mesmo componente. Fluxo em 2 passos: "Criar rascunho" (só
+    Nome) cria o `Dashboard` via API antes de qualquer widget existir; só então a seção de widgets
+    aparece. Campos do widget (título, tipo, métricas via checkbox, dimensão via select) vêm
+    diretamente de `GET /api/v1/analytics/datasets` — nenhum hardcode duplicado do catálogo (mudar uma
+    métrica no backend muda as opções aqui automaticamente, mesma garantia do E1.3). Sem seletor de
+    dataset na tela: só existe `sales` publicado nesta fase, then um seletor mostraria uma única opção
+    sem propósito. "Salvar rascunho" faz `PATCH`; "Publicar" faz `PATCH` seguido de `POST .../publish`
+    e navega para o viewer. Validado end-to-end via API real (mesma sessão de validação do E4.2) e via
+    `ng build`/`ng test` (12/12, incluindo os 3 novos specs `should create`).
 
 ## E5 — Isolamento e Fechamento da Fase
 
@@ -264,18 +508,54 @@ Objetivo: fechar o critério de saída "toda tabela com `TenantId` possui RLS" p
 `dashboard`, e validar a Fase 2 inteira de ponta a ponta, mesmo rigor das revisões que fecharam as
 Fases 0 e 1.
 
-- [ ] **E5.1** Testes cross-tenant automatizados cobrindo `dashboard.*` (RLS real via EF Core,
+- [x] **E5.1** Testes cross-tenant automatizados cobrindo `dashboard.*` (RLS real via EF Core,
       Testcontainers — mesmo padrão de `CanonicalCrossTenantIsolationTests`/
       `WarehouseCrossTenantIsolationTests` do fechamento da Fase 1) e o cache do Analytics Engine
       (E1.4 — mesma chave nunca vaza entre tenants).
-  - *Depende de:* E2.1, E1.4.
-- [ ] **E5.2** Validação end-to-end real, com infraestrutura de verdade rodando (Host, Gateway,
+  - *Depende de:* E2.1, E1.4. ✅ Concluído (2026-08-23) — novo `DashboardTableCrossTenantIsolationTests`
+    (`EIP.Intelligence.Dashboard.Infrastructure.IntegrationTests`, mesmo padrão EF-Core-através-da-RLS
+    real, nunca SQL bruto): sem `SESSION_CONTEXT` nenhuma linha aparece; com o contexto do tenant A só
+    as linhas do tenant A aparecem, mesmo pedindo explicitamente o tenant B; `INSERT` com `TenantId`
+    divergente do `SESSION_CONTEXT` é bloqueado pelo block predicate — para `Dashboards` e
+    `DashboardVersions`. Defesa em profundidade além do gate estrutural genérico (`RlsCoverageTests`,
+    já provado no E2.1) e além do isolamento em nível de API (`DashboardCrossTenantIsolationTests` no
+    `EIP.Host.IntegrationTests`, E3.1, que prova 404 — este aqui prova que o banco em si nunca
+    devolveria a linha, mesmo que um bug futuro no controller esquecesse de checar algo). O isolamento
+    de cache do Analytics Engine já estava coberto desde o E1.4
+    (`AnalyticsQueryCacheTests.Query_SameRequestDifferentTenants_NeverSharesCacheEntry`) — nenhum teste
+    novo necessário, só reaproveitado como evidência aqui.
+- [x] **E5.2** Validação end-to-end real, com infraestrutura de verdade rodando (Host, Gateway,
       Worker, SQL Server, Redis, RabbitMQ, MinIO, frontend): criar um dashboard com os 3 tipos de
       widget sobre dado real da Fase 1, publicar, visualizar no navegador, confirmar cache hit numa
       segunda consulta idêntica.
-- [ ] **E5.3** Revisão formal da seção 4 (Definition of Done) desta fase, com evidência por critério —
+  - ✅ Concluído (2026-08-23) — stack completa real rodando (Docker Compose + Host `:5080` + Gateway
+    `:5000` + `ng serve` `:4200`); usuário de teste com Membership Owner no tenant "Empresa Demo" já
+    existente no banco de dev (reaproveitando 5 linhas de fato/3 cargas concluídas de sessões
+    anteriores da Fase 1, sem precisar ressincronizar conectores). Criado e publicado um painel com os
+    3 tipos de widget (Kpi/LineChart/Table) sobre o dataset `sales`; **validado visualmente pelo
+    usuário no navegador real** em `http://localhost:4200/dashboards` (E4.2). Cache hit confirmado ao
+    vivo pelos próprios logs estruturados do Host (E1.6): primeira consulta
+    `cacheHit=False durationMs=23.9`, segunda consulta idêntica `cacheHit=True durationMs=3.9` — mais
+    de 5x mais rápida, e o Redis (`docker exec eip-redis redis-cli KEYS "analytics:*"`) mostrou as
+    entradas reais criadas. Worker não precisou ser exercitado nesta validação (o dado já existia de
+    sincronizações da Fase 1; a Fase 2 não introduziu nenhum código novo no Worker).
+- [x] **E5.3** Revisão formal da seção 4 (Definition of Done) desta fase, com evidência por critério —
       mesmo processo aplicado às Fases 0 e 1. Atualizar a tabela de rastreamento (§7) e a memória do
       projeto.
+  - ✅ Concluído (2026-08-23) — ver §4 abaixo, todos os 6 critérios revisados com evidência real.
+    **Lacuna real encontrada e corrigida durante esta revisão** (não hipotética): o critério
+    "publicação...e acesso por escopo são auditados" não tinha nenhuma evidência concreta —
+    `DashboardVersion` não registrava quem publicou, e nenhuma ação do módulo gerava log estruturado.
+    Corrigido com `DashboardVersion.PublishedByUserId` (migration aditiva
+    `AddPublishedByUserIdToDashboardVersion` — a inicial já tinha dado real de sessões de validação
+    anteriores, então nunca regenerada) + log estruturado (`[LoggerMessage]`, mesmo idioma do E1.6) em
+    toda mutação e visualização (`Created`/`Updated`/`Published`/`Archived`/`Viewed`, com
+    dashboardId/tenantId/userId + `CorrelationId` automático). Validado ao vivo: exercitei o ciclo de
+    vida completo via `curl` contra o Host real e capturei as 5 linhas de log correspondentes, além de
+    confirmar via SQL que a versão publicada depois da correção já grava o `PublishedByUserId` real
+    (as duas versões publicadas antes da correção mostram o valor de backfill `00000000-...`,
+    documentado como esperado, não escondido). 73/73 testes passando na solução inteira,
+    `dotnet build`/`dotnet format --verify-no-changes` limpos.
 
 ---
 
@@ -311,10 +591,13 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 
 | Épico | Status |
 |---|---|
-| E1 — Analytics Engine | Em andamento (E1.1, E1.2 concluídos) |
-| E2 — Dashboard Builder: domínio e persistência | Não iniciado |
-| E3 — Dashboard Builder: API | Não iniciado |
-| E4 — Frontend: visualização e criação de dashboard | Não iniciado |
-| E5 — Isolamento e Fechamento da Fase | Não iniciado |
+| E1 — Analytics Engine | Concluído (E1.1–E1.6) |
+| E2 — Dashboard Builder: domínio e persistência | Concluído (E2.1–E2.3) |
+| E3 — Dashboard Builder: API | Concluído (E3.1–E3.3) |
+| E4 — Frontend: visualização e criação de dashboard | Concluído (E4.1–E4.3) |
+| E5 — Isolamento e Fechamento da Fase | Concluído (E5.1–E5.3) |
 
-Atualizar esta tabela conforme os épicos avançam.
+**Fase 2 formalmente fechada em 2026-08-23** — todos os 5 épicos (E1–E5) e os 6 critérios de saída da
+seção 4 concluídos com evidência real, mesmo rigor do fechamento das Fases 0 e 1. Próximo passo:
+memória do projeto atualizada (E5.3) e decisão do usuário sobre commitar o trabalho local / iniciar a
+Fase 3.

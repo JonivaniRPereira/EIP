@@ -1,0 +1,134 @@
+<div class="min-h-screen bg-gray-50 p-4 sm:p-8">
+  <div class="mx-auto max-w-3xl">
+    <a routerLink="/dashboards" class="text-sm text-blue-700 hover:underline">&larr; Voltar aos painéis</a>
+
+    @if (loading()) {
+      <div class="mt-6 flex items-center gap-2 text-sm text-gray-600">
+        <mat-spinner diameter="20" />
+        Carregando...
+      </div>
+    } @else {
+      <h1 class="mb-4 mt-4 text-2xl font-semibold text-gray-900">
+        {{ dashboardId() ? 'Editar painel' : 'Novo painel' }}
+      </h1>
+
+      @if (errorMessage(); as message) {
+        <p class="mb-4 text-sm text-red-600">{{ message }}</p>
+      }
+
+      <mat-card class="mb-4">
+        <mat-card-content class="pt-4">
+          <form [formGroup]="nameForm" class="flex flex-col gap-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Nome do painel</mat-label>
+              <input matInput formControlName="name" [readonly]="dashboardId() !== null" />
+              @if (nameForm.controls.name.hasError('required')) {
+                <mat-error>Nome é obrigatório.</mat-error>
+              }
+            </mat-form-field>
+          </form>
+
+          @if (!dashboardId()) {
+            <button mat-flat-button color="primary" [disabled]="nameForm.invalid || saving()" (click)="createDraft()">
+              @if (saving()) {
+                <mat-spinner diameter="20" class="inline-block align-middle" />
+              } @else {
+                Criar rascunho
+              }
+            </button>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      @if (dashboardId()) {
+        <mat-card class="mb-4">
+          <mat-card-header>
+            <mat-card-title>Widgets ({{ widgets().length }})</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="pt-2">
+            @if (widgets().length === 0) {
+              <p class="text-sm text-gray-600">Nenhum widget adicionado ainda.</p>
+            } @else {
+              <ul class="mb-4 flex flex-col gap-2">
+                @for (widget of widgets(); track widget.title + $index) {
+                  <li class="flex items-center justify-between rounded border border-gray-200 p-2 text-sm">
+                    <span>
+                      <strong>{{ widget.title }}</strong>
+                      · {{ widget.type }} · {{ widget.queryDefinition.metrics?.join(', ') }} por
+                      {{ widget.queryDefinition.dimensions?.join(', ') }}
+                    </span>
+                    <button mat-icon-button type="button" aria-label="Remover widget" (click)="removeWidget($index)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+
+            @if (dataset(); as ds) {
+              <form [formGroup]="widgetForm" class="flex flex-col gap-2 rounded border border-dashed border-gray-300 p-3">
+                <p class="text-xs font-medium uppercase text-gray-500">Adicionar widget</p>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Título</mat-label>
+                  <input matInput formControlName="title" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Tipo</mat-label>
+                  <mat-select formControlName="type">
+                    @for (type of widgetTypes; track type) {
+                      <mat-option [value]="type">{{ type }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <div>
+                  <p class="mb-1 text-sm text-gray-700">Métricas ({{ ds.name }})</p>
+                  <div class="flex flex-wrap gap-3">
+                    @for (metric of ds.metrics; track metric.name) {
+                      <mat-checkbox
+                        [checked]="selectedMetrics().includes(metric.name)"
+                        (change)="toggleMetric(metric.name, $event.checked)"
+                      >
+                        {{ metric.displayName }}
+                      </mat-checkbox>
+                    }
+                  </div>
+                </div>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Dimensão</mat-label>
+                  <mat-select formControlName="dimension">
+                    @for (dimension of ds.dimensions; track dimension.name) {
+                      <mat-option [value]="dimension.name">{{ dimension.displayName }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                @if (widgetForm.controls.type.value === 'Kpi') {
+                  <mat-form-field appearance="outline">
+                    <mat-label>Unidade (opcional)</mat-label>
+                    <input matInput formControlName="unit" placeholder="R$, %..." />
+                  </mat-form-field>
+                }
+
+                <button mat-stroked-button type="button" (click)="addWidget()">
+                  <mat-icon>add</mat-icon>
+                  Adicionar widget
+                </button>
+              </form>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <div class="flex gap-2">
+          <button mat-stroked-button [disabled]="saving()" (click)="saveDraft()">Salvar rascunho</button>
+          <button mat-flat-button color="primary" [disabled]="saving() || widgets().length === 0" (click)="publish()">
+            Publicar
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

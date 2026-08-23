@@ -11,6 +11,8 @@ using EIP.Data.Semantic.Application;
 using EIP.Data.Warehouse.Application;
 using EIP.Data.Warehouse.Infrastructure;
 using EIP.Intelligence.Analytics.Application;
+using EIP.Intelligence.Analytics.Infrastructure;
+using EIP.Intelligence.Dashboard.Infrastructure;
 using EIP.Platform.Identity.Application;
 using EIP.Platform.Identity.Application.Abstractions;
 using EIP.Platform.Identity.Domain;
@@ -22,6 +24,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -102,6 +105,10 @@ builder.Services.AddDbContextFactory<WarehouseDbContext>((sp, options) =>
     options.UseSqlServer(GetRequiredConnectionString(sp, "WarehouseDb"))
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 
+builder.Services.AddDbContextFactory<DashboardDbContext>((sp, options) =>
+    options.UseSqlServer(GetRequiredConnectionString(sp, "DashboardDb"))
+        .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
+
 builder.Services.AddScoped<IConnectorSyncStore, ConnectorSyncStore>();
 builder.Services.AddSingleton<IConnectorSyncPublisher>(sp => new RabbitMqConnectorSyncPublisher(GetRequiredConnectionString(sp, "RabbitMQ")));
 builder.Services.AddScoped<IConnectorSyncService, ConnectorSyncService>();
@@ -109,7 +116,30 @@ builder.Services.AddScoped<ICanonicalRecordStore, CanonicalRecordStore>();
 builder.Services.AddScoped<IWarehouseLoadStore, WarehouseLoadStore>();
 builder.Services.AddScoped<IMetricsQueryService, MetricsQueryService>();
 builder.Services.AddScoped<IAnalyticsQueryService, AnalyticsQueryService>();
-builder.Services.AddScoped<IDeclarativeAnalyticsQueryService, DeclarativeAnalyticsQueryService>();
+
+// Cache real do Analytics Engine (Fase 2, E1.4, ADR-006) — primeiro uso funcional do Redis desde que
+// subiu (E1 da Fase 0, até aqui só com health check). Configuração lida sempre no momento da
+// resolução do serviço, nunca capturada antes de `builder.Build()` (mesmo motivo do
+// GetRequiredConnectionString acima).
+builder.Services.AddStackExchangeRedisCache(_ => { });
+builder.Services.AddOptions<RedisCacheOptions>()
+    .Configure<IServiceProvider>((options, sp) => options.Configuration = GetRequiredConnectionString(sp, "Redis"));
+builder.Services.AddScoped<IAnalyticsQueryCache, RedisAnalyticsQueryCache>();
+builder.Services.AddScoped<IDeclarativeAnalyticsQueryService>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    return new DeclarativeAnalyticsQueryService(
+        sp.GetRequiredService<IAnalyticsQueryService>(),
+        sp.GetRequiredService<IAnalyticsQueryCache>(),
+        TimeSpan.FromSeconds(configuration.GetValue("Analytics:CacheTtlSeconds", 60)),
+        // Guardrails mínimos (E1.5, docs/roadmap/fase-2-backlog.md §3) — sem quotas por
+        // plano/usuário, só linhas de resposta, período máximo e timeout de execução.
+        new AnalyticsGuardrailOptions(
+            configuration.GetValue("Analytics:MaxRows", 5000),
+            configuration.GetValue("Analytics:MaxPeriodDays", 400),
+            TimeSpan.FromMilliseconds(configuration.GetValue("Analytics:QueryTimeoutMilliseconds", 10_000))),
+        sp.GetRequiredService<ILogger<DeclarativeAnalyticsQueryService>>());
+});
 
 builder.Services.AddScoped<IMembershipDirectory, EIP.Platform.Tenant.Infrastructure.MembershipDirectory>();
 builder.Services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();

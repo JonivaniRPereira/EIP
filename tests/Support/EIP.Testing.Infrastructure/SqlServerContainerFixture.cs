@@ -1,6 +1,7 @@
 using EIP.Data.Canonical.Infrastructure;
 using EIP.Data.Connector.Infrastructure;
 using EIP.Data.Warehouse.Infrastructure;
+using EIP.Intelligence.Dashboard.Infrastructure;
 using EIP.Platform.Identity.Infrastructure;
 using EIP.Platform.Tenant.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,9 @@ namespace EIP.Testing.Infrastructure;
 public static class TestImages
 {
     public const string SqlServer = "mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04";
+
+    /// <summary>Mesma tag pinada usada em <c>deploy/docker-compose/docker-compose.yml</c> (E1, Fase 0).</summary>
+    public const string Redis = "redis:7.4-alpine";
 }
 
 /// <summary>Aplica as migrations dos módulos Tenant e Identity — incluindo a RLS obrigatória
@@ -62,6 +66,14 @@ public static class DatabaseMigrator
         await using (var warehouseDb = new WarehouseDbContext(warehouseOptions))
         {
             await warehouseDb.Database.MigrateAsync();
+        }
+
+        var dashboardOptions = new DbContextOptionsBuilder<DashboardDbContext>()
+            .UseSqlServer(connectionString, sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", DashboardDbContext.Schema))
+            .Options;
+        await using (var dashboardDb = new DashboardDbContext(dashboardOptions))
+        {
+            await dashboardDb.Database.MigrateAsync();
         }
     }
 }

@@ -6,6 +6,7 @@
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.11" />
     <!-- Pin transitivo: Microsoft.OpenApi 2.0.0 (trazido pelo pacote acima) tem vulnerabilidade conhecida (GHSA-v5pm-xwqc-g5wc); corrigida a partir de 2.7.5. -->
     <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.17.0" />
@@ -33,6 +34,9 @@
     <ProjectReference Include="..\Platform\Tenant\Api\EIP.Platform.Tenant.Api.csproj" />
     <ProjectReference Include="..\Platform\Tenant\Infrastructure\EIP.Platform.Tenant.Infrastructure.csproj" />
     <ProjectReference Include="..\BuildingBlocks.Web\EIP.BuildingBlocks.Web.csproj" />
+    <ProjectReference Include="..\Intelligence\Analytics\Infrastructure\EIP.Intelligence.Analytics.Infrastructure.csproj" />
+    <ProjectReference Include="..\Intelligence\Dashboard\Api\EIP.Intelligence.Dashboard.Api.csproj" />
+    <ProjectReference Include="..\Intelligence\Dashboard\Infrastructure\EIP.Intelligence.Dashboard.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
