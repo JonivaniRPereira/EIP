@@ -35,6 +35,7 @@ export class AuthService {
   readonly availableTenants = computed(() => this.pendingTenantOptions());
   readonly tenantId = computed(() => this.decodeClaim(this.session()?.accessToken, 'tenant_id'));
   readonly requiresTenantSelection = computed(() => this.isAuthenticated() && this.tenantId() === null);
+  readonly userEmail = computed(() => this.decodeClaim(this.session()?.accessToken, 'email'));
 
   get accessToken(): string | null {
     return this.session()?.accessToken ?? null;

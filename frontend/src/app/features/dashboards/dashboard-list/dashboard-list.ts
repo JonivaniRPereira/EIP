@@ -6,7 +6,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 
-import { AuthService } from '../../../core/auth/auth';
 import { DashboardsService } from '../dashboards.service';
 import { DashboardSummaryDto } from '../models';
 
@@ -18,7 +17,6 @@ import { DashboardSummaryDto } from '../models';
 })
 export class DashboardList implements OnInit {
   private readonly dashboardsService = inject(DashboardsService);
-  private readonly auth = inject(AuthService);
 
   readonly dashboards = signal<DashboardSummaryDto[]>([]);
   readonly loading = signal(true);
@@ -52,9 +50,5 @@ export class DashboardList implements OnInit {
       default:
         return 'Rascunho';
     }
-  }
-
-  logout(): void {
-    this.auth.logout();
   }
 }

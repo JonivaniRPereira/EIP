@@ -27,7 +27,7 @@ public sealed class RabbitMqConnectorSyncPublisher : IConnectorSyncPublisher, IA
     {
         var connection = await GetConnectionAsync(cancellationToken);
         await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
-        await ConnectorMessagingTopology.DeclareAsync(channel, cancellationToken);
+        await ConnectorMessagingTopology.DeclareAsync(channel, cancellationToken: cancellationToken);
 
         var body = JsonSerializer.SerializeToUtf8Bytes(message);
         var properties = new BasicProperties

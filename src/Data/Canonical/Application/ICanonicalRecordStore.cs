@@ -54,6 +54,14 @@ public interface ICanonicalRecordStore
     /// E5.4), já que <c>FactSalesInvoiceItem</c> tem uma linha por item, não por fatura.</summary>
     Task<(int Count, decimal NetAmountTotal)> GetSalesInvoiceItemTotalsAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken);
 
+    /// <summary>Busca pela chave de negócio (docs/04 §4.1) — usada pelo Catálogo de Dados e Linhagem
+    /// (Fase 3, E3.1) para encontrar o registro canônico que um fato do Warehouse referenciou no
+    /// momento da carga, sem depender do <c>SalesInvoiceItemId</c> (que pode ficar obsoleto: itens
+    /// canônicos são substituídos por completo — delete + insert — a cada reprocessamento da fatura,
+    /// ver <see cref="UpsertSalesInvoiceAsync"/>).</summary>
+    Task<SalesInvoiceItem?> FindSalesInvoiceItemByBusinessKeyAsync(
+        Guid tenantId, Guid sourceSystemId, string sourceEntity, string sourceRecordId, CancellationToken cancellationToken);
+
     /// <summary>Lote válido pronto para a carga do Data Warehouse (E5.3, docs/09 §7.1, passo 1) — um
     /// item por linha, já com a fatura e as entidades de referência resolvidas. Reflete o estado
     /// atual do Canônico (não um delta desde a última carga — nenhuma incrementalidade ainda,

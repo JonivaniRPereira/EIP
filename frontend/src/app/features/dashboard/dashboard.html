@@ -1,10 +1,8 @@
-<div class="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-  <mat-card class="w-full max-w-sm">
-    <mat-card-header>
-      <mat-card-title>Bem-vindo</mat-card-title>
-    </mat-card-header>
+<div class="mx-auto max-w-2xl">
+  <h1 class="mb-4 text-2xl font-semibold text-gray-900">Bem-vindo</h1>
 
-    <mat-card-content class="pt-2">
+  <mat-card>
+    <mat-card-content class="pt-4">
       @if (loading()) {
         <p class="text-sm text-gray-600">Carregando...</p>
       } @else if (tenant(); as t) {
@@ -15,10 +13,5 @@
         <p class="text-sm text-red-600">Não foi possível carregar o tenant atual.</p>
       }
     </mat-card-content>
-
-    <mat-card-actions>
-      <a mat-button routerLink="/dashboards">Ver painéis</a>
-      <button mat-button (click)="logout()">Sair</button>
-    </mat-card-actions>
   </mat-card>
 </div>

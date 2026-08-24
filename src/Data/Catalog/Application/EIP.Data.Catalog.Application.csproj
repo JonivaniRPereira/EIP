@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Warehouse\Application\EIP.Data.Warehouse.Application.csproj" />
+    <ProjectReference Include="..\..\Canonical\Application\EIP.Data.Canonical.Application.csproj" />
+    <ProjectReference Include="..\..\Connector\Application\EIP.Data.Connector.Application.csproj" />
+    <ProjectReference Include="..\..\Semantic\Application\EIP.Data.Semantic.Application.csproj" />
+    <ProjectReference Include="..\..\..\Shared\EIP.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -49,9 +49,11 @@ public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
         var run = await _store.FindRunAsync(message.SyncRunId, cancellationToken);
 
         // Idempotência (docs/05-Connector-Framework.md §10.1): o RabbitMQ entrega pelo menos uma vez
-        // (at-least-once) — uma reentrega de um run que já terminou ou já está em processamento não
-        // é reprocessada. TryStartProcessing só avança Pending -> Running exatamente uma vez.
-        if (run is null || run.IsTerminal || !run.TryStartProcessing())
+        // (at-least-once) — uma reentrega de um run que já teve sucesso ou já está em processamento
+        // não é reprocessada. TryStartProcessing também aceita um run Failed (E2.1 da Fase 3: a
+        // reentrega pode ser uma tentativa legítima da escada de retry do worker, não uma duplicata
+        // de algo já resolvido) — ver o comentário do método na entidade para o raciocínio completo.
+        if (run is null || !run.TryStartProcessing())
         {
             return;
         }

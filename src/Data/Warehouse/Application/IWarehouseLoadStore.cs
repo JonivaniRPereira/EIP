@@ -88,6 +88,16 @@ public interface IWarehouseLoadStore
     /// <summary>Estado atual persistido no fato — usado pela reconciliação Canônico↔Fato (E5.4).</summary>
     Task<(int Count, decimal NetAmountTotal)> GetFactSalesInvoiceItemTotalsAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken);
 
+    /// <summary>Busca um fato individual pela chave substituta — usado pelo Catálogo de Dados e
+    /// Linhagem (Fase 3, E3.1) para começar o rastreamento de um dado específico. Nunca usado no
+    /// caminho de carga em si (que sempre opera pela chave de negócio, ver
+    /// <see cref="UpsertFactSalesInvoiceItemAsync"/>).</summary>
+    Task<FactSalesInvoiceItem?> FindFactSalesInvoiceItemAsync(Guid tenantId, int factSalesInvoiceItemKey, CancellationToken cancellationToken);
+
+    /// <summary>Busca o lote de carga que produziu um fato — usado pelo Catálogo de Dados e Linhagem
+    /// (Fase 3, E3.1) para expor quando/como aquele fato chegou ao Warehouse.</summary>
+    Task<LoadBatch?> FindLoadBatchAsync(Guid tenantId, Guid loadBatchId, CancellationToken cancellationToken);
+
     /// <summary>Lote de itens de fatura para o cálculo das métricas certificadas (E6.1) e para o
     /// agrupamento dimensional do Analytics Engine (Fase 2, E1.1), filtrado por empresa e/ou período
     /// de negócio (nunca por tenant de outro chamador — <paramref name="tenantId"/> vem sempre do

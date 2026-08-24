@@ -77,11 +77,22 @@ public sealed class SyncRun : Entity<Guid>
     }
 
     /// <summary>Transição idempotente: reentregas do worker (at-least-once do RabbitMQ) que chegam
-    /// depois de já ter avançado o estado não retrocedem nem duplicam o processamento — só a
-    /// primeira entrega efetivamente move o run de Pending para Running.</summary>
+    /// depois de já ter avançado o estado não retrocedem nem duplicam o processamento — só entregas
+    /// para um run <see cref="SyncRunStatus.Pending"/> (nunca começou) ou
+    /// <see cref="SyncRunStatus.Failed"/> (uma tentativa anterior falhou, nenhum efeito colateral foi
+    /// produzido antes da falha) movem o run para Running. <see cref="SyncRunStatus.Failed"/> foi
+    /// incluído na Fase 3 E2.1: antes, uma falha de processamento sempre ia direto para a DLQ sem
+    /// reentrega automática, então "Failed" era efetivamente terminal; agora o worker republica a
+    /// mensagem numa escada de retry com backoff antes de desistir, e cada reentrega precisa de uma
+    /// nova chance de rodar — sem isto, a 2ª tentativa em diante seria sempre ignorada em silêncio
+    /// (o run ficaria preso em "Failed" da 1ª tentativa para sempre, e o worker confirmaria a entrega
+    /// como se tivesse dado certo). Um run <see cref="SyncRunStatus.Running"/> ou
+    /// <see cref="SyncRunStatus.Succeeded"/> continua bloqueado — o primeiro por já estar em
+    /// processamento de verdade, o segundo por já ter produzido efeitos colaterais que uma reentrega
+    /// duplicaria.</summary>
     public bool TryStartProcessing()
     {
-        if (Status != SyncRunStatus.Pending)
+        if (Status is not (SyncRunStatus.Pending or SyncRunStatus.Failed))
         {
             return false;
         }
@@ -100,6 +111,10 @@ public sealed class SyncRun : Entity<Guid>
         RejectedCount = rejectedCount;
         DeletedCount = deletedCount;
         FinishedAt = DateTimeOffset.UtcNow;
+
+        // Limpa o erro de uma tentativa anterior (E2.1) — um run que teve sucesso numa reentrega não
+        // pode continuar exibindo o ErrorMessage da falha que a antecedeu.
+        ErrorMessage = null;
     }
 
     public void Fail(string errorMessage)
@@ -108,6 +123,4 @@ public sealed class SyncRun : Entity<Guid>
         ErrorMessage = errorMessage;
         FinishedAt = DateTimeOffset.UtcNow;
     }
-
-    public bool IsTerminal => Status is SyncRunStatus.Succeeded or SyncRunStatus.Failed;
 }

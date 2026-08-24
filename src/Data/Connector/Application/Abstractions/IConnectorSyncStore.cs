@@ -14,6 +14,12 @@ public interface IConnectorSyncStore
 {
     Task<ConnectorInstance?> FindInstanceAsync(Guid connectorInstanceId, CancellationToken cancellationToken);
 
+    /// <summary>Todas as instâncias do tenant — usado pelo Catálogo de Métricas (Fase 3, E3.2) para
+    /// reconciliar cada métrica certificada contra cada origem registrada, já que a reconciliação do
+    /// Warehouse é sempre por <c>ConnectorInstanceId</c>, nunca agregada às cegas entre origens
+    /// diferentes.</summary>
+    Task<IReadOnlyList<ConnectorInstance>> ListInstancesAsync(Guid tenantId, CancellationToken cancellationToken);
+
     Task SaveNewInstanceAsync(ConnectorInstance instance, CancellationToken cancellationToken);
 
     /// <summary>Persiste mudanças em uma instância já existente (E7.1: avanço de watermark) — nunca

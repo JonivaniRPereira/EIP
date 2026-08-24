@@ -257,6 +257,19 @@ public sealed class WarehouseLoadStore : IWarehouseLoadStore
         return (count, netAmountTotal);
     }
 
+    public async Task<FactSalesInvoiceItem?> FindFactSalesInvoiceItemAsync(Guid tenantId, int factSalesInvoiceItemKey, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        return await db.FactSalesInvoiceItems.SingleOrDefaultAsync(
+            f => f.TenantId == tenantId && f.FactSalesInvoiceItemKey == factSalesInvoiceItemKey, cancellationToken);
+    }
+
+    public async Task<LoadBatch?> FindLoadBatchAsync(Guid tenantId, Guid loadBatchId, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        return await db.LoadBatches.SingleOrDefaultAsync(b => b.TenantId == tenantId && b.Id == loadBatchId, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<FactSalesInvoiceItemForMetrics>> ListFactSalesInvoiceItemsForMetricsAsync(
         Guid tenantId,
         Guid? companyId,

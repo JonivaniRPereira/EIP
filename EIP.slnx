@@ -26,6 +26,13 @@
   <Folder Name="/src/Data/Canonical/Infrastructure/">
     <Project Path="src/Data/Canonical/Infrastructure/EIP.Data.Canonical.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Data/Catalog/" />
+  <Folder Name="/src/Data/Catalog/Api/">
+    <Project Path="src/Data/Catalog/Api/EIP.Data.Catalog.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Data/Catalog/Application/">
+    <Project Path="src/Data/Catalog/Application/EIP.Data.Catalog.Application.csproj" />
+  </Folder>
   <Folder Name="/src/Data/Connector/" />
   <Folder Name="/src/Data/Connector/Api/">
     <Project Path="src/Data/Connector/Api/EIP.Data.Connector.Api.csproj" />
@@ -122,6 +129,7 @@
   <Folder Name="/tests/" />
   <Folder Name="/tests/Integration/">
     <Project Path="tests/Integration/EIP.Data.Canonical.Infrastructure.IntegrationTests/EIP.Data.Canonical.Infrastructure.IntegrationTests.csproj" />
+    <Project Path="tests/Integration/EIP.Data.Catalog.IntegrationTests/EIP.Data.Catalog.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Data.Connector.IntegrationTests/EIP.Data.Connector.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Data.DataLake.Infrastructure.IntegrationTests/EIP.Data.DataLake.Infrastructure.IntegrationTests.csproj" />
     <Project Path="tests/Integration/EIP.Data.Pipeline.IntegrationTests/EIP.Data.Pipeline.IntegrationTests.csproj" />

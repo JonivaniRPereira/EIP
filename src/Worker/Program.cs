@@ -81,6 +81,7 @@ builder.Services.AddSingleton<IReferenceRestClient, HttpReferenceRestClient>();
 builder.Services.AddSingleton<IConnectorSyncProcessor, ConnectorSyncProcessor>();
 
 builder.Services.AddSingleton(new RabbitMqConnectionOptions(rabbitMqConnectionString));
+builder.Services.AddSingleton(ConnectorRetryOptions.Default);
 builder.Services.AddHostedService<SyncRequestedConsumerService>();
 
 var host = builder.Build();

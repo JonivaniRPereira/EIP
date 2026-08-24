@@ -6,6 +6,7 @@ using EIP.Platform.Identity.Infrastructure;
 using EIP.Platform.Tenant.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.MsSql;
+using Testcontainers.RabbitMq;
 using Xunit;
 
 namespace EIP.Testing.Infrastructure;
@@ -18,6 +19,11 @@ public static class TestImages
 
     /// <summary>Mesma tag pinada usada em <c>deploy/docker-compose/docker-compose.yml</c> (E1, Fase 0).</summary>
     public const string Redis = "redis:7.4-alpine";
+
+    /// <summary>Mesma tag pinada usada em <c>deploy/docker-compose/docker-compose.yml</c> — inclui o
+    /// plugin de management (não usado pelos testes, que falam AMQP puro, mas mantém a imagem idêntica
+    /// à de produção).</summary>
+    public const string RabbitMq = "rabbitmq:3.13-management-alpine";
 }
 
 /// <summary>Aplica as migrations dos módulos Tenant e Identity — incluindo a RLS obrigatória
@@ -112,4 +118,27 @@ public sealed class SqlServerContainerFixture : IAsyncLifetime
 public sealed class SqlServerCollection : ICollectionFixture<SqlServerContainerFixture>
 {
     public const string Name = "SqlServer";
+}
+
+/// <summary>
+/// RabbitMQ real e efêmero (Testcontainers) para os testes de retry/DLQ do conector de referência
+/// (E2.1/E2.2 da Fase 3) — antes desta fase, `RabbitMQ` nos testes era só uma connection string
+/// sintaticamente válida (ver <c>HostApiFixture</c>), suficiente enquanto nada exercitava a fila de
+/// verdade. Um container por classe de teste (não compartilhado): declarar a mesma topologia mais de
+/// uma vez com <see cref="EIP.Data.Connector.Infrastructure.ConnectorRetryOptions"/> diferentes entre
+/// testes causaria PRECONDITION_FAILED se reaproveitassem o mesmo broker.
+/// </summary>
+public sealed class RabbitMqContainerFixture : IAsyncLifetime
+{
+    private readonly RabbitMqContainer _container = new RabbitMqBuilder(TestImages.RabbitMq).Build();
+
+    public string ConnectionString { get; private set; } = string.Empty;
+
+    public async Task InitializeAsync()
+    {
+        await _container.StartAsync();
+        ConnectionString = _container.GetConnectionString();
+    }
+
+    public Task DisposeAsync() => _container.DisposeAsync().AsTask();
 }

@@ -19,6 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Data\Catalog\Api\EIP.Data.Catalog.Api.csproj" />
+    <ProjectReference Include="..\Data\Catalog\Application\EIP.Data.Catalog.Application.csproj" />
     <ProjectReference Include="..\Data\Connector\Api\EIP.Data.Connector.Api.csproj" />
     <ProjectReference Include="..\Data\Connector\Infrastructure\EIP.Data.Connector.Infrastructure.csproj" />
     <ProjectReference Include="..\Data\Canonical\Application\EIP.Data.Canonical.Application.csproj" />

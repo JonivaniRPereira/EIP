@@ -4,6 +4,7 @@ using EIP.BuildingBlocks.Security;
 using EIP.BuildingBlocks.Security.Authorization;
 using EIP.Data.Canonical.Application;
 using EIP.Data.Canonical.Infrastructure;
+using EIP.Data.Catalog.Application;
 using EIP.Data.Connector.Application;
 using EIP.Data.Connector.Application.Abstractions;
 using EIP.Data.Connector.Infrastructure;
@@ -111,11 +112,19 @@ builder.Services.AddDbContextFactory<DashboardDbContext>((sp, options) =>
 
 builder.Services.AddScoped<IConnectorSyncStore, ConnectorSyncStore>();
 builder.Services.AddSingleton<IConnectorSyncPublisher>(sp => new RabbitMqConnectorSyncPublisher(GetRequiredConnectionString(sp, "RabbitMQ")));
+builder.Services.AddSingleton<IConnectorDlqReader>(sp => new RabbitMqConnectorDlqReader(GetRequiredConnectionString(sp, "RabbitMQ")));
 builder.Services.AddScoped<IConnectorSyncService, ConnectorSyncService>();
 builder.Services.AddScoped<ICanonicalRecordStore, CanonicalRecordStore>();
 builder.Services.AddScoped<IWarehouseLoadStore, WarehouseLoadStore>();
 builder.Services.AddScoped<IMetricsQueryService, MetricsQueryService>();
 builder.Services.AddScoped<IAnalyticsQueryService, AnalyticsQueryService>();
+
+// Catálogo de Dados e Linhagem (Fase 3, E3) — IWarehouseReconciliationService nunca tinha sido
+// registrado no Host (só no Worker, onde a reconciliação acontece durante a sincronização); aqui ele
+// alimenta a consulta sob demanda do catálogo de métricas, não um fluxo de carga.
+builder.Services.AddScoped<IWarehouseReconciliationService, WarehouseReconciliationService>();
+builder.Services.AddScoped<IDataLineageService, DataLineageService>();
+builder.Services.AddScoped<IMetricsCatalogService, MetricsCatalogService>();
 
 // Cache real do Analytics Engine (Fase 2, E1.4, ADR-006) — primeiro uso funcional do Redis desde que
 // subiu (E1 da Fase 0, até aqui só com health check). Configuração lida sempre no momento da

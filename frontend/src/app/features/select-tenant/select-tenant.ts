@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatListModule } from '@angular/material/list';
@@ -11,7 +11,7 @@ import { ProblemDetails } from '../../core/auth/models';
 
 @Component({
   selector: 'app-select-tenant',
-  imports: [MatButtonModule, MatCardModule, MatListModule, MatProgressSpinnerModule],
+  imports: [RouterLink, MatButtonModule, MatCardModule, MatListModule, MatProgressSpinnerModule],
   templateUrl: './select-tenant.html',
   styleUrl: './select-tenant.scss',
 })

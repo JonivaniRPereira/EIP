@@ -26,6 +26,12 @@ public sealed class ConnectorSyncStore : IConnectorSyncStore
         return await dbContext.ConnectorInstances.SingleOrDefaultAsync(i => i.Id == connectorInstanceId, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ConnectorInstance>> ListInstancesAsync(Guid tenantId, CancellationToken cancellationToken)
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        return await dbContext.ConnectorInstances.Where(i => i.TenantId == tenantId).ToListAsync(cancellationToken);
+    }
+
     public async Task SaveNewInstanceAsync(ConnectorInstance instance, CancellationToken cancellationToken)
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);

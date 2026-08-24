@@ -10,9 +10,10 @@
       }
 
       @if (tenants().length === 0) {
-        <p class="text-sm text-gray-600">
-          Nenhuma organização disponível nesta sessão. Faça login novamente.
+        <p class="text-sm text-gray-600 pb-2">
+          Você ainda não pertence a nenhuma organização.
         </p>
+        <a mat-flat-button color="primary" routerLink="/create-tenant">Criar organização</a>
       } @else {
         <mat-nav-list>
           @for (tenant of tenants(); track tenant.tenantId) {

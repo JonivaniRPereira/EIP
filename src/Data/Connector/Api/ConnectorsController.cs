@@ -2,6 +2,7 @@ using EIP.BuildingBlocks.Security;
 using EIP.BuildingBlocks.Security.Authorization;
 using EIP.Data.Connector.Api.Contracts;
 using EIP.Data.Connector.Application;
+using EIP.Data.Connector.Application.Abstractions;
 using EIP.Shared.Contracts.Connectors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,9 @@ namespace EIP.Data.Connector.Api;
 /// Conector de referência da Fase 0 (E7): registra a instância REST genérica e dispara
 /// sincronizações assíncronas. Nunca processa a sincronização de forma síncrona aqui — o corpo do
 /// request só valida, persiste em <c>Pending</c> e publica a mensagem; o resultado é consultado
-/// depois via <see cref="GetSyncRun"/> (docs/05-Connector-Framework.md §2).
+/// depois via <see cref="GetSyncRun"/> (docs/05-Connector-Framework.md §2). A DLQ (<see cref="ListDlq"/>/
+/// <see cref="RequeueDlq"/>, E2.2 da Fase 3) traz para dentro da plataforma o que antes só era visível
+/// via RabbitMQ Management UI.
 /// </summary>
 [ApiController]
 [Route("api/v1/connectors")]
@@ -21,10 +24,12 @@ public sealed class ConnectorsController : ControllerBase
     private const string CorrelationIdHeaderName = "X-Correlation-Id";
 
     private readonly IConnectorSyncService _connectorSyncService;
+    private readonly IConnectorDlqReader _dlqReader;
 
-    public ConnectorsController(IConnectorSyncService connectorSyncService)
+    public ConnectorsController(IConnectorSyncService connectorSyncService, IConnectorDlqReader dlqReader)
     {
         _connectorSyncService = connectorSyncService;
+        _dlqReader = dlqReader;
     }
 
     [HttpPost]
@@ -111,6 +116,54 @@ public sealed class ConnectorsController : ControllerBase
             run.CreatedAt,
             run.StartedAt,
             run.FinishedAt));
+    }
+
+    /// <summary>Lista as mensagens da DLQ que pertencem ao tenant autenticado (E2.2). A DLQ é um
+    /// recurso físico único compartilhado por todos os tenants — o filtro por <c>TenantId</c>
+    /// acontece dentro de <see cref="IConnectorDlqReader"/>, nunca aqui, para não depender de cada
+    /// chamador lembrar de filtrar.</summary>
+    [HttpGet("dlq")]
+    [RequirePermission(ConnectorPermissions.ConnectorView)]
+    public async Task<ActionResult<IReadOnlyList<ConnectorDlqMessageDto>>> ListDlq(CancellationToken cancellationToken)
+    {
+        var tenantId = GetAuthenticatedTenantId();
+        if (tenantId is null)
+        {
+            return Problem(detail: "Tenant não selecionado.", statusCode: StatusCodes.Status403Forbidden);
+        }
+
+        var messages = await _dlqReader.ListAsync(tenantId.Value, cancellationToken);
+        return Ok(messages
+            .Select(message => new ConnectorDlqMessageDto(
+                message.SyncRunId,
+                message.ConnectorInstanceId,
+                message.CorrelationId,
+                message.ContractVersion,
+                message.FailureReason,
+                message.DeadLetteredAtUtc))
+            .ToList());
+    }
+
+    /// <summary>Reprocessa manualmente uma mensagem da DLQ (E2.2). <paramref name="syncRunId"/> de
+    /// outro tenant devolve 404 — mesmo padrão IDOR-safe de <see cref="GetSyncRun"/> (nunca revela que
+    /// a mensagem existe, só não é sua).</summary>
+    [HttpPost("dlq/{syncRunId:guid}/requeue")]
+    [RequirePermission(ConnectorPermissions.ConnectorManage)]
+    public async Task<IActionResult> RequeueDlq(Guid syncRunId, CancellationToken cancellationToken)
+    {
+        var tenantId = GetAuthenticatedTenantId();
+        if (tenantId is null)
+        {
+            return Problem(detail: "Tenant não selecionado.", statusCode: StatusCodes.Status403Forbidden);
+        }
+
+        var outcome = await _dlqReader.RequeueAsync(tenantId.Value, syncRunId, cancellationToken);
+        if (outcome == DlqRequeueOutcome.NotFound)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
     }
 
     private Guid? GetAuthenticatedTenantId()

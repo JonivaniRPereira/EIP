@@ -1,7 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { firstValueFrom } from 'rxjs';
 
@@ -17,7 +15,7 @@ interface TenantDto {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, MatButtonModule, MatCardModule],
+  imports: [MatCardModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -43,9 +41,5 @@ export class Dashboard implements OnInit {
     } finally {
       this.loading.set(false);
     }
-  }
-
-  logout(): void {
-    this.auth.logout();
   }
 }

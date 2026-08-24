@@ -1,0 +1,66 @@
+<mat-sidenav-container class="h-screen" style="background: #f4f6f8">
+  <mat-sidenav
+    [opened]="sidenavOpened()"
+    [mode]="'side'"
+    class="w-64 border-r border-gray-200"
+    style="background: #ffffff"
+  >
+    <div class="flex h-16 items-center gap-2 px-5">
+      <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">E</div>
+      <span class="text-lg font-semibold tracking-tight text-gray-900">EIP</span>
+    </div>
+
+    <mat-nav-list class="flex flex-col gap-1 px-3">
+      <a
+        mat-list-item
+        routerLink="/dashboard"
+        routerLinkActive="!bg-blue-50 !text-blue-700"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="!rounded-lg"
+      >
+        <mat-icon matListItemIcon>home</mat-icon>
+        <span matListItemTitle>Início</span>
+      </a>
+      <a mat-list-item routerLink="/dashboards" routerLinkActive="!bg-blue-50 !text-blue-700" class="!rounded-lg">
+        <mat-icon matListItemIcon>space_dashboard</mat-icon>
+        <span matListItemTitle>Painéis</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar style="background: #ffffff" class="!border-b !border-gray-200">
+      <button mat-icon-button (click)="toggleSidenav()" aria-label="Alternar menu">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      @if (tenantName(); as name) {
+        <span class="ml-2 text-sm font-medium text-gray-700">{{ name }}</span>
+      }
+
+      <span class="flex-1"></span>
+
+      <button
+        type="button"
+        [matMenuTriggerFor]="userMenu"
+        class="flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border-0 bg-transparent px-2 py-1 hover:bg-gray-100"
+      >
+        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
+          {{ userInitial() }}
+        </div>
+        <span class="hidden text-sm text-gray-700 sm:inline">{{ auth.userEmail() }}</span>
+        <mat-icon class="shrink-0 !text-gray-500">expand_more</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Sair</span>
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <div class="p-4 sm:p-8">
+      <router-outlet />
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

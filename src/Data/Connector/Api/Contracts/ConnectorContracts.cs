@@ -19,6 +19,14 @@ public sealed record SyncRunDto(
     DateTimeOffset? StartedAt,
     DateTimeOffset? FinishedAt);
 
+public sealed record ConnectorDlqMessageDto(
+    Guid SyncRunId,
+    Guid ConnectorInstanceId,
+    string CorrelationId,
+    string ContractVersion,
+    string? FailureReason,
+    DateTimeOffset? DeadLetteredAtUtc);
+
 public sealed record QuarantineEntryDto(
     Guid Id,
     Guid ConnectorInstanceId,

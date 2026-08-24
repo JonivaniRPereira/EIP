@@ -182,6 +182,18 @@ public sealed class CanonicalRecordStore : ICanonicalRecordStore
         return (count, netAmountTotal);
     }
 
+    public async Task<SalesInvoiceItem?> FindSalesInvoiceItemByBusinessKeyAsync(
+        Guid tenantId, Guid sourceSystemId, string sourceEntity, string sourceRecordId, CancellationToken cancellationToken)
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        return await db.SalesInvoiceItems.SingleOrDefaultAsync(
+            i => i.TenantId == tenantId
+                && i.SourceSystemId == sourceSystemId
+                && i.SourceEntity == sourceEntity
+                && i.SourceRecordId == sourceRecordId,
+            cancellationToken);
+    }
+
     public async Task<IReadOnlyList<SalesInvoiceItemForLoad>> ListSalesInvoiceItemsForLoadAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken)
     {
         await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
