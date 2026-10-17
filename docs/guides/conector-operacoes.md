@@ -2,7 +2,7 @@
 
 **Projeto:** Enterprise Intelligence Platform (EIP)
 **Status:** Oficial
-**Última atualização:** Agosto/2026
+**Última atualização:** Outubro/2026
 
 ---
 
@@ -17,6 +17,24 @@ métricas/logs observar. Não repete `docs/guides/ambiente-local.md` (como subir
 ---
 
 # 2. Como uma sincronização flui (resumo operacional)
+
+O disparo em `POST /api/v1/connectors/{id}/sync` tem quota por tenant e instância:
+por padrão, **1 solicitação por 60 segundos**. A primeira reserva aceita inicia a janela;
+tentativas excedentes retornam `429 ProblemDetails` com `Retry-After` em segundos inteiros
+(arredondados para cima), sem criar outro `SyncRun` nem publicar outra mensagem. Aguarde esse
+tempo antes de repetir. Rejeições não prolongam a janela. `reprocessFrom` usa a mesma quota.
+
+Configuração no Host: `Connector:SyncQuota:PermitLimit` e
+`Connector:SyncQuota:WindowSeconds`, ambos positivos. Equivalentes em variáveis de ambiente:
+`Connector__SyncQuota__PermitLimit` e `Connector__SyncQuota__WindowSeconds`.
+A reserva é atômica no Redis compartilhado entre processos da API e isolada por tenant/conector;
+reiniciar só a API não reinicia a janela. Perda/limpeza dos dados do Redis reinicia as quotas.
+Se o Redis estiver indisponível, a solicitação falha antes de persistir/publicar; não há liberação
+automática sem quota. A reserva permanece até expirar mesmo se a persistência/publicação falhar:
+ela limita solicitações admitidas, não apenas sincronizações concluídas.
+
+Retries automáticos e reenvio pela DLQ mantêm o fluxo operacional existente e não criam novas
+solicitações neste endpoint; esta quota não limita esses caminhos.
 
 ```
 POST /api/v1/connectors/{id}/sync

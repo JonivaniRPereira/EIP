@@ -11,6 +11,7 @@ using EIP.Data.Connector.Infrastructure;
 using EIP.Data.Semantic.Application;
 using EIP.Data.Warehouse.Application;
 using EIP.Data.Warehouse.Infrastructure;
+using EIP.Host;
 using EIP.Intelligence.Analytics.Application;
 using EIP.Intelligence.Analytics.Infrastructure;
 using EIP.Intelligence.Dashboard.Infrastructure;
@@ -114,6 +115,14 @@ builder.Services.AddScoped<IConnectorSyncStore, ConnectorSyncStore>();
 builder.Services.AddSingleton<IConnectorSyncPublisher>(sp => new RabbitMqConnectorSyncPublisher(GetRequiredConnectionString(sp, "RabbitMQ")));
 builder.Services.AddSingleton<IConnectorDlqReader>(sp => new RabbitMqConnectorDlqReader(GetRequiredConnectionString(sp, "RabbitMQ")));
 builder.Services.AddScoped<IConnectorSyncService, ConnectorSyncService>();
+builder.Services.AddOptions<ConnectorSyncQuotaOptions>()
+    .BindConfiguration("Connector:SyncQuota")
+    .Validate(options => options.PermitLimit > 0 && options.WindowSeconds > 0,
+        "Connector:SyncQuota exige PermitLimit e WindowSeconds positivos.")
+    .ValidateOnStart();
+builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
+    StackExchange.Redis.ConnectionMultiplexer.Connect(GetRequiredConnectionString(sp, "Redis")));
+builder.Services.AddSingleton<IConnectorSyncQuota, RedisConnectorSyncQuota>();
 builder.Services.AddScoped<ICanonicalRecordStore, CanonicalRecordStore>();
 builder.Services.AddScoped<IWarehouseLoadStore, WarehouseLoadStore>();
 builder.Services.AddScoped<IMetricsQueryService, MetricsQueryService>();

@@ -8,11 +8,13 @@ public sealed class ConnectorSyncService : IConnectorSyncService
 {
     private readonly IConnectorSyncStore _store;
     private readonly IConnectorSyncPublisher _publisher;
+    private readonly IConnectorSyncQuota _quota;
 
-    public ConnectorSyncService(IConnectorSyncStore store, IConnectorSyncPublisher publisher)
+    public ConnectorSyncService(IConnectorSyncStore store, IConnectorSyncPublisher publisher, IConnectorSyncQuota quota)
     {
         _store = store;
         _publisher = publisher;
+        _quota = quota;
     }
 
     public async Task<Guid> RegisterInstanceAsync(Guid tenantId, Guid companyId, string name, string baseUrl, string sourceEntity, CancellationToken cancellationToken)
@@ -37,6 +39,12 @@ public sealed class ConnectorSyncService : IConnectorSyncService
         if (instance.Status != ConnectorInstanceStatus.Active)
         {
             return SyncRunRequestResult.Failed("Instância de conector não está ativa.");
+        }
+
+        var retryAfter = await _quota.TryAcquireAsync(tenantId, instance.Id, cancellationToken);
+        if (retryAfter is { } delay)
+        {
+            return SyncRunRequestResult.QuotaExceeded(delay);
         }
 
         var run = SyncRun.CreatePending(tenantId, instance.Id, correlationId);

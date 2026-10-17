@@ -78,6 +78,13 @@ public sealed class ConnectorsController : ControllerBase
             : Guid.NewGuid().ToString();
 
         var result = await _connectorSyncService.RequestSyncAsync(connectorInstanceId, tenantId.Value, correlationId, reprocessFrom, cancellationToken);
+        if (result.RetryAfter is { } retryAfter)
+        {
+            Response.Headers.RetryAfter = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds))
+                .ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return Problem(detail: result.Error, statusCode: StatusCodes.Status429TooManyRequests);
+        }
+
         if (!result.Success)
         {
             return Problem(detail: result.Error, statusCode: StatusCodes.Status400BadRequest);

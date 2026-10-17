@@ -100,6 +100,15 @@ public sealed class AuthService : IAuthService
             return AuthResult.Failed("Refresh token inválido ou expirado.");
         }
 
+        // Um token emitido antes do provisionamento ainda não tem tenant. Reavaliar as memberships
+        // permite selecionar a organização recém-criada; múltiplas organizações exigem seleção.
+        if (existingToken.TenantId is null)
+        {
+            var result = await IssueTokensAsync(user, cancellationToken);
+            await _refreshTokenStore.RevokeAsync(existingToken, null, cancellationToken);
+            return result;
+        }
+
         // Permissões são resolvidas de novo (não copiadas do token antigo): se a membership foi
         // alterada/revogada desde a emissão original, o refresh reflete o estado atual —
         // "negar por padrão" também se aplica aqui (docs/07-Seguranca.md §5.2).

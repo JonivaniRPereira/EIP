@@ -2,11 +2,14 @@ using EIP.Data.Connector.Domain;
 
 namespace EIP.Data.Connector.Application;
 
-public sealed record SyncRunRequestResult(bool Success, Guid? SyncRunId, string? Error)
+public sealed record SyncRunRequestResult(bool Success, Guid? SyncRunId, string? Error, TimeSpan? RetryAfter = null)
 {
     public static SyncRunRequestResult Ok(Guid syncRunId) => new(true, syncRunId, null);
 
     public static SyncRunRequestResult Failed(string error) => new(false, null, error);
+
+    public static SyncRunRequestResult QuotaExceeded(TimeSpan retryAfter) =>
+        new(false, null, "Limite de sincronizações excedido. Aguarde antes de tentar novamente.", retryAfter);
 }
 
 /// <summary>Dispara uma sincronização (E7.1/E7.2): valida a instância, cria o <c>SyncRun</c> em

@@ -290,12 +290,24 @@ validação (Fase 1, E8.2) — rastrear um dado do fato analítico até a origem
 Objetivo: fechar "consultas respeitam...quotas" (já parcial, guardrails por consulta na Fase 2) e
 "custos...mensurados por tenant" — como uso, não como custo em dinheiro (§3).
 
-- [ ] **E4.1** Quota de sincronização por tenant: no máximo N sincronizações por `ConnectorInstance`
+- [x] **E4.1** Quota de sincronização por tenant: no máximo N sincronizações por `ConnectorInstance`
       por período (ex. 1 por minuto) — protege contra um tenant disparando sync em loop. Retorna
       `429` com `Retry-After` quando excedida, nunca enfileira silenciosamente além do limite.
   - *Depende de:* nenhuma.
   - *Aceite:* teste prova que disparar sync repetidamente acima do limite retorna `429` a partir da
     N+1ª tentativa dentro da janela.
+  - **Evidência (2026-10-17):** reserva atômica no Redis compartilhado, chave por tenant/instância,
+    janela iniciada na primeira reserva, configurável no Host (`Connector:SyncQuota`, padrão
+    1 solicitação/60s). `ConnectorSyncService` valida visibilidade/estado antes da reserva e só
+    então cria o run/publica. Excesso retorna `429 ProblemDetails` e `Retry-After`, sem persistir
+    nem publicar. `ConnectorSyncQuotaTests`: oito pedidos concorrentes com limite dois resultam
+    em dois `202`, seis `429`, exatamente dois runs e duas publicações; outra instância segue
+    disponível. Redis real prova compartilhamento entre clientes, isolamento por tenant e
+    expiração. Suíte completa `EIP.Host.IntegrationTests`: **37/37 passando**, SQL Server/Redis
+    efêmeros via Testcontainers. Runbook atualizado com configuração e semântica de falhas.
+    Durante a validação, corrigido também `AuthService.RefreshAsync`: token anterior à criação
+    da organização passa a reavaliar memberships, permitindo selecionar o tenant recém-criado
+    e carregar suas permissões; o teste percorre registro → provisionamento → refresh → sync.
 - [ ] **E4.2** `GET /api/v1/admin/tenants/{tenantId}/usage` — contagem de sincronizações, consultas
       analíticas (`analytics.query`) e bytes armazenados no Data Lake, por período. Protegido por uma
       nova permissão de plataforma (não de tenant) — só quem administra a plataforma como um todo
@@ -396,7 +408,7 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 | E1 — Provisionamento próprio de tenant | Concluído (E1.1–E1.3) |
 | E2 — Conector de referência: robustecimento operacional | Concluído (E2.1–E2.3) |
 | E3 — Catálogo de dados e linhagem | Concluído (E3.1–E3.2) |
-| E4 — Quotas e medição de uso por tenant | Não iniciado |
+| E4 — Quotas e medição de uso por tenant | Em andamento (E4.1 concluído; E4.2 pendente) |
 | E5 — Confiabilidade operacional | Não iniciado |
 | E6 — Hardening de segurança, LGPD e isolamento sob carga | Não iniciado |
 | E7 — Fechamento da fase | Não iniciado |
