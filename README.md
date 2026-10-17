@@ -345,14 +345,17 @@ Ela foi projetada para tornar-se a camada central de Inteligência Corporativa d
 
 # Status do Projeto
 
-**Fase Atual:** Fundação de Engenharia (Fase 0) — implementada e validada; Fase 1 ainda não iniciada.
+**Fase Atual:** Fase 3 — Produto Operável e Expansão Controlada, em andamento. Fases 0–2 formalmente encerradas nos respectivos backlogs; Fase 3 com E1–E3 registrados como concluídos e E4–E7 pendentes.
 
 **Versão da Documentação:** 1.0
 
-**Status:** Backend (.NET 10), frontend (Angular) e infraestrutura local (Docker Compose) da Fase 0
-implementados: autenticação/tenant/permissões com RLS obrigatória, API versionada com observabilidade,
-Gateway (YARP), CI, e um conector de referência com execução assíncrona ponta a ponta. Veja
-`docs/roadmap/fase-0-backlog.md` (execução) e `docs/guides/ambiente-local.md` (como rodar).
+**Status:** Além da fundação, o repositório inclui pipeline de dados, Warehouse, camada semântica,
+Analytics Engine, Dashboard Builder, provisionamento próprio de tenant, retry/DLQ e catálogo/linhagem.
+O histórico de implementação e aceite está nos backlogs de cada fase. A revalidação de 17/10/2026
+foi parcial: frontend validado em desenvolvimento; backend e integração ainda dependem do ambiente.
+Veja [revisão e próximas tarefas](docs/roadmap/revisao-2026-10-17.md),
+[backlog da Fase 3](docs/roadmap/fase-3-backlog.md) e
+[guia local](docs/guides/ambiente-local.md) (com atualização pendente indicada na revisão).
 
 ---
 
