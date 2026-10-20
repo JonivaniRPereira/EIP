@@ -167,5 +167,20 @@ permanecem nos backlogs e evidências, sem credenciais ou payloads pessoais nest
   depois adaptador de modelo, interface, rascunhos e avaliações. Provedor/modelo e
   política de dados ainda abertos; não chamar modelos externos nesta base.
   CI remoto anterior não certifica essa nova entrega; manter limite de piloto Demo.
+- F4.2 concluído localmente: queryAnalytics com contrato fechado, tenant do JWT,
+  analytics.query e IDeclarativeAnalyticsQueryService medido. Sem SQL/HTTP livre;
+  schema estrito, recusa de campos extras/repetidos, nulos e métricas duplicadas.
+  Retorna consulta validada, origem, dados e metadados de versão/execução/frescor.
+  Reutiliza RLS/cache/limites e contadores; não existe quota mensal analítica/IA
+  atual, corrigida a referência anterior a quota. Isso permanece em F4.3/F4.7.
+  Host108/108, Release e formatação aprovados; paridade, isolamento entre tenants,
+  frescor nulo/conhecido, filtros/ordem/limite, timeout e medição conferidos.
+  Demo via Gateway: receita11110 e proteções401/400/413; diagnóstico aprovado,
+  15organizações, filas vazias. Evidência fase-4-consultas-2026-10-19.json.
+  API em %TEMP%/eip-ai-query-host, cwd src/Host, Development, localhost5080,
+  sessão54999. Demais serviços mantidos. Sem tabela/migration/UI/modelo novo.
+  Próxima F4.3: adaptador e política de dados; provedor/modelo/orçamento ainda
+  pendentes, nenhuma chamada externa autorizada/configurada. CI desta entrega
+  não validado remotamente; não fazer push automaticamente.
 - Preservar alterações locais e dados existentes. Testes deixam organizações sintéticas;
   limpeza deve ser delimitada por IDs e planejada, nunca apagar tenants indiscriminadamente.

@@ -20,8 +20,10 @@ public sealed class AiToolsTests(HostApiFixture fixture)
         using var client = fixture.CreateClient();
         using var list = await client.GetAsync("/api/v1/ai/tools");
         using var invoke = await client.PostAsJsonAsync("/api/v1/ai/tools/listDatasets", new { });
+        using var query = await client.PostAsJsonAsync("/api/v1/ai/tools/queryAnalytics", new { });
         list.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         invoke.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        query.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -38,8 +40,10 @@ public sealed class AiToolsTests(HostApiFixture fixture)
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", denied.Value);
         using var list = await client.GetAsync("/api/v1/ai/tools");
         using var invoke = await client.PostAsJsonAsync("/api/v1/ai/tools/listDatasets", new { });
+        using var query = await client.PostAsJsonAsync("/api/v1/ai/tools/queryAnalytics", new { });
         list.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         invoke.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        query.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -48,7 +52,7 @@ public sealed class AiToolsTests(HostApiFixture fixture)
         using var client = fixture.CreateClient();
         await SelectNewTenantAsync(client, await RegisterAsync(client));
         var tools = (await client.GetFromJsonAsync<JsonElement[]>("/api/v1/ai/tools"))!;
-        tools.Should().ContainSingle();
+        tools.Select(t => t.GetProperty("name").GetString()).Should().BeEquivalentTo("listDatasets", "queryAnalytics");
         var tool = tools[0];
         tool.GetProperty("name").GetString().Should().Be("listDatasets");
         tool.GetProperty("requiredPermission").GetString().Should().Be("analytics.query");
@@ -93,7 +97,7 @@ public sealed class AiToolsTests(HostApiFixture fixture)
     }
 
     [Theory]
-    [InlineData("queryAnalytics")]
+    [InlineData("deleteDataset")]
     [InlineData("publishDashboard")]
     [InlineData("executeSql")]
     public async Task UnregisteredToolsAreNotExecutable(string name)
@@ -102,6 +106,30 @@ public sealed class AiToolsTests(HostApiFixture fixture)
         await SelectNewTenantAsync(client, await RegisterAsync(client));
         using var response = await client.PostAsJsonAsync($"/api/v1/ai/tools/{name}", new { });
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("[]")]
+    [InlineData("{}")]
+    [InlineData("{\"dataset\":\"sales\",\"metrics\":[\"netRevenue\",\"netRevenue\"],\"dimensions\":[\"date.month\"]}")]
+    [InlineData("{\"dataset\":\"sales\",\"metrics\":[null],\"dimensions\":[\"date.month\"]}")]
+    [InlineData("{\"dataset\":\"sales\",\"metrics\":[\"netRevenue\"],\"dimensions\":[\"date.month\"],\"tenantId\":\"11111111-1111-1111-1111-111111111111\"}")]
+    [InlineData("{\"dataset\":\"sales\",\"metrics\":[\"netRevenue\"],\"dimensions\":[\"date.month\"],\"sql\":\"select 1\"}")]
+    [InlineData("{\"dataset\":\"sales\",\"dataset\":\"sales\",\"metrics\":[\"netRevenue\"],\"dimensions\":[\"date.month\"]}")]
+    [InlineData("{\"dataset\":\"sales\",\"metrics\":[\"netRevenue\"],\"dimensions\":[\"date.month\"],\"filters\":[null]}")]
+    [InlineData("{\"dataset\":\"sales\",\"metrics\":[\"netRevenue\"],\"dimensions\":[\"date.month\"],\"filters\":[{\"field\":\"date\",\"operator\":\"between\",\"values\":[\"2026-01-01\",\"2026-02-01\"],\"tenantId\":\"other\"}]}")]
+    [InlineData("{\"dataset\":\"sales\",\"metrics\":[\"netRevenue\"],\"dimensions\":[\"date.month\"],\"orderBy\":[null]}")]
+    [InlineData("{\"dataset\":\"sales\",\"metrics\":[\"netRevenue\"],\"dimensions\":[\"date.month\"],\"limit\":999999999999999999999}")]
+    [InlineData("{\"dataset\":\"sales\",\"metrics\":[\"netRevenue\"],\"dimensions\":[\"date.month\"],\"limit\":5001}")]
+    [InlineData("{\"dataset\":\"sales\",\"metrics\":[\"netRevenue\"],\"dimensions\":[\"date.month\"],\"filters\":[{\"field\":\"date\",\"operator\":\"between\",\"values\":[\"2020-01-01\",\"2026-01-01\"]}]}")]
+    public async Task AnalyticsRejectsMalformedOrUntrustedArguments(string body)
+    {
+        using var client = fixture.CreateClient();
+        await SelectNewTenantAsync(client, await RegisterAsync(client));
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+        using var response = await client.PostAsync("/api/v1/ai/tools/queryAnalytics", content);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     private static async Task<JsonElement> RegisterAsync(HttpClient client)

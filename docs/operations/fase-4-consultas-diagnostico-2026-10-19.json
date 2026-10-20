@@ -1,0 +1,75 @@
+{
+  "observedAtUtc": "2026-10-20T01:36:02.0636434+00:00",
+  "scope": "local-demo-read-only",
+  "status": "passed",
+  "probes": [
+    {
+      "name": "Frontend",
+      "url": "http://127.0.0.1:4200/",
+      "statusCode": 200,
+      "passed": true
+    },
+    {
+      "name": "API viva",
+      "url": "http://127.0.0.1:5080/health/live",
+      "statusCode": 200,
+      "passed": true
+    },
+    {
+      "name": "Dependências da API",
+      "url": "http://127.0.0.1:5080/health/ready",
+      "statusCode": 200,
+      "passed": true
+    },
+    {
+      "name": "Gateway e origem Demo",
+      "url": "http://127.0.0.1:5000/api/v1/sample/customers",
+      "statusCode": 200,
+      "passed": true
+    }
+  ],
+  "containers": [
+    {
+      "name": "eip-sqlserver",
+      "state": "running|healthy",
+      "passed": true
+    },
+    {
+      "name": "eip-redis",
+      "state": "running|healthy",
+      "passed": true
+    },
+    {
+      "name": "eip-rabbitmq",
+      "state": "running|healthy",
+      "passed": true
+    },
+    {
+      "name": "eip-minio",
+      "state": "running|healthy",
+      "passed": true
+    }
+  ],
+  "queues": {
+    "activeConsumers": 1,
+    "ready": 0,
+    "processing": 0,
+    "deadLetters": 0,
+    "retryMessages": 0
+  },
+  "loads": {
+    "observedAtUtc": "2026-10-20T01:36:01.8983449Z",
+    "tenants": 15,
+    "pending": 0,
+    "running": 0,
+    "failedLast24Hours": 0,
+    "tenantsWithWarehouseSuccess": 3,
+    "freshnessEvaluated": false
+  },
+  "issues": [],
+  "limits": [
+    "Verificação pontual; não é SLO nem monitoramento contínuo.",
+    "Não executa login, ingestão ou reconciliação.",
+    "Sem prazo de frescor acordado; ausência de carga não indica dados frescos."
+  ]
+}

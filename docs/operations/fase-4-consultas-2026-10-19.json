@@ -1,0 +1,48 @@
+{
+  "localDate": "2026-10-19",
+  "milestone": "F4.2",
+  "status": "passed-local",
+  "tools": [
+    "listDatasets",
+    "queryAnalytics"
+  ],
+  "liveGatewayPassed": true,
+  "catalogParity": true,
+  "tenantId": "5e17b5c9-5862-4029-a627-d95261cbf8a7",
+  "dataset": "sales",
+  "semanticVersion": "1.0",
+  "dataFreshnessAt": "2026-10-19T09:16:29.5481933-03:00",
+  "rowCount": 1,
+  "netRevenueTotal": 11110.0,
+  "httpProtections": {
+    "oversizedBody": 413,
+    "arbitrarySql": 400,
+    "anonymous": 401,
+    "contextOverride": 400
+  },
+  "releasePublishPassed": true,
+  "formatChangedFilesPassed": true,
+  "providerConfigured": false,
+  "externalModelCalls": 0,
+  "monthlyAiQuotaImplemented": false,
+  "frontendChanged": false,
+  "remoteCiValidatedForThisChange": false,
+  "hostDllSha256": "d6e0507d4259a9fc8dcc06f4b0af87fd8f0cf987c9c199080864d380bb566277",
+  "hostTests": {
+    "total": 108,
+    "passed": 108,
+    "failed": 0,
+    "notExecuted": 0
+  },
+  "integrationCoverage": [
+    "normal-query-parity",
+    "cross-tenant-data-and-cache-isolation",
+    "freshness-known-and-unknown",
+    "filters-ordering-limit",
+    "successful-query-metering-including-cache",
+    "invalid-query-not-metered",
+    "execution-timeout",
+    "strict-input-contract"
+  ],
+  "localDiagnostic": "fase-4-consultas-diagnostico-2026-10-19.json"
+}

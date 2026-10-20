@@ -347,7 +347,7 @@ Ela foi projetada para tornar-se a camada central de Inteligência Corporativa d
 
 **Fase Atual:** Fase 4 iniciada em 19/10/2026 — base de ferramentas autorizadas para IA assistida.
 Fase 3 encerrada no escopo reduzido de engenharia; CI remoto aprovado. Piloto externo ainda sem homologação.
-Ver [tarefas e limites da Fase 4](docs/roadmap/fase-4-backlog.md); esta primeira etapa não inclui provedor ou chat de IA.
+Ver [tarefas e limites da Fase 4](docs/roadmap/fase-4-backlog.md); descoberta e consulta analítica por ferramentas implementadas, ainda sem provedor ou chat de IA.
 
 **Versão da Documentação:** 1.0
 

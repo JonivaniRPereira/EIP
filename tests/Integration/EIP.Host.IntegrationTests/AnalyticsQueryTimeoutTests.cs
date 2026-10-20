@@ -100,10 +100,12 @@ public sealed class AnalyticsQueryTimeoutTests : IAsyncLifetime
         await _factory.DisposeAsync();
     }
 
-    [Fact]
-    public async Task Query_ExceedingExecutionTimeout_ReturnsBadRequestExplainingTheLimit()
+    [Theory]
+    [InlineData("/api/v1/analytics/query")]
+    [InlineData("/api/v1/ai/tools/queryAnalytics")]
+    public async Task Query_ExceedingExecutionTimeout_ReturnsBadRequestExplainingTheLimit(string path)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/analytics/query")
+        var request = new HttpRequestMessage(HttpMethod.Post, path)
         {
             Content = JsonContent.Create(new
             {

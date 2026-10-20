@@ -2,11 +2,13 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using EIP.BuildingBlocks.Security;
 using EIP.Data.Warehouse.Domain;
 using EIP.Data.Warehouse.Infrastructure;
 using EIP.Platform.Tenant.Domain;
 using EIP.Platform.Tenant.Infrastructure;
+using EIP.Platform.Administration.Infrastructure;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -168,16 +170,102 @@ public sealed class AnalyticsQueryTests : IAsyncLifetime
         var data = body.GetProperty("data");
         data.GetArrayLength().Should().Be(1);
         data[0].GetProperty("netRevenue").GetDecimal().Should().Be(99999m);
+        body.GetProperty("metadata").GetProperty("dataFreshnessAt").ValueKind.Should().Be(JsonValueKind.Null);
     }
 
-    private Task<HttpResponseMessage> SendQueryAsync(string accessToken, object payload)
+    [Fact]
+    public async Task Query_ToolPreservesFiltersOrderingAndLimit()
     {
+        using var response = await SendQueryAsync(_tokenA, new
+        {
+            dataset = "sales",
+            metrics = new[] { "netRevenue" },
+            dimensions = new[] { "date.month" },
+            filters = new[] { new { field = "date", @operator = "between", values = new[] { "2026-01-01", "2026-02-28" } } },
+            orderBy = new[] { new { field = "netRevenue", direction = "desc" } },
+            limit = 1,
+        });
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("data").GetArrayLength().Should().Be(1);
+        body.GetProperty("data")[0].GetProperty("netRevenue").GetDecimal().Should().Be(2000m);
+    }
+
+    [Fact]
+    public async Task Query_ToolCannotExpandScopeWithUnknownCompany()
+    {
+        using var response = await SendQueryAsync(_tokenA, new
+        {
+            dataset = "sales",
+            metrics = new[] { "netRevenue" },
+            dimensions = new[] { "date.month" },
+            filters = new[] { new { field = "company.id", @operator = "equals", values = new[] { Guid.NewGuid().ToString() } } },
+        });
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("data").GetArrayLength().Should().Be(0);
+    }
+
+    private async Task<HttpResponseMessage> SendQueryAsync(string accessToken, object payload)
+    {
+        var tenantId = accessToken == _tokenA ? _tenantAId : _tenantBId;
+        var before = await CountUsageAsync(tenantId);
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/analytics/query")
         {
             Content = JsonContent.Create(payload),
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        return _client.SendAsync(request);
+        var response = await _client.SendAsync(request);
+        using var toolRequest = new HttpRequestMessage(HttpMethod.Post, "/api/v1/ai/tools/queryAnalytics")
+        {
+            Content = JsonContent.Create(payload),
+        };
+        toolRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        using var toolResponse = await _client.SendAsync(toolRequest);
+        toolResponse.StatusCode.Should().Be(response.StatusCode);
+        var after = await CountUsageAsync(tenantId);
+        after.Should().Be(before + (response.IsSuccessStatusCode ? 2 : 0), "cada consulta bem-sucedida deve ser medida, inclusive no cache");
+        if (response.IsSuccessStatusCode)
+        {
+            var normal = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync());
+            var tool = await toolResponse.Content.ReadFromJsonAsync<JsonElement>();
+            tool.GetProperty("tenantId").GetGuid().Should().Be(accessToken == _tokenA ? _tenantAId : _tenantBId);
+            tool.GetProperty("tool").GetString().Should().Be("queryAnalytics");
+            tool.GetProperty("source").GetString().Should().Be("analytics");
+            tool.GetProperty("query").GetProperty("dataset").GetString().Should().Be("sales");
+            foreach (var field in new[] { "data", "metadata" })
+            {
+                var expected = JsonNode.Parse(normal.GetProperty(field).GetRawText());
+                var actual = JsonNode.Parse(tool.GetProperty(field).GetRawText());
+                if (field == "metadata")
+                {
+                    expected!.AsObject().Remove("executedAt");
+                    actual!.AsObject().Remove("executedAt");
+                    tool.GetProperty("metadata").GetProperty("executedAt").GetDateTimeOffset()
+                        .Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromSeconds(30));
+                }
+
+                JsonNode.DeepEquals(expected, actual).Should().BeTrue();
+            }
+        }
+
+        return response;
+    }
+
+    private async Task<int> CountUsageAsync(Guid tenantId)
+    {
+        var accessor = _fixture.Services.GetRequiredService<ITenantContextAccessor>();
+        var previous = accessor.Current;
+        accessor.Current = new TenantContext(tenantId);
+        try
+        {
+            await using var usage = await _fixture.Services.GetRequiredService<IDbContextFactory<UsageDbContext>>().CreateDbContextAsync();
+            return await usage.AnalyticsQueries.CountAsync(q => q.TenantId == tenantId);
+        }
+        finally
+        {
+            accessor.Current = previous;
+        }
     }
 
     private async Task<Guid> RegisterAsync(string email)
