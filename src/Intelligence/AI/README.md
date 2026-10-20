@@ -24,5 +24,11 @@ Não há provedor, chat ou geração por IA nesta entrega. Nenhuma chave é nece
 Há registro de consultas bem-sucedidas, inclusive cache hit; não há quota mensal
 analítica/IA implementada. O rate limit do Gateway continua aplicável.
 
-Próxima etapa: adaptador de modelo com política de dados e orçamento definidos.
+Preparação multiprovedor: `IAiModelAdapter`, implementação desabilitada e perfis
+na seção `AI` da configuração do Host. Descoberta autenticada em `GET /api/v1/ai/status`
+e `GET /api/v1/ai/providers`, sem expor referências/valores de credenciais.
+OpenAI/Anthropic/Google são perfis iniciais, sem transportes HTTP implementados.
+Selecionar perfil/modelo não habilita chamadas. [Configuração e pendências](../../../docs/guides/ia-provedores.md).
+
+Próxima etapa: transportes e configuração administrativa com política de dados e orçamento definidos.
 [Backlog e critérios](../../../docs/roadmap/fase-4-backlog.md).

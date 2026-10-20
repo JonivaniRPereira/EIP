@@ -182,5 +182,21 @@ permanecem nos backlogs e evidências, sem credenciais ou payloads pessoais nest
   Próxima F4.3: adaptador e política de dados; provedor/modelo/orçamento ainda
   pendentes, nenhuma chamada externa autorizada/configurada. CI desta entrega
   não validado remotamente; não fazer push automaticamente.
+- Usuário definiu IA para vários provedores configuráveis na plataforma, sem
+  escolher modelo único. F4.3a (base) concluída localmente: IAiModelAdapter,
+  adaptador desabilitado, perfis globais por instalação em Host:AI, com exemplos
+  OpenAI/Anthropic/Google e modelos/limites/referências de credencial separados.
+  Referências são nomes EIP_AI_*, não chaves; esta base não lê/envia credenciais.
+  Configuração inválida impede startup; activeProfile não habilita chamadas.
+  GET /ai/status e /ai/providers exigem tenant+analytics.query e não expõem refs.
+  Host118/118, Release/formatação e HTTP Demo aprovados; diagnóstico15tenants,
+  filas vazias. API em %TEMP%/eip-ai-providers-host, sessão54842, src/Host,
+  Development localhost5080. Front/Worker/Gateway mantidos. Sem migration/LLM.
+  F4.3 permanece em andamento: transportes específicos, tela administrativa,
+  governança/persistência de configurações/segredos, orçamento/quotas e política
+  de envio por organização ainda pendentes. Próxima etapa prepara configuração
+  administrativa e transportes; não ativar/enviar dados só porque há perfis.
+  Guia docs/guides/ia-provedores.md e evidência fase-4-provedores-2026-10-19.json.
+  Não somar testes históricos; CI deste candidato ainda não aprovado remotamente.
 - Preservar alterações locais e dados existentes. Testes deixam organizações sintéticas;
   limpeza deve ser delimitada por IDs e planejada, nunca apagar tenants indiscriminadamente.

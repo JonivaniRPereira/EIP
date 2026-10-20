@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using EIP.Platform.Identity.Application.Abstractions;
+using EIP.Intelligence.AI.Application;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,9 +22,13 @@ public sealed class AiToolsTests(HostApiFixture fixture)
         using var list = await client.GetAsync("/api/v1/ai/tools");
         using var invoke = await client.PostAsJsonAsync("/api/v1/ai/tools/listDatasets", new { });
         using var query = await client.PostAsJsonAsync("/api/v1/ai/tools/queryAnalytics", new { });
+        using var status = await client.GetAsync("/api/v1/ai/status");
+        using var providers = await client.GetAsync("/api/v1/ai/providers");
         list.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         invoke.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         query.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        status.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        providers.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -33,6 +38,10 @@ public sealed class AiToolsTests(HostApiFixture fixture)
         var auth = await RegisterAsync(client);
         using var noTenant = await client.GetAsync("/api/v1/ai/tools");
         noTenant.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        using var noTenantStatus = await client.GetAsync("/api/v1/ai/status");
+        noTenantStatus.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        using var noTenantProviders = await client.GetAsync("/api/v1/ai/providers");
+        noTenantProviders.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         var tenantId = await SelectNewTenantAsync(client, auth);
         var source = new JwtSecurityTokenHandler().ReadJwtToken(client.DefaultRequestHeaders.Authorization!.Parameter);
         var generator = fixture.Services.GetRequiredService<IJwtTokenGenerator>();
@@ -41,9 +50,48 @@ public sealed class AiToolsTests(HostApiFixture fixture)
         using var list = await client.GetAsync("/api/v1/ai/tools");
         using var invoke = await client.PostAsJsonAsync("/api/v1/ai/tools/listDatasets", new { });
         using var query = await client.PostAsJsonAsync("/api/v1/ai/tools/queryAnalytics", new { });
+        using var status = await client.GetAsync("/api/v1/ai/status");
+        using var providers = await client.GetAsync("/api/v1/ai/providers");
         list.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         invoke.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         query.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        status.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        providers.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task ModelStatusIsExplicitlyDisabledForAuthorizedTenant()
+    {
+        using var client = fixture.CreateClient();
+        await SelectNewTenantAsync(client, await RegisterAsync(client));
+        var status = await client.GetFromJsonAsync<AiModelStatus>("/api/v1/ai/status");
+        status.Should().Be(new AiModelStatus(false, DisabledAiModelAdapter.DisabledCode, null, null));
+    }
+
+    [Fact]
+    public async Task DisabledAdapterNeverInventsAProposalAndHonorsCancellation()
+    {
+        var adapter = fixture.Services.GetRequiredService<IAiModelAdapter>();
+        var request = new AiModelRequest(Guid.NewGuid(), "Qual a receita?", []);
+        var proposal = await adapter.ProposeAsync(request, CancellationToken.None);
+        proposal.Should().Be(new AiModelProposal(null, null, DisabledAiModelAdapter.DisabledCode));
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+        var invoke = async () => await adapter.ProposeAsync(request, cancellation.Token);
+        await invoke.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public async Task ProviderCatalogExposesMultipleProfilesWithoutCredentialReferences()
+    {
+        using var client = fixture.CreateClient();
+        await SelectNewTenantAsync(client, await RegisterAsync(client));
+        var json = await client.GetStringAsync("/api/v1/ai/providers");
+        var catalog = JsonSerializer.Deserialize<AiProviderCatalog>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        catalog.InvocationEnabled.Should().BeFalse();
+        catalog.ActiveProfileId.Should().BeNull();
+        catalog.Profiles.Select(profile => profile.Provider).Should().BeEquivalentTo("openai", "anthropic", "google");
+        json.Should().NotContain("EIP_AI_").And.NotContain("credential", "nenhuma referência de credencial deve sair pela API");
     }
 
     [Fact]

@@ -11,7 +11,7 @@ P01/P03–P08; início desta fase não equivale a homologação de produção.
 |---|---|---|---|
 | F4.1 | Base de ferramentas e descoberta | Registro fechado, schema, permissão analytics.query e tenant da sessão; catálogo igual ao Analytics; recusa de ferramentas/argumentos não permitidos; testes e API local. | Concluído localmente. [Evidência](../operations/fase-4-ferramentas-2026-10-19.json). |
 | F4.2 | Ferramenta queryAnalytics | Consulta declarativa passa pelo serviço analítico medido; mesmas permissões, RLS, medição, limites, filtros, cache e frescor da consulta normal; divergência/cross-tenant/SQL arbitrário recusados. | Concluído localmente. [Evidência](../operations/fase-4-consultas-2026-10-19.json). |
-| F4.3 | Adaptador de modelo e política de dados | Escolher provedor/modelo, credenciais fora do Git, destinos permitidos, orçamento e contrato de dados; contexto mínimo e modo desabilitado seguro. Sem envio externo antes dessa configuração/autorização. | Planejado; decisão de provedor ainda aberta. |
+| F4.3 | Adaptadores de modelo e política de dados | Vários provedores configuráveis na plataforma; credenciais fora do Git, destinos permitidos, orçamento e contrato de dados; contexto mínimo e modo desabilitado seguro. Sem envio externo antes dessa configuração/autorização. | Em andamento: contrato e perfis configuráveis no backend; transportes, tela administrativa e políticas ainda pendentes. |
 | F4.4 | Pergunta analítica e interface | Intenção gera proposta validada; resposta com dataset/métrica/período/filtros/frescor, erro e ambiguidade explícitos. Nenhum número inventado. | Após F4.2/F4.3. |
 | F4.5 | Rascunhos assistidos de painel | Proposta não publicada, revisão e confirmação explícita pelos fluxos existentes; permissão de publicação conferida separadamente. | Após F4.4. |
 | F4.6 | Avaliações e guardrails de IA | Casos sintéticos de intenção, ambiguidade, injection em dados/prompt, falha/timeout de modelo/ferramenta e acesso cruzado; métricas e critérios de aceite registrados. | Antes de habilitar IA para usuários. |
@@ -82,6 +82,35 @@ aprovado, 15 organizações, um consumidor e filas vazias. API local atualizada;
 front/Worker/Gateway mantidos. Sem alteração de dados de negócio ou migration.
 Sem LLM, chamadas externas ou testes novos de frontend. CI remoto desta entrega
 aguarda publicação; a aprovação anterior não certifica este código.
+
+## F4.3a — preparação multiprovedor
+
+O usuário definiu suporte a **vários provedores configuráveis na plataforma**.
+A base agora tem `IAiModelAdapter` com entrada mínima (tenant, pergunta, catálogo)
+e saída de proposta declarativa/esclarecimento/erro. O único adaptador registrado
+continua desabilitado: retorna `ai_model_not_configured`, respeita cancelamento,
+não inventa consulta e não faz rede/persistência.
+
+Perfis globais da instalação na seção `AI`: provedor/modelo, referência de
+credencial, timeout e limite de saída. Exemplos OpenAI/Anthropic/Google; vários
+modelos do mesmo provedor são aceitos. Perfil ativo inexistente, identificadores
+duplicados ou limites inválidos impedem a partida. Descoberta autenticada em
+`GET /api/v1/ai/status` e `/api/v1/ai/providers`, sem referências/valores de chaves.
+Selecionar um perfil não ativa chamadas externas. [Guia de configuração](../guides/ia-provedores.md).
+
+**F4.3 permanece em andamento.** Transportes específicos, tela administrativa,
+armazenamento de segredos, política por organização e quotas/orçamento efetivos
+continuam pendentes. Nenhum dado foi autorizado para envio externo apenas pela
+decisão de suportar vários provedores. A configuração desta etapa é do operador,
+no backend; frontend e fluxo de perguntas ainda não foram alterados.
+
+Validação desta base: **118/118** testes Host aprovados; Release e formatação
+aprovados. Inclui autorização de status/catálogo, resposta desabilitada,
+cancelamento, vários perfis/modelos e recusa de configuração inválida. Na API
+real: três perfis, chamada desabilitada, nenhuma referência de credencial exposta,
+anônimo 401 e receita Demo preservada em11110. Diagnóstico aprovado com15tenants.
+[Evidência](../operations/fase-4-provedores-2026-10-19.json). Sem mudança de frontend,
+Migration, dados de negócio ou chamada externa. CI remoto desta entrega pendente.
 
 ## Critérios de saída da fase
 

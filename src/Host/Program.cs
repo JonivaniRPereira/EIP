@@ -13,6 +13,7 @@ using EIP.Data.Semantic.Application;
 using EIP.Data.Warehouse.Application;
 using EIP.Data.Warehouse.Infrastructure;
 using EIP.Host;
+using EIP.Intelligence.AI.Application;
 using EIP.Intelligence.Analytics.Application;
 using EIP.Intelligence.Analytics.Infrastructure;
 using EIP.Intelligence.Dashboard.Infrastructure;
@@ -181,6 +182,9 @@ builder.Services.AddScoped<DeclarativeAnalyticsQueryService>(sp =>
         sp.GetRequiredService<ILogger<DeclarativeAnalyticsQueryService>>());
 });
 builder.Services.AddScoped<IDeclarativeAnalyticsQueryService, MeteredAnalyticsQueryService>();
+builder.Services.AddSingleton<IAiModelAdapter, DisabledAiModelAdapter>();
+builder.Services.AddSingleton(new AiProviderConfiguration(
+    builder.Configuration.GetSection("AI").Get<AiProviderOptions>() ?? new AiProviderOptions()));
 
 builder.Services.AddScoped<IMembershipDirectory, EIP.Platform.Tenant.Infrastructure.MembershipDirectory>();
 builder.Services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();

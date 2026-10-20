@@ -1,0 +1,35 @@
+{
+  "localDate": "2026-10-19",
+  "milestone": "F4.3a",
+  "status": "passed-local-foundation",
+  "phaseF43Complete": false,
+  "profiles": [
+    "openai",
+    "anthropic",
+    "google"
+  ],
+  "profileCount": 3,
+  "activeProfileId": null,
+  "invocationEnabled": false,
+  "modelStatusCode": "ai_model_not_configured",
+  "credentialReferencesExposed": false,
+  "anonymousCatalogStatus": 401,
+  "demoNetRevenue": 11110.0,
+  "externalModelCalls": 0,
+  "transportAdaptersImplemented": false,
+  "administrativeConfigurationUiImplemented": false,
+  "configurationScope": "global-installation",
+  "configurationEditing": "host-configuration-and-environment",
+  "frontendChanged": false,
+  "releasePublishPassed": true,
+  "formatChangedFilesPassed": true,
+  "remoteCiValidatedForThisChange": false,
+  "hostDllSha256": "d2432c111723bcb607c6d74667b8ef5a07f51557f5ed2f35079745560f630c27",
+  "hostTests": {
+    "total": 118,
+    "passed": 118,
+    "failed": 0,
+    "notExecuted": 0
+  },
+  "localDiagnostic": "fase-4-provedores-diagnostico-2026-10-19.json"
+}
