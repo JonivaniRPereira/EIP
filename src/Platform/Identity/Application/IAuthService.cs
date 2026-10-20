@@ -7,6 +7,7 @@ public interface IAuthService
     Task<AuthResult> LoginAsync(string email, string password, CancellationToken cancellationToken);
 
     Task<AuthResult> RefreshAsync(string refreshToken, CancellationToken cancellationToken);
+    Task RevokeSessionAsync(string refreshToken, CancellationToken cancellationToken);
 
     /// <param name="userId">Extraído do JWT já autenticado (claim sub) — nunca de input do cliente.</param>
     Task<AuthResult> SelectTenantAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken);

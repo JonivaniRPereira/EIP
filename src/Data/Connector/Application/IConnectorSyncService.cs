@@ -17,6 +17,10 @@ public sealed record SyncRunRequestResult(bool Success, Guid? SyncRunId, string?
 /// dentro do request HTTP (docs/05-Connector-Framework.md §2: "execução assíncrona").</summary>
 public interface IConnectorSyncService
 {
+    Task<ConnectorInstance?> UpdateConfigurationAsync(Guid tenantId, Guid connectorInstanceId, string name, string baseUrl, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ConnectorInstance>> ListInstancesAsync(Guid tenantId, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<SyncRun>?> ListRunsAsync(Guid tenantId, Guid connectorInstanceId, int limit, CancellationToken cancellationToken, DateTimeOffset? before = null, Guid? beforeId = null);
     /// <summary>Registra a instância do conector de referência (REST genérico) para o tenant
     /// autenticado. Substitui, na Fase 0, o Connector Registry completo de
     /// docs/05-Connector-Framework.md §4 (Draft/Configuring/Validating ficam para a Fase 1) — aqui

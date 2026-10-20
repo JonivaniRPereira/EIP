@@ -1,0 +1,151 @@
+<section class="card">
+  <div class="heading">
+    <h2>Diagnóstico de falhas</h2>
+    <button mat-stroked-button (click)="reload()" [disabled]="loading() || busy()">
+      Atualizar falhas
+    </button>
+  </div>
+  <label class="filter"
+    >Integração analisada
+    <select [value]="filter()" (change)="setFilter($event)" [disabled]="busy()">
+      <option value="">Todas as integrações</option>
+      @for (connector of connectors(); track connector.id) {
+        <option [value]="connector.id">{{ connector.name }}</option>
+      }
+    </select>
+  </label>
+  @if (loading()) {
+    <p role="status">Carregando diagnóstico…</p>
+  }
+  @if (actionError()) {
+    <p class="error" role="alert">{{ actionError() }}</p>
+  }
+  @if (notice()) {
+    <p class="notice" role="status">{{ notice() }}</p>
+  }
+  @if (action(); as selected) {
+    <section class="confirmation" aria-label="Confirmar reprocessamento">
+      <h3>
+        {{
+          selected.kind === 'quarantine'
+            ? 'Reprocessar a integração inteira?'
+            : 'Devolver esta mensagem para processamento?'
+        }}
+      </h3>
+      <p>{{ name(selected.connectorId) }}</p>
+      <p>
+        {{
+          selected.kind === 'quarantine'
+            ? 'A origem será consultada novamente sem filtro incremental. Corrija o dado na origem antes de continuar. A marca de reprocessamento solicitado não comprova a correção; confira a nova execução.'
+            : 'O Worker fará outra tentativa. Corrija a causa da falha antes de continuar; se o problema persistir, a mensagem poderá voltar à fila de falhas.'
+        }}
+      </p>
+      @if (remaining(selected.connectorId)) {
+        <p role="status">Aguarde {{ remaining(selected.connectorId) }} s.</p>
+      }
+      <div class="actions">
+        <button
+          mat-flat-button
+          (click)="confirm()"
+          [disabled]="busy() || remaining(selected.connectorId) > 0"
+        >
+          {{ busy() ? 'Solicitando…' : 'Confirmar reprocessamento' }}</button
+        ><button mat-button (click)="action.set(null)" [disabled]="busy()">Cancelar</button>
+      </div>
+    </section>
+  }
+  <h3>Dados em quarentena</h3>
+  <p>
+    Registros rejeitados pela validação, em grupos de 20. Use o botão de anteriores para consultar o
+    histórico.
+  </p>
+  <label class="history"
+    ><input
+      type="checkbox"
+      [checked]="showRequested()"
+      (change)="setRequested()"
+      [disabled]="busy()"
+    />
+    Incluir registros com reprocessamento solicitado</label
+  >
+  @if (quarantineError()) {
+    <p class="error" role="alert">{{ quarantineError() }}</p>
+  } @else if (!loading() && !visibleEntries().length) {
+    <p>Nenhum registro de quarentena neste filtro.</p>
+  }
+  @for (entry of visibleEntries(); track entry.id) {
+    <article>
+      <div class="heading">
+        <strong>{{ name(entry.connectorInstanceId) }}</strong
+        ><span>{{ entry.createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+      </div>
+      <p>Regra: {{ entry.failedRule }}</p>
+      @if (entry.resolvedAt) {
+        <p class="notice">
+          Reprocessamento solicitado em {{ entry.resolvedAt | date: 'dd/MM/yyyy HH:mm:ss' }}.
+          Confira o resultado na execução.
+        </p>
+      }
+      <details>
+        <summary>Motivo e rastreabilidade</summary>
+        <p>{{ entry.reason }}</p>
+        <p>Execução: {{ entry.syncRunId }}</p>
+        <p>Correlação: {{ entry.correlationId }}</p>
+        <p>Referência do dado bruto: {{ entry.rawObjectUri }}</p>
+      </details>
+      @if (canManage() && !entry.resolvedAt) {
+        <button
+          mat-stroked-button
+          (click)="prepare('quarantine', entry.id, entry.connectorInstanceId)"
+          [disabled]="busy() || remaining(entry.connectorInstanceId) > 0"
+        >
+          Reprocessar integração
+        </button>
+      }
+    </article>
+  }
+  @if (hasOlderEntries()) {
+    <button
+      mat-stroked-button
+      (click)="loadOlderEntries()"
+      [disabled]="loading() || olderEntriesLoading() || busy()"
+    >
+      {{ olderEntriesLoading() ? 'Carregando…' : 'Carregar registros anteriores' }}
+    </button>
+  }
+  <h3 class="dlq-title">Fila de falhas</h3>
+  <p>
+    Mensagens que esgotaram as tentativas automáticas. A consulta é limitada e pode não mostrar
+    todas as mensagens acumuladas desta organização.
+  </p>
+  @if (dlqError()) {
+    <p class="error" role="alert">{{ dlqError() }}</p>
+  } @else if (!loading() && !visibleMessages().length) {
+    <p>Nenhuma mensagem encontrada nesta consulta.</p>
+  }
+  @for (entry of visibleMessages(); track $index) {
+    <article>
+      <div class="heading">
+        <strong>{{ name(entry.connectorInstanceId) }}</strong
+        ><span>{{
+          (entry.deadLetteredAtUtc | date: 'dd/MM/yyyy HH:mm:ss') ?? 'Data não informada'
+        }}</span>
+      </div>
+      <p>Motivo registrado: {{ entry.failureReason ?? 'Não informado' }}</p>
+      <details>
+        <summary>Detalhes da mensagem</summary>
+        <p>Execução: {{ entry.syncRunId }}</p>
+        <p>Correlação: {{ entry.correlationId }}</p>
+      </details>
+      @if (canManage()) {
+        <button
+          mat-stroked-button
+          (click)="prepare('dlq', entry.syncRunId, entry.connectorInstanceId)"
+          [disabled]="busy()"
+        >
+          Tentar novamente
+        </button>
+      }
+    </article>
+  }
+</section>

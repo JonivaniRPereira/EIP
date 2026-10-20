@@ -1,0 +1,49 @@
+{
+  "runId": "e800f9672fc14ea795f26fb712e03967",
+  "startedAtUtc": "2026-10-19T17:49:41.202Z",
+  "rowsPerTenant": 10000,
+  "workers": 4,
+  "iterationsPerWorker": 30,
+  "scope": "Direct synthetic Warehouse seed and real Gateway analytics; ingestion/canonical/raw not exercised",
+  "retainedSyntheticData": true,
+  "tenants": [
+    {
+      "tenantId": "463d76a5-f942-4fcb-9940-3c4a85abc3e5",
+      "facts": 10000,
+      "expectedNetRevenue": 1495000,
+      "seedMs": 1090.49
+    },
+    {
+      "tenantId": "baf24cdc-c490-44e8-9dc4-f60c86f385bc",
+      "facts": 10000,
+      "expectedNetRevenue": 2495000,
+      "seedMs": 781.89
+    }
+  ],
+  "firstReads": [
+    {
+      "tenantId": "463d76a5-f942-4fcb-9940-3c4a85abc3e5",
+      "ms": 389.85
+    },
+    {
+      "tenantId": "baf24cdc-c490-44e8-9dc4-f60c86f385bc",
+      "ms": 113.45
+    }
+  ],
+  "status": "passed",
+  "completedAtUtc": "2026-10-19T17:50:20.474Z",
+  "requests": 120,
+  "elapsedSeconds": 33.925,
+  "requestsPerSecond": 3.537,
+  "clientLatency": {
+    "p50Ms": 105.642,
+    "p95Ms": 242.388,
+    "p99Ms": 577.292
+  },
+  "failures": [],
+  "limits": [
+    "Two synthetic tenants, one aggregate dimension and mixed cache; not capacity certification",
+    "One-second pacing per user; not maximum throughput",
+    "No canonical/ingestion/raw recovery or monthly SLO proof"
+  ]
+}

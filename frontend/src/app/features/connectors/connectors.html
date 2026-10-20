@@ -1,0 +1,312 @@
+<header class="page-header">
+  <div>
+    <h1>Integrações</h1>
+    <p>Conecte os dados da sua empresa e acompanhe as sincronizações.</p>
+  </div>
+  @if (canView()) {
+    <button mat-stroked-button (click)="reload()" [disabled]="loading()">
+      Atualizar integrações
+    </button>
+  }
+</header>
+@if (!canView()) {
+  <p role="alert">Você não tem permissão para consultar integrações.</p>
+} @else {
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (notice()) {
+    <p class="notice" role="status">{{ notice() }}</p>
+  }
+  @if (canManage()) {
+    <section class="card">
+      <h2>Nova integração</h2>
+      <p>
+        Use um endereço de origem autorizado pelo administrador. Sincronize clientes e produtos
+        antes das vendas.
+      </p>
+      @if (!companies().length && !loading()) {
+        <p role="status">
+          Nenhuma empresa disponível para cadastro. Verifique suas permissões com o administrador.
+        </p>
+      }
+      <form
+        [formGroup]="form"
+        #registration="ngForm"
+        (ngSubmit)="register(registration)"
+        class="registration"
+      >
+        <mat-form-field appearance="outline"
+          ><mat-label>Nome da integração</mat-label
+          ><input matInput formControlName="name" maxlength="200" />
+          @if (form.controls.name.invalid) {
+            <mat-error>Informe um nome.</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline"
+          ><mat-label>Empresa</mat-label
+          ><mat-select formControlName="companyId">
+            @for (company of companies(); track company.id) {
+              <mat-option [value]="company.id">{{ company.name }}</mat-option>
+            }</mat-select
+          ><mat-error>Selecione a empresa.</mat-error></mat-form-field
+        >
+        <mat-form-field appearance="outline"
+          ><mat-label>Dados da origem</mat-label
+          ><mat-select formControlName="sourceEntity">
+            <mat-option value="customers">Clientes</mat-option
+            ><mat-option value="products">Produtos</mat-option
+            ><mat-option value="sales-invoices">Vendas</mat-option>
+          </mat-select></mat-form-field
+        >
+        <mat-form-field appearance="outline"
+          ><mat-label>Endereço da origem</mat-label
+          ><input matInput type="url" formControlName="baseUrl" placeholder="https://..." />
+          <mat-error>Informe um endereço HTTP ou HTTPS válido.</mat-error>
+        </mat-form-field>
+        <button
+          mat-flat-button
+          type="submit"
+          [disabled]="saving() || loading() || !companies().length"
+        >
+          {{ saving() ? 'Cadastrando…' : 'Cadastrar integração' }}
+        </button>
+      </form>
+    </section>
+  }
+  <section class="card" [attr.aria-busy]="loading()">
+    <h2>Integrações cadastradas</h2>
+    @if (loading()) {
+      <p role="status">Carregando integrações…</p>
+    } @else if (!connectors().length) {
+      <p>Nenhuma integração cadastrada nesta organização.</p>
+    }
+    <div class="connector-grid">
+      @for (connector of connectors(); track connector.id) {
+        <article class="connector" [class.selected]="selected()?.id === connector.id">
+          <h3>{{ connector.name }}</h3>
+          <p>{{ entityLabel(connector.sourceEntity) }} · {{ statusLabel(connector.status) }}</p>
+          <p class="source">{{ connector.baseUrl }}</p>
+          <div class="actions">
+            <button
+              mat-stroked-button
+              (click)="select(connector)"
+              [attr.aria-label]="'Ver execuções de ' + connector.name"
+            >
+              Ver execuções
+            </button>
+            @if (canManage()) {
+              <button
+                mat-stroked-button
+                (click)="configure(connector)"
+                [disabled]="configurationSaving()"
+                [attr.aria-label]="'Configurar ' + connector.name"
+              >
+                Configurar
+              </button>
+              <button
+                mat-stroked-button
+                (click)="openReprocess(connector)"
+                [disabled]="
+                  pending().includes(connector.id) ||
+                  remaining(connector.id) > 0 ||
+                  connector.status !== 'Active'
+                "
+                [attr.aria-label]="'Reprocessar ' + connector.name"
+              >
+                Reprocessar desde…
+              </button>
+              <button
+                mat-flat-button
+                (click)="sync(connector)"
+                [disabled]="
+                  pending().includes(connector.id) ||
+                  remaining(connector.id) > 0 ||
+                  connector.status !== 'Active'
+                "
+                [attr.aria-label]="'Sincronizar ' + connector.name"
+              >
+                {{
+                  pending().includes(connector.id)
+                    ? 'Solicitando…'
+                    : remaining(connector.id) > 0
+                      ? 'Aguarde ' + remaining(connector.id) + ' s'
+                      : 'Sincronizar'
+                }}
+              </button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+  @if (canManage()) {
+    @if (configuring(); as connector) {
+      <section class="card">
+        <h2>Configuração — {{ connector.name }}</h2>
+        <p>
+          Empresa e tipo de dado permanecem vinculados a esta integração. O endereço deve ser
+          autorizado pelo administrador.
+        </p>
+        <p>
+          Alterar o endereço não refaz cargas anteriores. Use “Reprocessar desde…” para buscar um
+          histórico da mesma origem. Para outra origem de dados, cadastre uma nova integração.
+        </p>
+        @if (configurationError()) {
+          <p class="error" role="alert">{{ configurationError() }}</p>
+        }
+        <form class="registration" [formGroup]="configurationForm" (ngSubmit)="saveConfiguration()">
+          <mat-form-field appearance="outline"
+            ><mat-label>Nome atualizado</mat-label
+            ><input matInput formControlName="name" maxlength="200" /><mat-error
+              >Informe um nome de até 200 caracteres.</mat-error
+            ></mat-form-field
+          >
+          <mat-form-field appearance="outline"
+            ><mat-label>Endereço atualizado</mat-label
+            ><input matInput type="url" formControlName="baseUrl" maxlength="2000" /><mat-error
+              >Informe um endereço HTTP ou HTTPS válido.</mat-error
+            ></mat-form-field
+          >
+          <button mat-flat-button type="submit" [disabled]="configurationSaving()">
+            {{ configurationSaving() ? 'Salvando…' : 'Salvar configuração' }}
+          </button>
+          <button
+            mat-button
+            type="button"
+            (click)="configuring.set(null)"
+            [disabled]="configurationSaving()"
+          >
+            Cancelar configuração
+          </button>
+        </form>
+      </section>
+    }
+    @if (reprocessing(); as connector) {
+      <section class="card">
+        <h2>Reprocessar — {{ connector.name }}</h2>
+        <p>
+          Busca registros atualizados na origem desde a data informada, conforme o filtro oferecido
+          por ela. Não há data final. O marcador da sincronização normal será preservado.
+        </p>
+        <p>
+          Informe a data e hora no fuso deste navegador. O pedido será colocado na fila e usará o
+          mesmo limite das sincronizações.
+        </p>
+        @if (reprocessError()) {
+          <p class="error" role="alert">{{ reprocessError() }}</p>
+        }
+        @if (confirmedFrom(); as from) {
+          <p role="status">
+            Confirma reprocessar {{ connector.name }} desde {{ from | date: 'short' }}?
+          </p>
+          <div class="actions">
+            <button
+              mat-flat-button
+              (click)="confirmReprocess()"
+              [disabled]="pending().includes(connector.id) || remaining(connector.id) > 0"
+            >
+              Confirmar reprocessamento
+            </button>
+            <button
+              mat-button
+              (click)="confirmedFrom.set(null)"
+              [disabled]="pending().includes(connector.id)"
+            >
+              Alterar data
+            </button>
+          </div>
+        } @else {
+          <form class="registration" [formGroup]="reprocessForm" (ngSubmit)="prepareReprocess()">
+            <mat-form-field appearance="outline"
+              ><mat-label>Reprocessar a partir de</mat-label
+              ><input matInput type="datetime-local" formControlName="from" /><mat-error
+                >Informe a data e hora inicial.</mat-error
+              ></mat-form-field
+            >
+            <button mat-stroked-button type="submit">Revisar reprocessamento</button>
+          </form>
+        }
+        <button
+          mat-button
+          (click)="reprocessing.set(null)"
+          [disabled]="pending().includes(connector.id)"
+        >
+          Cancelar reprocessamento
+        </button>
+      </section>
+    }
+  }
+  @if (selected(); as connector) {
+    <section class="card" [attr.aria-busy]="runsLoading()">
+      <div class="page-header">
+        <h2>Execuções — {{ connector.name }}</h2>
+        <button mat-stroked-button (click)="refreshRuns()" [disabled]="runsLoading()">
+          Atualizar execuções
+        </button>
+      </div>
+      <p>
+        Histórico em grupos de 20. A página inicial atualiza a cada 5 segundos enquanto houver uma
+        carga na fila ou em andamento. Carregar anteriores pausa a atualização automática;
+        “Atualizar execuções” retorna às mais recentes.
+      </p>
+      <p>
+        Os dados dos painéis podem levar alguns instantes para refletir uma sincronização concluída.
+      </p>
+      @if (runsError()) {
+        <p class="error" role="alert">{{ runsError() }}</p>
+      }
+      @if (!runs().length && !runsLoading() && !runsError()) {
+        <p>Nenhuma execução registrada.</p>
+      }
+      @for (run of runs(); track run.id) {
+        <article class="run" [class.tracked]="trackedRunId() === run.id">
+          @if (trackedRunId() === run.id) {
+            <p class="tracked-label">Execução solicitada</p>
+          }
+          <div class="page-header">
+            <strong [class.failed]="run.status === 'Failed'">{{ statusLabel(run.status) }}</strong
+            ><span>{{ run.createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+          </div>
+          <dl>
+            <div>
+              <dt>Recebidos</dt>
+              <dd>{{ run.recordsProcessed ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt>Aceitos</dt>
+              <dd>{{ run.acceptedCount ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt>Atualizados</dt>
+              <dd>{{ run.updatedCount ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt>Rejeitados</dt>
+              <dd>{{ run.rejectedCount ?? '—' }}</dd>
+            </div>
+          </dl>
+          @if (run.errorMessage) {
+            <p class="error">{{ run.errorMessage }}</p>
+          }
+          <details>
+            <summary>Detalhes da execução</summary>
+            <p>Identificador: {{ run.id }}</p>
+            <p>Correlação: {{ run.correlationId }}</p>
+            <p>Finalizada em: {{ (run.finishedAt | date: 'dd/MM/yyyy HH:mm:ss') ?? '—' }}</p>
+          </details>
+        </article>
+      }
+      @if (hasOlderRuns()) {
+        <button
+          mat-stroked-button
+          (click)="loadOlderRuns()"
+          [disabled]="olderRunsLoading() || runsLoading()"
+        >
+          {{ olderRunsLoading() ? 'Carregando…' : 'Carregar execuções anteriores' }}
+        </button>
+      }
+    </section>
+  }
+  <app-connector-failures [connectors]="connectors()" (retried)="trackRetry($event)" />
+}

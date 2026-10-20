@@ -57,6 +57,14 @@ public sealed class AuthController : ControllerBase
         return ToActionResult(result);
     }
 
+    [HttpPost("logout")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Logout(RefreshRequestDto request, CancellationToken cancellationToken)
+    {
+        await _authService.RevokeSessionAsync(request.RefreshToken, cancellationToken);
+        return NoContent();
+    }
+
     private ActionResult<AuthResponseDto> ToActionResult(AuthResult result)
     {
         if (!result.Succeeded)

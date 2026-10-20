@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-19",
+  "status": "locally_validated_remote_pending",
+  "task": "P02",
+  "node": "24.18.0",
+  "npm": "11.16.0",
+  "fontPackages": { "@fontsource/roboto": "5.3.0", "@fontsource/material-icons": "5.3.0" },
+  "cleanNpmCi": "passed",
+  "frontendTests": { "files": 16, "passed": 33, "failed": 0 },
+  "junitReport": "test-results/frontend.xml",
+  "productionBuild": "passed",
+  "localFontAndLicenseCheck": "passed_in_workspace_and_clean_copy",
+  "fontGuardNegativeChecks": ["rejects external font URL", "rejects missing font file"],
+  "sassImportWarning": "removed",
+  "browserVisualCheck": "Roboto, menu icon and expand icon render correctly after restarting dev server",
+  "screenshot": "screenshots/fontes-locais-2026-10-19.png",
+  "ciJob": "frontend",
+  "githubRunnerExecuted": false,
+  "backendTestsRerun": false,
+  "limitations": ["Dependency installation still needs npm registry or cache", "Local clean install/build used Windows; GitHub Ubuntu runner execution remains pending", "npm reported existing native-package install-script allowlist warnings; builds/tests passed without granting additional script permissions"]
+}

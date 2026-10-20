@@ -1,8 +1,17 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, effect, input, viewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  effect,
+  input,
+  viewChild,
+} from '@angular/core';
 import * as echarts from 'echarts/core';
 import { LineChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
+import { APP_LOCALE } from '../../core/locale';
 
 // Só os módulos usados (1 tipo de gráfico, sem interações avançadas) — o pacote `echarts` completo
 // (todos os tipos de gráfico + componentes) infla o bundle sem necessidade nenhuma para este uso.
@@ -28,6 +37,7 @@ export class EchartLine implements AfterViewInit, OnDestroy {
   readonly ariaLabel = input('Gráfico de linha');
 
   private chart: echarts.ECharts | null = null;
+  private readonly numbers = new Intl.NumberFormat(APP_LOCALE, { maximumFractionDigits: 2 });
 
   constructor() {
     effect(() => {
@@ -45,11 +55,19 @@ export class EchartLine implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.chart = echarts.init(this.host().nativeElement);
     this.chart.setOption({
+      color: ['#285b45'],
       grid: { left: 40, right: 16, top: 16, bottom: 24 },
       xAxis: { type: 'category', data: this.categories() },
-      yAxis: { type: 'value' },
+      yAxis: {
+        type: 'value',
+        axisLabel: { formatter: (value: number) => this.numbers.format(value) },
+      },
       series: [{ name: this.seriesName(), type: 'line', data: this.values(), smooth: true }],
-      tooltip: { trigger: 'axis' },
+      tooltip: {
+        trigger: 'axis',
+        valueFormatter: (value: unknown) =>
+          typeof value === 'number' ? this.numbers.format(value) : String(value),
+      },
     });
   }
 

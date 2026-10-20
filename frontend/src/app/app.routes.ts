@@ -12,12 +12,14 @@ export const routes: Routes = [
   {
     path: 'select-tenant',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/select-tenant/select-tenant').then((m) => m.SelectTenant),
+    loadComponent: () =>
+      import('./features/select-tenant/select-tenant').then((m) => m.SelectTenant),
   },
   {
     path: 'create-tenant',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/create-tenant/create-tenant').then((m) => m.CreateTenant),
+    loadComponent: () =>
+      import('./features/create-tenant/create-tenant').then((m) => m.CreateTenant),
   },
   {
     // App shell (sidebar + topbar, estilo Able Pro) envolve toda rota autenticada+com-tenant — o
@@ -27,28 +29,40 @@ export const routes: Routes = [
     loadComponent: () => import('./core/layout/shell').then((m) => m.Shell),
     children: [
       {
+        path: 'connectors',
+        loadComponent: () => import('./features/connectors/connectors').then((m) => m.Connectors),
+      },
+      {
         path: 'dashboard',
         loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
         path: 'dashboards',
         loadComponent: () =>
-          import('./features/dashboards/dashboard-list/dashboard-list').then((m) => m.DashboardList),
+          import('./features/dashboards/dashboard-list/dashboard-list').then(
+            (m) => m.DashboardList,
+          ),
       },
       {
         path: 'dashboards/new',
         loadComponent: () =>
-          import('./features/dashboards/dashboard-form/dashboard-form').then((m) => m.DashboardForm),
+          import('./features/dashboards/dashboard-form/dashboard-form').then(
+            (m) => m.DashboardForm,
+          ),
       },
       {
         path: 'dashboards/:id',
         loadComponent: () =>
-          import('./features/dashboards/dashboard-viewer/dashboard-viewer').then((m) => m.DashboardViewer),
+          import('./features/dashboards/dashboard-viewer/dashboard-viewer').then(
+            (m) => m.DashboardViewer,
+          ),
       },
       {
         path: 'dashboards/:id/edit',
         loadComponent: () =>
-          import('./features/dashboards/dashboard-form/dashboard-form').then((m) => m.DashboardForm),
+          import('./features/dashboards/dashboard-form/dashboard-form').then(
+            (m) => m.DashboardForm,
+          ),
       },
     ],
   },

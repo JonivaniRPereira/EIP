@@ -145,6 +145,25 @@ public sealed class ConnectorSyncProcessorWatermarkTests : IAsyncDisposable
         }
     }
 
+    [Fact]
+    public async Task ProcessAsync_FullReprocess_DoesNotFilterOrAdvanceWatermark()
+    {
+        var tenantId = Guid.NewGuid();
+        _tenantContextAccessor.Current = new TenantContext(tenantId);
+        try
+        {
+            var instance = ConnectorInstance.Create(tenantId, Guid.NewGuid(), "Full reprocess", "https://example.invalid/customers", "customers");
+            await _store.SaveNewInstanceAsync(instance, CancellationToken.None);
+            await ProcessSyncAsync(instance.Id, tenantId, reprocessFromUtc: null);
+            var watermark = (await _store.FindInstanceAsync(instance.Id, CancellationToken.None))!.LastWatermark;
+            await ProcessSyncAsync(instance.Id, tenantId, SyncRequestedMessage.FullReprocessFromUtc);
+            _restClient.ReceivedUpdatedSince.Should().HaveCount(2);
+            _restClient.ReceivedUpdatedSince[1].Should().BeNull();
+            (await _store.FindInstanceAsync(instance.Id, CancellationToken.None))!.LastWatermark.Should().Be(watermark);
+        }
+        finally { _tenantContextAccessor.Current = null; }
+    }
+
     private async Task ProcessSyncAsync(Guid connectorInstanceId, Guid tenantId, DateTimeOffset? reprocessFromUtc)
     {
         var run = SyncRun.CreatePending(tenantId, connectorInstanceId, Guid.NewGuid().ToString());

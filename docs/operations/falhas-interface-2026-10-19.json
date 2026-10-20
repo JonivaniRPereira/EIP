@@ -1,0 +1,33 @@
+{
+  "reviewedAt": "2026-10-19",
+  "fixture": "falhas-ui-fixture-2026-10-19.json",
+  "watermarkPreserved": true,
+  "fullReprocess": {
+    "watermarkAfter": "2026-10-19T12:15:10.9557711Z",
+    "fullRun": {
+      "Id": "D7CBEDBF-182E-4B8A-B25F-DED0AA990F6E",
+      "Status": "Succeeded",
+      "RecordsProcessed": 6,
+      "AcceptedCount": 6,
+      "UpdatedCount": 6,
+      "RejectedCount": 0
+    },
+    "requestedAt": "2026-10-19T15:14:14.6084205Z"
+  },
+  "apiTestsPassed": 76,
+  "connectorTestsPassed": 10,
+  "frontendTestsPassed": 27,
+  "scope": "Synthetic quarantine and DLQ records, real browser requests and real Worker execution",
+  "productionCertification": false,
+  "dlqRequeue": {
+    "Id": "EE558356-5E0C-430A-8982-C8D00EE31CC9",
+    "Status": "Succeeded",
+    "RecordsProcessed": 1,
+    "AcceptedCount": 1,
+    "UpdatedCount": 1,
+    "RejectedCount": 0
+  },
+  "status": "passed",
+  "frontendProductionBuild": "passed",
+  "exactRequestedRunTracking": "covered by frontend regression, including run outside latest 50"
+}

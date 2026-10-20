@@ -1,0 +1,2241 @@
+{
+  "reviewedAt": "2026-10-18",
+  "database": "EIP",
+  "scope": "Metadata only; no row values",
+  "tableCount": 39,
+  "columnCount": 333,
+  "tables": [
+    {
+      "schema": "administration",
+      "table": "__EFMigrationsHistory",
+      "columns": [
+        {
+          "column": "MigrationId",
+          "type": "nvarchar",
+          "maxLength": 300,
+          "nullable": false
+        },
+        {
+          "column": "ProductVersion",
+          "type": "nvarchar",
+          "maxLength": 64,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "administration",
+      "table": "AnalyticsQueries",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "OccurredAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "canonical",
+      "table": "__EFMigrationsHistory",
+      "columns": [
+        {
+          "column": "MigrationId",
+          "type": "nvarchar",
+          "maxLength": 300,
+          "nullable": false
+        },
+        {
+          "column": "ProductVersion",
+          "type": "nvarchar",
+          "maxLength": 64,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "canonical",
+      "table": "Customers",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Code",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "TaxId",
+          "type": "nvarchar",
+          "maxLength": 100,
+          "nullable": true
+        },
+        {
+          "column": "Email",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": true
+        },
+        {
+          "column": "City",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": true
+        },
+        {
+          "column": "StateOrRegion",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": true
+        },
+        {
+          "column": "CountryCode",
+          "type": "nvarchar",
+          "maxLength": 4,
+          "nullable": true
+        },
+        {
+          "column": "IsActive",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "CompanyId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceSystemId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceEntity",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "SourceRecordId",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "SourceUpdatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        },
+        {
+          "column": "IngestedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "ProcessedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "IsDeleted",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "SchemaVersion",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": false
+        },
+        {
+          "column": "CorrelationId",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "RawObjectUri",
+          "type": "nvarchar",
+          "maxLength": 4000,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "canonical",
+      "table": "ProductCategories",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Code",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "ParentCategoryId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": true
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "CompanyId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceSystemId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceEntity",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "SourceRecordId",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "SourceUpdatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        },
+        {
+          "column": "IngestedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "ProcessedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "IsDeleted",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "SchemaVersion",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": false
+        },
+        {
+          "column": "CorrelationId",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "RawObjectUri",
+          "type": "nvarchar",
+          "maxLength": 4000,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "canonical",
+      "table": "Products",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Code",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "ProductType",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": false
+        },
+        {
+          "column": "CategoryId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": true
+        },
+        {
+          "column": "UnitOfMeasure",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": true
+        },
+        {
+          "column": "IsActive",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "CompanyId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceSystemId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceEntity",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "SourceRecordId",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "SourceUpdatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        },
+        {
+          "column": "IngestedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "ProcessedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "IsDeleted",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "SchemaVersion",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": false
+        },
+        {
+          "column": "CorrelationId",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "RawObjectUri",
+          "type": "nvarchar",
+          "maxLength": 4000,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "canonical",
+      "table": "QuarantineEntries",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "ConnectorInstanceId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SyncRunId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceEntity",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "RawObjectUri",
+          "type": "nvarchar",
+          "maxLength": 4000,
+          "nullable": false
+        },
+        {
+          "column": "CorrelationId",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "FailedRule",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "Reason",
+          "type": "nvarchar",
+          "maxLength": 4000,
+          "nullable": false
+        },
+        {
+          "column": "CreatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "ResolvedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "schema": "canonical",
+      "table": "SalesInvoiceItems",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SalesInvoiceId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "LineNumber",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "ProductId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Description",
+          "type": "nvarchar",
+          "maxLength": 1000,
+          "nullable": true
+        },
+        {
+          "column": "Quantity",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": false
+        },
+        {
+          "column": "UnitPrice",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": false
+        },
+        {
+          "column": "DiscountAmount",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": false
+        },
+        {
+          "column": "TaxAmount",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": true
+        },
+        {
+          "column": "GrossAmount",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": false
+        },
+        {
+          "column": "NetAmount",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "CompanyId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceSystemId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceEntity",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "SourceRecordId",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "SourceUpdatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        },
+        {
+          "column": "IngestedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "ProcessedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "IsDeleted",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "SchemaVersion",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": false
+        },
+        {
+          "column": "CorrelationId",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "RawObjectUri",
+          "type": "nvarchar",
+          "maxLength": 4000,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "canonical",
+      "table": "SalesInvoices",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "InvoiceNumber",
+          "type": "nvarchar",
+          "maxLength": 100,
+          "nullable": false
+        },
+        {
+          "column": "Series",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": true
+        },
+        {
+          "column": "IssueDate",
+          "type": "date",
+          "maxLength": 3,
+          "nullable": false
+        },
+        {
+          "column": "CustomerId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SalesOrderId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": true
+        },
+        {
+          "column": "Status",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": false
+        },
+        {
+          "column": "CurrencyCode",
+          "type": "nvarchar",
+          "maxLength": 6,
+          "nullable": false
+        },
+        {
+          "column": "GrossAmount",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": false
+        },
+        {
+          "column": "DiscountAmount",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": false
+        },
+        {
+          "column": "TaxAmount",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": true
+        },
+        {
+          "column": "NetAmount",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": false
+        },
+        {
+          "column": "CanceledAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "CompanyId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceSystemId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceEntity",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "SourceRecordId",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "SourceUpdatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        },
+        {
+          "column": "IngestedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "ProcessedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "IsDeleted",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "SchemaVersion",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": false
+        },
+        {
+          "column": "CorrelationId",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "RawObjectUri",
+          "type": "nvarchar",
+          "maxLength": 4000,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "connector",
+      "table": "__EFMigrationsHistory",
+      "columns": [
+        {
+          "column": "MigrationId",
+          "type": "nvarchar",
+          "maxLength": 300,
+          "nullable": false
+        },
+        {
+          "column": "ProductVersion",
+          "type": "nvarchar",
+          "maxLength": 64,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "connector",
+      "table": "ConnectorInstances",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "BaseUrl",
+          "type": "nvarchar",
+          "maxLength": 4000,
+          "nullable": false
+        },
+        {
+          "column": "Status",
+          "type": "nvarchar",
+          "maxLength": 60,
+          "nullable": false
+        },
+        {
+          "column": "CreatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "UpdatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "CompanyId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceEntity",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "LastWatermark",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "schema": "connector",
+      "table": "SyncRuns",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "ConnectorInstanceId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "CorrelationId",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "Status",
+          "type": "nvarchar",
+          "maxLength": 60,
+          "nullable": false
+        },
+        {
+          "column": "RecordsProcessed",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": true
+        },
+        {
+          "column": "ErrorMessage",
+          "type": "nvarchar",
+          "maxLength": 4000,
+          "nullable": true
+        },
+        {
+          "column": "CreatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "StartedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        },
+        {
+          "column": "FinishedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        },
+        {
+          "column": "AcceptedCount",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": true
+        },
+        {
+          "column": "DeletedCount",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": true
+        },
+        {
+          "column": "RejectedCount",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": true
+        },
+        {
+          "column": "UpdatedCount",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "schema": "dashboard",
+      "table": "__EFMigrationsHistory",
+      "columns": [
+        {
+          "column": "MigrationId",
+          "type": "nvarchar",
+          "maxLength": 300,
+          "nullable": false
+        },
+        {
+          "column": "ProductVersion",
+          "type": "nvarchar",
+          "maxLength": 64,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "dashboard",
+      "table": "Dashboards",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "OwnerId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Status",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": false
+        },
+        {
+          "column": "Widgets",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": false
+        },
+        {
+          "column": "CreatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "UpdatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "dashboard",
+      "table": "DashboardVersions",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "DashboardId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Widgets",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": false
+        },
+        {
+          "column": "CreatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "PublishedByUserId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "identity",
+      "table": "__EFMigrationsHistory",
+      "columns": [
+        {
+          "column": "MigrationId",
+          "type": "nvarchar",
+          "maxLength": 300,
+          "nullable": false
+        },
+        {
+          "column": "ProductVersion",
+          "type": "nvarchar",
+          "maxLength": 64,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "identity",
+      "table": "AspNetRoleClaims",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "RoleId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "ClaimType",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": true
+        },
+        {
+          "column": "ClaimValue",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "schema": "identity",
+      "table": "AspNetRoles",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 512,
+          "nullable": true
+        },
+        {
+          "column": "NormalizedName",
+          "type": "nvarchar",
+          "maxLength": 512,
+          "nullable": true
+        },
+        {
+          "column": "ConcurrencyStamp",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "schema": "identity",
+      "table": "AspNetUserClaims",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "UserId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "ClaimType",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": true
+        },
+        {
+          "column": "ClaimValue",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "schema": "identity",
+      "table": "AspNetUserLogins",
+      "columns": [
+        {
+          "column": "LoginProvider",
+          "type": "nvarchar",
+          "maxLength": 900,
+          "nullable": false
+        },
+        {
+          "column": "ProviderKey",
+          "type": "nvarchar",
+          "maxLength": 900,
+          "nullable": false
+        },
+        {
+          "column": "ProviderDisplayName",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": true
+        },
+        {
+          "column": "UserId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "identity",
+      "table": "AspNetUserRoles",
+      "columns": [
+        {
+          "column": "UserId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "RoleId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "identity",
+      "table": "AspNetUsers",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "DisplayName",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": false
+        },
+        {
+          "column": "UserName",
+          "type": "nvarchar",
+          "maxLength": 512,
+          "nullable": true
+        },
+        {
+          "column": "NormalizedUserName",
+          "type": "nvarchar",
+          "maxLength": 512,
+          "nullable": true
+        },
+        {
+          "column": "Email",
+          "type": "nvarchar",
+          "maxLength": 512,
+          "nullable": true
+        },
+        {
+          "column": "NormalizedEmail",
+          "type": "nvarchar",
+          "maxLength": 512,
+          "nullable": true
+        },
+        {
+          "column": "EmailConfirmed",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "PasswordHash",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": true
+        },
+        {
+          "column": "SecurityStamp",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": true
+        },
+        {
+          "column": "ConcurrencyStamp",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": true
+        },
+        {
+          "column": "PhoneNumber",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": true
+        },
+        {
+          "column": "PhoneNumberConfirmed",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "TwoFactorEnabled",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "LockoutEnd",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        },
+        {
+          "column": "LockoutEnabled",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "AccessFailedCount",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "identity",
+      "table": "AspNetUserTokens",
+      "columns": [
+        {
+          "column": "UserId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "LoginProvider",
+          "type": "nvarchar",
+          "maxLength": 900,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 900,
+          "nullable": false
+        },
+        {
+          "column": "Value",
+          "type": "nvarchar",
+          "maxLength": -1,
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "schema": "identity",
+      "table": "AuditEvents",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "OccurredAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "EventType",
+          "type": "nvarchar",
+          "maxLength": 100,
+          "nullable": false
+        },
+        {
+          "column": "UserId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": true
+        },
+        {
+          "column": "Email",
+          "type": "nvarchar",
+          "maxLength": 512,
+          "nullable": true
+        },
+        {
+          "column": "Detail",
+          "type": "nvarchar",
+          "maxLength": 2000,
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "schema": "identity",
+      "table": "RefreshTokens",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "UserId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "TokenHash",
+          "type": "nvarchar",
+          "maxLength": 512,
+          "nullable": false
+        },
+        {
+          "column": "ExpiresAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "CreatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "RevokedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        },
+        {
+          "column": "ReplacedByTokenId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": true
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "schema": "tenant",
+      "table": "__EFMigrationsHistory",
+      "columns": [
+        {
+          "column": "MigrationId",
+          "type": "nvarchar",
+          "maxLength": 300,
+          "nullable": false
+        },
+        {
+          "column": "ProductVersion",
+          "type": "nvarchar",
+          "maxLength": 64,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "tenant",
+      "table": "Companies",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "TaxId",
+          "type": "nvarchar",
+          "maxLength": 100,
+          "nullable": true
+        },
+        {
+          "column": "DefaultCurrency",
+          "type": "nvarchar",
+          "maxLength": 6,
+          "nullable": false
+        },
+        {
+          "column": "Status",
+          "type": "nvarchar",
+          "maxLength": 60,
+          "nullable": false
+        },
+        {
+          "column": "CreatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "UpdatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "CountryCode",
+          "type": "nvarchar",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "TradeName",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "schema": "tenant",
+      "table": "Memberships",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "UserId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Status",
+          "type": "nvarchar",
+          "maxLength": 60,
+          "nullable": false
+        },
+        {
+          "column": "CreatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "UpdatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "Role",
+          "type": "nvarchar",
+          "maxLength": 60,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "tenant",
+      "table": "Tenants",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "Slug",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "Status",
+          "type": "nvarchar",
+          "maxLength": 60,
+          "nullable": false
+        },
+        {
+          "column": "PlanId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "DataIsolationMode",
+          "type": "nvarchar",
+          "maxLength": 60,
+          "nullable": false
+        },
+        {
+          "column": "DefaultTimezone",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "CreatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "UpdatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "warehouse",
+      "table": "__EFMigrationsHistory",
+      "columns": [
+        {
+          "column": "MigrationId",
+          "type": "nvarchar",
+          "maxLength": 300,
+          "nullable": false
+        },
+        {
+          "column": "ProductVersion",
+          "type": "nvarchar",
+          "maxLength": 64,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "warehouse",
+      "table": "DimCompany",
+      "columns": [
+        {
+          "column": "CompanyKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "CompanyId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "CountryCode",
+          "type": "nvarchar",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "DefaultCurrency",
+          "type": "nvarchar",
+          "maxLength": 6,
+          "nullable": false
+        },
+        {
+          "column": "LoadedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "warehouse",
+      "table": "DimCurrency",
+      "columns": [
+        {
+          "column": "CurrencyKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "Code",
+          "type": "nvarchar",
+          "maxLength": 6,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "warehouse",
+      "table": "DimCustomer",
+      "columns": [
+        {
+          "column": "CustomerKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "CustomerId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Code",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "Email",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": true
+        },
+        {
+          "column": "City",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": true
+        },
+        {
+          "column": "StateOrRegion",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": true
+        },
+        {
+          "column": "CountryCode",
+          "type": "nvarchar",
+          "maxLength": 4,
+          "nullable": true
+        },
+        {
+          "column": "IsActive",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "EffectiveFrom",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "EffectiveTo",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        },
+        {
+          "column": "IsCurrent",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "warehouse",
+      "table": "DimDate",
+      "columns": [
+        {
+          "column": "DateKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "Date",
+          "type": "date",
+          "maxLength": 3,
+          "nullable": false
+        },
+        {
+          "column": "Year",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "Quarter",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "Month",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "Day",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "DayOfWeek",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "IsWeekend",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "warehouse",
+      "table": "DimProduct",
+      "columns": [
+        {
+          "column": "ProductKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "ProductId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Code",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "ProductType",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": false
+        },
+        {
+          "column": "CategoryKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": true
+        },
+        {
+          "column": "UnitOfMeasure",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": true
+        },
+        {
+          "column": "IsActive",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        },
+        {
+          "column": "EffectiveFrom",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "EffectiveTo",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        },
+        {
+          "column": "IsCurrent",
+          "type": "bit",
+          "maxLength": 1,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "warehouse",
+      "table": "DimProductCategory",
+      "columns": [
+        {
+          "column": "ProductCategoryKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "CategoryId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "warehouse",
+      "table": "DimTenant",
+      "columns": [
+        {
+          "column": "TenantKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "Name",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "LoadedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "warehouse",
+      "table": "FactSalesInvoiceItem",
+      "columns": [
+        {
+          "column": "FactSalesInvoiceItemKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "TenantKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "CompanyKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "DateKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "CustomerKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "ProductKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "CurrencyKey",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "SourceSystemId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceEntity",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "SourceRecordId",
+          "type": "nvarchar",
+          "maxLength": 400,
+          "nullable": false
+        },
+        {
+          "column": "SalesInvoiceId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SalesInvoiceItemId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "RawObjectUri",
+          "type": "nvarchar",
+          "maxLength": 4000,
+          "nullable": false
+        },
+        {
+          "column": "LoadBatchId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "InvoiceNumber",
+          "type": "nvarchar",
+          "maxLength": 100,
+          "nullable": false
+        },
+        {
+          "column": "LineNumber",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": false
+        },
+        {
+          "column": "Quantity",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": false
+        },
+        {
+          "column": "GrossAmount",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": false
+        },
+        {
+          "column": "DiscountAmount",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": false
+        },
+        {
+          "column": "TaxAmount",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": true
+        },
+        {
+          "column": "NetAmount",
+          "type": "decimal",
+          "maxLength": 9,
+          "nullable": false
+        },
+        {
+          "column": "LoadedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "Status",
+          "type": "nvarchar",
+          "maxLength": 40,
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "schema": "warehouse",
+      "table": "LoadBatches",
+      "columns": [
+        {
+          "column": "Id",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "TenantId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "SourceSystemId",
+          "type": "uniqueidentifier",
+          "maxLength": 16,
+          "nullable": false
+        },
+        {
+          "column": "CorrelationId",
+          "type": "nvarchar",
+          "maxLength": 200,
+          "nullable": false
+        },
+        {
+          "column": "Status",
+          "type": "nvarchar",
+          "maxLength": 60,
+          "nullable": false
+        },
+        {
+          "column": "ItemsConsideredCount",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": true
+        },
+        {
+          "column": "FactRowsUpsertedCount",
+          "type": "int",
+          "maxLength": 4,
+          "nullable": true
+        },
+        {
+          "column": "ErrorMessage",
+          "type": "nvarchar",
+          "maxLength": 4000,
+          "nullable": true
+        },
+        {
+          "column": "CreatedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": false
+        },
+        {
+          "column": "FinishedAt",
+          "type": "datetimeoffset",
+          "maxLength": 10,
+          "nullable": true
+        }
+      ]
+    }
+  ]
+}

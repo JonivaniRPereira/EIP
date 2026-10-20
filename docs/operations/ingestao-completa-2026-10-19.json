@@ -1,0 +1,198 @@
+{
+  "runId": "e807e5a9a8204c9eb7d8d1e245e5eae4",
+  "startedAtUtc": "2026-10-19T10:58:28.807Z",
+  "syncs": [
+    {
+      "entity": "customers",
+      "id": "6635f147-d78d-4ccc-9eeb-9b92e817fa40",
+      "connectorInstanceId": "1d9554f4-31ab-46d4-9995-7ef02b1845bd",
+      "status": "Succeeded",
+      "correlationId": "e0407101-9d80-448b-978b-bfe8e89af89b",
+      "recordsProcessed": 6,
+      "acceptedCount": 6,
+      "updatedCount": 0,
+      "rejectedCount": 0,
+      "deletedCount": 0,
+      "errorMessage": null,
+      "createdAt": "2026-10-19T10:58:30.4488658+00:00",
+      "startedAt": "2026-10-19T10:58:30.5635868+00:00",
+      "finishedAt": "2026-10-19T10:58:31.0226163+00:00"
+    },
+    {
+      "entity": "products",
+      "id": "65ceb61d-8e15-4027-9a5a-62c1535bdce1",
+      "connectorInstanceId": "ba51515e-1733-4544-8fc6-e8d41048ff30",
+      "status": "Succeeded",
+      "correlationId": "7ccc2f82-fcad-4dd6-b5b8-9c19dd9f29ce",
+      "recordsProcessed": 5,
+      "acceptedCount": 5,
+      "updatedCount": 0,
+      "rejectedCount": 0,
+      "deletedCount": 0,
+      "errorMessage": null,
+      "createdAt": "2026-10-19T10:58:32.2957571+00:00",
+      "startedAt": "2026-10-19T10:58:32.3866488+00:00",
+      "finishedAt": "2026-10-19T10:58:32.8245864+00:00"
+    },
+    {
+      "entity": "sales-invoices",
+      "id": "96468f6b-9906-479f-b569-4b62135ed8dd",
+      "connectorInstanceId": "cbfaf5d4-02bb-4947-a93a-71bc7b2d19fd",
+      "status": "Succeeded",
+      "correlationId": "7e3d85a9-4bd2-445c-8b4f-c25c189065f3",
+      "recordsProcessed": 4,
+      "acceptedCount": 4,
+      "updatedCount": 0,
+      "rejectedCount": 0,
+      "deletedCount": 0,
+      "errorMessage": null,
+      "createdAt": "2026-10-19T10:58:34.0623366+00:00",
+      "startedAt": "2026-10-19T10:58:34.1555983+00:00",
+      "finishedAt": "2026-10-19T10:58:34.6215441+00:00"
+    }
+  ],
+  "tenantId": "a1d1feec-84ed-4716-a412-9f25034e791f",
+  "companyId": "66dff66e-fee0-4160-9cba-d2c8f707ba8a",
+  "counts": {
+    "customers": 6,
+    "products": 5,
+    "invoices": 4,
+    "items": 6,
+    "facts": 6,
+    "netRevenue": 11110,
+    "quarantined": 0
+  },
+  "analytics": {
+    "data": [
+      {
+        "date.month": "2026-07",
+        "netRevenue": 11110
+      }
+    ],
+    "metadata": {
+      "dataset": "sales",
+      "semanticVersion": "1.0",
+      "executedAt": "2026-10-19T10:58:36.0763795+00:00",
+      "dataFreshnessAt": "2026-10-19T10:58:35.2308047+00:00",
+      "rowCount": 1
+    }
+  },
+  "lineage": {
+    "factSalesInvoiceItemKey": 15,
+    "sourceSystemId": "cbfaf5d4-02bb-4947-a93a-71bc7b2d19fd",
+    "sourceEntity": "sales-invoices",
+    "sourceRecordId": "NF-0002-1",
+    "invoiceNumber": "NF-0002",
+    "lineNumber": 1,
+    "netAmount": 3500,
+    "rawObjectUri": "a1d1feec-84ed-4716-a412-9f25034e791f/cbfaf5d4-02bb-4947-a93a-71bc7b2d19fd/sales-invoices/2026/10/19/96468f6b-9906-479f-b569-4b62135ed8dd/e12df74b8792.json",
+    "loadBatch": {
+      "id": "543b0c74-0202-4144-bf33-b88a53329bb1",
+      "status": "Succeeded",
+      "correlationId": "7e3d85a9-4bd2-445c-8b4f-c25c189065f3",
+      "createdAt": "2026-10-19T10:58:34.7786887+00:00",
+      "finishedAt": "2026-10-19T10:58:35.2308047+00:00"
+    },
+    "canonicalRecord": {
+      "id": "aac51e5a-7db3-4e7f-92fb-ee8b58d3e3a2",
+      "rawObjectUri": "a1d1feec-84ed-4716-a412-9f25034e791f/cbfaf5d4-02bb-4947-a93a-71bc7b2d19fd/sales-invoices/2026/10/19/96468f6b-9906-479f-b569-4b62135ed8dd/e12df74b8792.json",
+      "schemaVersion": "1.0",
+      "correlationId": "7e3d85a9-4bd2-445c-8b4f-c25c189065f3",
+      "ingestedAt": "2026-10-19T10:58:34.3637335+00:00",
+      "processedAt": "2026-10-19T10:58:34.3637335+00:00"
+    },
+    "syncRun": {
+      "id": "96468f6b-9906-479f-b569-4b62135ed8dd",
+      "status": "Succeeded",
+      "correlationId": "7e3d85a9-4bd2-445c-8b4f-c25c189065f3",
+      "createdAt": "2026-10-19T10:58:34.0623366+00:00",
+      "finishedAt": "2026-10-19T10:58:34.6215441+00:00"
+    },
+    "connectorInstance": {
+      "id": "cbfaf5d4-02bb-4947-a93a-71bc7b2d19fd",
+      "name": "Ingestion sales-invoices",
+      "baseUrl": "http://localhost:5080/api/v1/sample/sales-invoices",
+      "sourceEntity": "sales-invoices"
+    }
+  },
+  "metrics": [
+    {
+      "name": "net_revenue",
+      "formulaText": "Receita Líquida: soma de NetAmount em FactSalesInvoiceItem, excluindo documentos cancelados.",
+      "owner": "Comercial",
+      "version": "1.0",
+      "reconciliations": [
+        {
+          "connectorInstanceId": "cbfaf5d4-02bb-4947-a93a-71bc7b2d19fd",
+          "connectorInstanceName": "Ingestion sales-invoices",
+          "isWithinTolerance": true,
+          "canonicalCount": 6,
+          "canonicalNetAmountTotal": 11110,
+          "factCount": 6,
+          "factNetAmountTotal": 11110,
+          "discrepancy": null
+        }
+      ]
+    },
+    {
+      "name": "invoiced_quantity",
+      "formulaText": "Quantidade Faturada: soma de quantidade dos itens de fatura válidos (não cancelados).",
+      "owner": "Comercial",
+      "version": "1.0",
+      "reconciliations": [
+        {
+          "connectorInstanceId": "cbfaf5d4-02bb-4947-a93a-71bc7b2d19fd",
+          "connectorInstanceName": "Ingestion sales-invoices",
+          "isWithinTolerance": true,
+          "canonicalCount": 6,
+          "canonicalNetAmountTotal": 11110,
+          "factCount": 6,
+          "factNetAmountTotal": 11110,
+          "discrepancy": null
+        }
+      ]
+    },
+    {
+      "name": "average_ticket",
+      "formulaText": "Ticket Médio: Receita Líquida dividida pela quantidade distinta de faturas válidas.",
+      "owner": "Comercial",
+      "version": "1.0",
+      "reconciliations": [
+        {
+          "connectorInstanceId": "cbfaf5d4-02bb-4947-a93a-71bc7b2d19fd",
+          "connectorInstanceName": "Ingestion sales-invoices",
+          "isWithinTolerance": true,
+          "canonicalCount": 6,
+          "canonicalNetAmountTotal": 11110,
+          "factCount": 6,
+          "factNetAmountTotal": 11110,
+          "discrepancy": null
+        }
+      ]
+    }
+  ],
+  "rawObjects": [
+    {
+      "key": "a1d1feec-84ed-4716-a412-9f25034e791f/1d9554f4-31ab-46d4-9995-7ef02b1845bd/customers/2026/10/19/6635f147-d78d-4ccc-9eeb-9b92e817fa40/edcfbe921787.json",
+      "bytes": 1160,
+      "sha256": "46963e86bb035fd71f96d1efe6bd79776325bb8f2024c39666dcdd8d0a5cc890"
+    },
+    {
+      "key": "a1d1feec-84ed-4716-a412-9f25034e791f/ba51515e-1733-4544-8fc6-e8d41048ff30/products/2026/10/19/65ceb61d-8e15-4027-9a5a-62c1535bdce1/03ab8ffdeea3.json",
+      "bytes": 760,
+      "sha256": "e46ef488718a0bf63aac895e0159bcca53ab78689057edcb00d31601d0b3131b"
+    },
+    {
+      "key": "a1d1feec-84ed-4716-a412-9f25034e791f/cbfaf5d4-02bb-4947-a93a-71bc7b2d19fd/sales-invoices/2026/10/19/96468f6b-9906-479f-b569-4b62135ed8dd/e12df74b8792.json",
+      "bytes": 1211,
+      "sha256": "811689c0cb7b99aff26c9bac173b2dc8a6b7bbd2c4b8e7361e93ea57bf351d7f"
+    }
+  ],
+  "dashboard": {
+    "id": "7ba40ef8-f8b9-4e44-83f9-367d065f6da0",
+    "versionId": "c2f35ab9-2bc8-4127-bbdb-c14a900e5732",
+    "netRevenue": 11110
+  },
+  "status": "passed",
+  "completedAtUtc": "2026-10-19T10:58:37.550Z"
+}

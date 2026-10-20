@@ -21,4 +21,8 @@ public sealed record SyncRequestedMessage(
     DateTimeOffset? ReprocessFromUtc = null)
 {
     public const string CurrentContractVersion = "1.0";
+
+    /// <summary>Limite inferior reservado ao reprocessamento integral: o Worker não envia filtro
+    /// incremental à origem e preserva o watermark. Demais datas continuam sendo limites reais.</summary>
+    public static readonly DateTimeOffset FullReprocessFromUtc = DateTimeOffset.MinValue;
 }

@@ -27,11 +27,19 @@ builder.Services.AddReverseProxy()
 const string FrontendCorsPolicy = "frontend";
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? ["http://localhost:4200"];
+if (allowedOrigins.Any(origin => !Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+    || origin.Contains('*') || uri.Scheme is not ("http" or "https") || uri.AbsolutePath != "/" || uri.Query.Length > 0
+    || (!builder.Environment.IsDevelopment() && uri.Scheme != "https")
+    || uri.Fragment.Length > 0 || uri.UserInfo.Length > 0))
+{
+    throw new InvalidOperationException("CORS exige origens HTTP(S) explícitas, sem caminhos, credenciais ou curingas.");
+}
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(FrontendCorsPolicy, policy => policy
         .WithOrigins(allowedOrigins)
         .AllowAnyHeader()
+        .WithExposedHeaders("Retry-After")
         .AllowAnyMethod());
 });
 
@@ -80,6 +88,18 @@ app.Use(async (context, next) =>
 });
 
 app.UseSerilogRequestLogging();
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.XContentTypeOptions = "nosniff";
+    context.Response.Headers["Referrer-Policy"] = "no-referrer";
+    if (context.Request.Path.StartsWithSegments("/api"))
+    {
+        context.Response.Headers.CacheControl = "no-store";
+    }
+
+    await next();
+});
 
 app.UseCors(FrontendCorsPolicy);
 

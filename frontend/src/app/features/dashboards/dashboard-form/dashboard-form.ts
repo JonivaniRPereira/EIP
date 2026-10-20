@@ -107,6 +107,7 @@ export class DashboardForm implements OnInit {
     try {
       const dashboard = await this.dashboardsService.create({ name: this.nameForm.getRawValue().name });
       this.dashboardId.set(dashboard.id);
+      await this.router.navigate(['/dashboards', dashboard.id, 'edit'], { replaceUrl: true });
     } catch (error) {
       this.errorMessage.set(this.extractErrorMessage(error));
     } finally {

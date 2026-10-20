@@ -81,7 +81,9 @@ public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
 
             // Reprocessamento manual por período (E7.2) usa a data explícita da mensagem, ignorando
             // o watermark salvo — nunca o contrário, para não pular um período nunca sincronizado.
-            var updatedSince = message.ReprocessFromUtc ?? instance.LastWatermark;
+            var updatedSince = message.ReprocessFromUtc == SyncRequestedMessage.FullReprocessFromUtc
+                ? null
+                : message.ReprocessFromUtc ?? instance.LastWatermark;
 
             var rawContent = await _restClient.FetchRawContentAsync(instance.BaseUrl, updatedSince, cancellationToken);
 
@@ -128,7 +130,10 @@ public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
                     result.AcceptedCount,
                     netAmountTotal,
                     ReconciliationToleranceFraction,
-                    cancellationToken);
+                    cancellationToken,
+                    // Extração por data reporta só seu lote. Extração completa mantém
+                    // a comparação histórica, inclusive para detectar registros ausentes.
+                    rawObjectUri: updatedSince is null ? null : stored.Key);
 
                 if (!reconciliation.IsWithinTolerance)
                 {
@@ -150,9 +155,9 @@ public sealed partial class ConnectorSyncProcessor : IConnectorSyncProcessor
                 }
             }
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
-            run.Fail(ex.Message);
+            run.Fail("Falha ao processar sincronização. Consulte os logs operacionais pelo identificador de correlação.");
             await _store.SaveRunAsync(run, cancellationToken);
 
             // Repassa para o consumidor RabbitMQ decidir nack -> DLQ (docs/05 §10.3) — o estado já

@@ -136,4 +136,19 @@ public sealed class TenantsController : ControllerBase
         var subject = User.FindFirst(SubjectClaimType)?.Value;
         return Guid.TryParse(subject, out var userId) ? userId : null;
     }
+
+    [HttpGet("{tenantId:guid}/companies")]
+    [RequirePermission(TenantPermissions.CompaniesView)]
+    public async Task<IActionResult> ListCompanies(Guid tenantId, CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(User.FindFirst(EipClaimTypes.TenantId)?.Value, out var current) || current != tenantId)
+        {
+            return Forbid();
+        }
+        await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var companies = await db.Companies.AsNoTracking().Where(c => c.TenantId == tenantId)
+            .OrderBy(c => c.Name).ThenBy(c => c.Id)
+            .Select(c => new { c.Id, c.Name }).ToListAsync(cancellationToken);
+        return Ok(companies);
+    }
 }

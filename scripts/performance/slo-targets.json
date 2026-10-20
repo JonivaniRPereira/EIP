@@ -1,0 +1,10 @@
+{
+  "rollingWindowDays": 30,
+  "availabilityTargetPercent": 99.9,
+  "endpoints": [
+    { "name": "login", "method": "POST", "path": "/api/v1/auth/login", "route": "api/v1/auth/login", "viaGateway": true, "p95Ms": 500, "p99Ms": 1000 },
+    { "name": "analytics", "method": "POST", "path": "/api/v1/analytics/query", "route": "api/v1/analytics/query", "viaGateway": true, "p95Ms": 1000, "p99Ms": 2000 },
+    { "name": "liveness", "method": "GET", "path": "/health/live", "route": "/health/live", "viaGateway": false, "p95Ms": 50, "p99Ms": 100 },
+    { "name": "readiness", "method": "GET", "path": "/health/ready", "route": "/health/ready", "viaGateway": false, "p95Ms": 250, "p99Ms": 500 }
+  ]
+}

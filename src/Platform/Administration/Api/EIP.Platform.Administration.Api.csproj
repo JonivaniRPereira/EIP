@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Application/EIP.Platform.Administration.Application.csproj" />
+    <ProjectReference Include="../../../BuildingBlocks/EIP.BuildingBlocks.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

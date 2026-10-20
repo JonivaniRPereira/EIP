@@ -302,6 +302,10 @@ O processo deve manter canais de escalonamento, responsáveis de plantão, crit�
 
 # 15. Checklist de Liberação
 
+Inventário do esquema real, retenção atual e procedimento manual de acesso/exclusão:
+[16 — LGPD](16-LGPD.md), revisado em 18/10/2026. A ausência de expurgo automático e as
+pendências de operação estão registradas nesse diagnóstico.
+
 Antes de colocar um recurso em produção, confirmar:
 
 - autenticação, autorização e escopo de tenant/workspace testados;

@@ -175,6 +175,9 @@ Cada serviço crítico terá SLI/SLO progressivos, definidos após observação 
 
 Error budgets orientam o equilíbrio entre velocidade de novas funcionalidades e trabalho de confiabilidade. Objetivos não substituem a comunicação de incidentes nem a análise de causa raiz.
 
+As metas iniciais da Fase 3, definições dos indicadores, consultas e limites da baseline local estão
+em [SLOs iniciais](guides/slos-iniciais.md). A amostra local não comprova disponibilidade de 30 dias.
+
 ---
 
 # 12. Backup, Recuperação e Rollback

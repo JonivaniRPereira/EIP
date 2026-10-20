@@ -34,6 +34,11 @@ Não substitui `docs/roadmap/fase-0-backlog.md` (execução/decisões) nem `docs
 
 ## 3.1 Infraestrutura (SQL Server, Redis, RabbitMQ, MinIO)
 
+Se a imagem histórica do MinIO estiver indisponível, usar a alternativa explícita de
+compilação da mesma tag: [recuperação do MinIO e validação completa](recuperacao-minio-ingestao.md).
+Em Bash: `EIP_BUILD_MINIO_SOURCE=1 ./scripts/dev-up.sh`. O override mantém volume/rede/portas;
+não exige remover volumes nem substituir MinIO por um simulador.
+
 ```bash
 ./scripts/dev-up.sh
 ```
@@ -52,6 +57,14 @@ subir (a partir da raiz do repositório):
 dotnet ef database update --project src/Platform/Tenant/Infrastructure --startup-project src/Platform/Tenant/Infrastructure
 dotnet ef database update --project src/Platform/Identity/Infrastructure --startup-project src/Platform/Identity/Infrastructure
 dotnet ef database update --project src/Data/Connector/Infrastructure --startup-project src/Data/Connector/Infrastructure
+
+dotnet ef database update --project src/Data/Canonical/Infrastructure --startup-project src/Data/Canonical/Infrastructure
+
+dotnet ef database update --project src/Data/Warehouse/Infrastructure --startup-project src/Data/Warehouse/Infrastructure
+
+dotnet ef database update --project src/Intelligence/Dashboard/Infrastructure --startup-project src/Intelligence/Dashboard/Infrastructure
+
+dotnet ef database update --project src/Platform/Administration/Infrastructure --startup-project src/Platform/Administration/Infrastructure
 ```
 
 Cada migration inicial já nasce com a política RLS correspondente (ADR-007) — não existe uma etapa
@@ -99,11 +112,12 @@ curl -X POST http://localhost:5000/api/v1/auth/register -H "Content-Type: applic
   -d '{"email":"voce@teste.local","password":"Senha@12345","displayName":"Seu Nome"}'
 ```
 
-A resposta traz `requiresTenantSelection: true` e `availableTenants: []` — um usuário novo não
-pertence a nenhum tenant ainda (não existe endpoint de auto-provisionamento de tenant na Fase 0; ver
-`docs/roadmap/fase-0-backlog.md §6`, fora do escopo). Para testar o fluxo completo (login →
-dashboard) é preciso um Tenant + Membership `Active` para o usuário, criados diretamente via SQL
-(mesmo padrão usado para os dados de demonstração desta fase).
+A resposta traz `requiresTenantSelection: true` e `availableTenants: []`: um usuário novo não
+pertence a nenhum tenant. Use o access token retornado para criar a organização em
+`POST /api/v1/tenants` com `name`, `slug` e `countryCode`; depois renove a sessão em
+`POST /api/v1/auth/refresh` com o refresh token do registro. Com uma única membership ativa, a
+organização será selecionada e o token conterá suas permissões. O frontend também oferece
+"Criar organização" após login sem membership. Não é necessário provisionar por SQL.
 
 No navegador: abra `http://localhost:4200`, faça login e confirme que chega no dashboard.
 
@@ -134,6 +148,7 @@ No navegador: abra `http://localhost:4200`, faça login e confirme que chega no 
   novo.
 - **Login retorna 500 mencionando erro de RLS/security policy:** normalmente falta rodar uma das
   migrations do passo 3.2 (a política de RLS de um módulo não foi criada).
-- **Frontend não recebe resposta do Gateway (erro de CORS no console do navegador):** confirme que
-  está acessando `http://localhost:4200` exatamente (a origem precisa bater com
-  `Cors:AllowedOrigins` do `appsettings.json` do Gateway).
+- **Frontend não recebe resposta do Gateway (erro de CORS no console do navegador):** em
+  Development, `appsettings.Development.json` do Gateway permite explicitamente
+  `http://localhost:4200` e `http://127.0.0.1:4200`. Reinicie o Gateway após alterar a
+  configuração. A origem precisa coincidir com a lista; origens externas não são liberadas.

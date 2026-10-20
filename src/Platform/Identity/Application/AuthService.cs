@@ -69,7 +69,7 @@ public sealed class AuthService : IAuthService
         if (await _userManager.IsLockedOutAsync(user))
         {
             await _auditLogger.LogAsync(AuditEventTypes.LoginLockedOut, user.Id, email, detail: null, cancellationToken);
-            return AuthResult.Failed("Conta temporariamente bloqueada por tentativas inválidas.");
+            return AuthResult.Failed(InvalidCredentialsError);
         }
 
         var passwordValid = await _userManager.CheckPasswordAsync(user, password);
@@ -88,14 +88,14 @@ public sealed class AuthService : IAuthService
 
     public async Task<AuthResult> RefreshAsync(string refreshToken, CancellationToken cancellationToken)
     {
-        var existingToken = await _refreshTokenStore.FindActiveByRawTokenAsync(refreshToken, cancellationToken);
+        var existingToken = await _refreshTokenStore.TryRedeemAsync(refreshToken, cancellationToken);
         if (existingToken is null)
         {
             return AuthResult.Failed("Refresh token inválido ou expirado.");
         }
 
         var user = await _userManager.FindByIdAsync(existingToken.UserId.ToString());
-        if (user is null)
+        if (user is null || await _userManager.IsLockedOutAsync(user))
         {
             return AuthResult.Failed("Refresh token inválido ou expirado.");
         }
@@ -105,7 +105,6 @@ public sealed class AuthService : IAuthService
         if (existingToken.TenantId is null)
         {
             var result = await IssueTokensAsync(user, cancellationToken);
-            await _refreshTokenStore.RevokeAsync(existingToken, null, cancellationToken);
             return result;
         }
 
@@ -118,7 +117,6 @@ public sealed class AuthService : IAuthService
             var membership = await _membershipDirectory.GetActiveMembershipAsync(user.Id, tenantId, cancellationToken);
             if (membership is null)
             {
-                await _refreshTokenStore.RevokeAsync(existingToken, null, cancellationToken);
                 return AuthResult.Failed("Membership não é mais ativa neste tenant; faça login novamente.");
             }
 
@@ -128,8 +126,7 @@ public sealed class AuthService : IAuthService
         var accessToken = _tokenGenerator.GenerateAccessToken(user.Id, user.Email!, existingToken.TenantId, permissions);
         var newRefreshToken = await _refreshTokenStore.IssueAsync(user.Id, existingToken.TenantId, cancellationToken);
 
-        // Rotação: o refresh token usado é revogado e substituído pelo novo (docs/07-Seguranca.md §5.1).
-        await _refreshTokenStore.RevokeAsync(existingToken, null, cancellationToken);
+        // O token anterior foi consumido atomicamente antes da emissão; apenas um concorrente vence.
 
         return AuthResult.Authenticated(accessToken.Value, accessToken.ExpiresAtUtc, newRefreshToken.RawValue);
     }
@@ -143,7 +140,7 @@ public sealed class AuthService : IAuthService
         }
 
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user is null)
+        if (user is null || await _userManager.IsLockedOutAsync(user))
         {
             return AuthResult.Failed("Usuário não encontrado.");
         }
@@ -153,6 +150,11 @@ public sealed class AuthService : IAuthService
         var refreshToken = await _refreshTokenStore.IssueAsync(user.Id, tenantId, cancellationToken);
 
         return AuthResult.Authenticated(accessToken.Value, accessToken.ExpiresAtUtc, refreshToken.RawValue);
+    }
+
+    public async Task RevokeSessionAsync(string refreshToken, CancellationToken cancellationToken)
+    {
+        await _refreshTokenStore.TryRedeemAsync(refreshToken, cancellationToken);
     }
 
     private async Task<AuthResult> IssueTokensAsync(ApplicationUser user, CancellationToken cancellationToken)

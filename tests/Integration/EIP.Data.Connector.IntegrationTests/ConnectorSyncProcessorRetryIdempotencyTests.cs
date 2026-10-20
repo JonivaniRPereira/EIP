@@ -73,6 +73,7 @@ public sealed class ConnectorSyncProcessorRetryIdempotencyTests : IAsyncDisposab
             var afterFirstAttempt = await _store.FindRunAsync(run.Id, CancellationToken.None);
             afterFirstAttempt!.Status.Should().Be(SyncRunStatus.Failed);
             afterFirstAttempt.ErrorMessage.Should().NotBeNullOrEmpty();
+            afterFirstAttempt.ErrorMessage.Should().NotContain("Falha simulada de origem");
 
             // 2ª entrega — exatamente o que o worker republica na fila de retry (E2.1) depois do
             // backoff: mesma SyncRunId, nova tentativa. Antes do fix, TryStartProcessing via IsTerminal

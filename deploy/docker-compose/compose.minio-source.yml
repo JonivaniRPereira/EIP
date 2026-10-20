@@ -1,0 +1,8 @@
+# Opt-in local build when the historical upstream image is unavailable.
+# docker compose -f docker-compose.yml -f compose.minio-source.yml up -d --build minio
+services:
+  minio:
+    image: eip-minio-source:RELEASE.2025-04-08T15-41-24Z
+    build:
+      context: .
+      dockerfile: minio-source.Dockerfile

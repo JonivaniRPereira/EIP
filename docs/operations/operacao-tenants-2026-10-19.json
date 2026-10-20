@@ -1,0 +1,115 @@
+{
+  "observedAtUtc": "2026-10-19T10:46:34.1145934Z",
+  "tenants": [
+    {
+      "tenantId": "CC3DC7D4-86A1-49B5-A183-05390018C9D8",
+      "syncsLast24Hours": 1,
+      "failedRunsLast24Hours": 0,
+      "pendingRuns": 1,
+      "runningRuns": 0,
+      "lastSuccessfulSyncAt": null,
+      "lastSuccessfulWarehouseLoadAt": null,
+      "warehouseAgeSeconds": null
+    },
+    {
+      "tenantId": "C9D3D4E3-DDA8-4CB8-BDD4-18258253A04E",
+      "syncsLast24Hours": 0,
+      "failedRunsLast24Hours": 0,
+      "pendingRuns": 0,
+      "runningRuns": 0,
+      "lastSuccessfulSyncAt": null,
+      "lastSuccessfulWarehouseLoadAt": null,
+      "warehouseAgeSeconds": null
+    },
+    {
+      "tenantId": "AB29D101-7854-4C64-B8D5-223C7D63AEF8",
+      "syncsLast24Hours": 1,
+      "failedRunsLast24Hours": 0,
+      "pendingRuns": 1,
+      "runningRuns": 0,
+      "lastSuccessfulSyncAt": null,
+      "lastSuccessfulWarehouseLoadAt": null,
+      "warehouseAgeSeconds": null
+    },
+    {
+      "tenantId": "4174CBC8-00F6-4FFA-BD20-6936B7F42627",
+      "syncsLast24Hours": 1,
+      "failedRunsLast24Hours": 0,
+      "pendingRuns": 1,
+      "runningRuns": 0,
+      "lastSuccessfulSyncAt": null,
+      "lastSuccessfulWarehouseLoadAt": null,
+      "warehouseAgeSeconds": null
+    },
+    {
+      "tenantId": "E56A65D9-2CB6-4E3E-8EE8-6B6CAEFF4E60",
+      "syncsLast24Hours": 1,
+      "failedRunsLast24Hours": 0,
+      "pendingRuns": 1,
+      "runningRuns": 0,
+      "lastSuccessfulSyncAt": null,
+      "lastSuccessfulWarehouseLoadAt": null,
+      "warehouseAgeSeconds": null
+    },
+    {
+      "tenantId": "D14B8990-FF89-4EB6-A026-6CE0929B6D40",
+      "syncsLast24Hours": 1,
+      "failedRunsLast24Hours": 0,
+      "pendingRuns": 1,
+      "runningRuns": 0,
+      "lastSuccessfulSyncAt": null,
+      "lastSuccessfulWarehouseLoadAt": null,
+      "warehouseAgeSeconds": null
+    },
+    {
+      "tenantId": "9DDBFBD0-0273-4F6A-BA6D-71E6531DEF42",
+      "syncsLast24Hours": 1,
+      "failedRunsLast24Hours": 0,
+      "pendingRuns": 1,
+      "runningRuns": 0,
+      "lastSuccessfulSyncAt": null,
+      "lastSuccessfulWarehouseLoadAt": null,
+      "warehouseAgeSeconds": null
+    },
+    {
+      "tenantId": "988B73CA-7503-467E-A0C5-B42D089B10E3",
+      "syncsLast24Hours": 1,
+      "failedRunsLast24Hours": 0,
+      "pendingRuns": 1,
+      "runningRuns": 0,
+      "lastSuccessfulSyncAt": null,
+      "lastSuccessfulWarehouseLoadAt": null,
+      "warehouseAgeSeconds": null
+    },
+    {
+      "tenantId": "E35F993F-A509-46F3-AC16-BAB4E80C7212",
+      "syncsLast24Hours": 1,
+      "failedRunsLast24Hours": 0,
+      "pendingRuns": 1,
+      "runningRuns": 0,
+      "lastSuccessfulSyncAt": null,
+      "lastSuccessfulWarehouseLoadAt": null,
+      "warehouseAgeSeconds": null
+    },
+    {
+      "tenantId": "5E17B5C9-5862-4029-A627-D95261CBF8A7",
+      "syncsLast24Hours": 0,
+      "failedRunsLast24Hours": 0,
+      "pendingRuns": 0,
+      "runningRuns": 0,
+      "lastSuccessfulSyncAt": null,
+      "lastSuccessfulWarehouseLoadAt": null,
+      "warehouseAgeSeconds": null
+    },
+    {
+      "tenantId": "11924482-6456-48C8-879F-E2E0A9FCEAA8",
+      "syncsLast24Hours": 0,
+      "failedRunsLast24Hours": 0,
+      "pendingRuns": 0,
+      "runningRuns": 0,
+      "lastSuccessfulSyncAt": null,
+      "lastSuccessfulWarehouseLoadAt": null,
+      "warehouseAgeSeconds": null
+    }
+  ]
+}

@@ -15,7 +15,8 @@ public sealed class MinioContainerFixture : IAsyncLifetime
 {
     private const string BucketName = "eip-datalake-tests";
 
-    private readonly MinioContainer _container = new MinioBuilder("minio/minio:RELEASE.2025-04-08T15-41-24Z")
+    private readonly MinioContainer _container = new MinioBuilder(
+        Environment.GetEnvironmentVariable("EIP_TEST_MINIO_IMAGE") ?? "minio/minio:RELEASE.2025-04-08T15-41-24Z")
         .WithUsername("eip_dev")
         .WithPassword("Dev_OnlyChangeMe_123!")
         .Build();

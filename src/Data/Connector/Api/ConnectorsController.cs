@@ -4,6 +4,7 @@ using EIP.Data.Connector.Api.Contracts;
 using EIP.Data.Connector.Application;
 using EIP.Data.Connector.Application.Abstractions;
 using EIP.Shared.Contracts.Connectors;
+using EIP.Shared.Contracts.Tenancy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,11 +26,16 @@ public sealed class ConnectorsController : ControllerBase
 
     private readonly IConnectorSyncService _connectorSyncService;
     private readonly IConnectorDlqReader _dlqReader;
+    private readonly ITenantDirectory _tenants;
+    private readonly IReferenceEndpointPolicy _endpointPolicy;
 
-    public ConnectorsController(IConnectorSyncService connectorSyncService, IConnectorDlqReader dlqReader)
+    public ConnectorsController(IConnectorSyncService connectorSyncService, IConnectorDlqReader dlqReader,
+        ITenantDirectory tenants, IReferenceEndpointPolicy endpointPolicy)
     {
         _connectorSyncService = connectorSyncService;
         _dlqReader = dlqReader;
+        _tenants = tenants;
+        _endpointPolicy = endpointPolicy;
     }
 
     [HttpPost]
@@ -44,7 +50,7 @@ public sealed class ConnectorsController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(request.Name)
             || !Uri.TryCreate(request.BaseUrl, UriKind.Absolute, out _)
-            || string.IsNullOrWhiteSpace(request.SourceEntity)
+            || request.SourceEntity is not ("customers" or "products" or "sales-invoices")
             || request.CompanyId == Guid.Empty)
         {
             return Problem(
@@ -52,11 +58,91 @@ public sealed class ConnectorsController : ControllerBase
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
+        if (!_endpointPolicy.IsAllowed(request.BaseUrl))
+        {
+            return Problem(detail: "Destino de conector não autorizado pelo operador.", statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        if (await _tenants.GetCompanyAsync(tenantId.Value, request.CompanyId, cancellationToken) is null)
+        {
+            return Problem(detail: "Empresa não encontrada nesta organização.", statusCode: StatusCodes.Status400BadRequest);
+        }
+
         var instanceId = await _connectorSyncService.RegisterInstanceAsync(
             tenantId.Value, request.CompanyId, request.Name, request.BaseUrl, request.SourceEntity, cancellationToken);
 
         var dto = new ConnectorInstanceDto(instanceId, request.CompanyId, request.Name, request.BaseUrl, request.SourceEntity, "Active");
         return CreatedAtAction(nameof(Register), new { connectorInstanceId = instanceId }, dto);
+    }
+
+    [HttpGet]
+    [RequirePermission(ConnectorPermissions.ConnectorView)]
+    public async Task<ActionResult<IReadOnlyList<ConnectorInstanceDto>>> List(CancellationToken cancellationToken)
+    {
+        var tenantId = GetAuthenticatedTenantId();
+        if (tenantId is null)
+        {
+            return Forbid();
+        }
+        var instances = await _connectorSyncService.ListInstancesAsync(tenantId.Value, cancellationToken);
+        return Ok(instances.OrderBy(i => i.Name).ThenBy(i => i.Id)
+            .Select(i => new ConnectorInstanceDto(i.Id, i.CompanyId, i.Name, i.BaseUrl, i.SourceEntity, i.Status.ToString())).ToList());
+    }
+
+    [HttpPut("{connectorInstanceId:guid}/configuration")]
+    [RequirePermission(ConnectorPermissions.ConnectorManage)]
+    public async Task<ActionResult<ConnectorInstanceDto>> UpdateConfiguration(Guid connectorInstanceId,
+        UpdateConnectorConfigurationRequest request, CancellationToken cancellationToken)
+    {
+        var tenantId = GetAuthenticatedTenantId();
+        if (tenantId is null)
+        {
+            return Forbid();
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length > 200
+            || string.IsNullOrWhiteSpace(request.BaseUrl) || request.BaseUrl.Length > 2000
+            || !_endpointPolicy.IsAllowed(request.BaseUrl))
+        {
+            return BadRequest(new ProblemDetails { Detail = "Informe nome de até 200 caracteres e endereço autorizado pelo administrador.", Status = 400 });
+        }
+
+        var instance = await _connectorSyncService.UpdateConfigurationAsync(tenantId.Value, connectorInstanceId,
+            request.Name.Trim(), request.BaseUrl.Trim(), cancellationToken);
+        if (instance is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(new ConnectorInstanceDto(instance.Id, instance.CompanyId, instance.Name, instance.BaseUrl, instance.SourceEntity, instance.Status.ToString()));
+    }
+
+    [HttpGet("{connectorInstanceId:guid}/sync-runs")]
+    [RequirePermission(ConnectorPermissions.ConnectorView)]
+    public async Task<ActionResult<IReadOnlyList<SyncRunDto>>> ListRuns(Guid connectorInstanceId,
+        CancellationToken cancellationToken, [FromQuery] int limit = 50, [FromQuery] DateTimeOffset? before = null, [FromQuery] Guid? beforeId = null)
+    {
+        var tenantId = GetAuthenticatedTenantId();
+        if (tenantId is null)
+        {
+            return Forbid();
+        }
+        if (limit is < 1 or > 100)
+        {
+            return BadRequest(new ProblemDetails { Detail = "Limite deve estar entre 1 e 100.", Status = 400 });
+        }
+        if (before.HasValue != beforeId.HasValue || beforeId == Guid.Empty)
+        {
+            return BadRequest(new ProblemDetails { Detail = "Informe data e identificador válidos para continuar o histórico.", Status = 400 });
+        }
+        var runs = await _connectorSyncService.ListRunsAsync(tenantId.Value, connectorInstanceId, limit, cancellationToken, before, beforeId);
+        if (runs is null)
+        {
+            return NotFound();
+        }
+        return Ok(runs.Select(r => new SyncRunDto(r.Id, r.ConnectorInstanceId, r.Status.ToString(), r.CorrelationId,
+            r.RecordsProcessed, r.AcceptedCount, r.UpdatedCount, r.RejectedCount, r.DeletedCount,
+            r.ErrorMessage, r.CreatedAt, r.StartedAt, r.FinishedAt)).ToList());
     }
 
     /// <summary>Dispara uma sincronização assíncrona (E7.1). Retorna 202 com o <c>SyncRunId</c>
@@ -67,6 +153,11 @@ public sealed class ConnectorsController : ControllerBase
     [RequirePermission(ConnectorPermissions.ConnectorManage)]
     public async Task<IActionResult> RequestSync(Guid connectorInstanceId, [FromQuery] DateTimeOffset? reprocessFrom, CancellationToken cancellationToken)
     {
+        if (reprocessFrom > DateTimeOffset.UtcNow)
+        {
+            return BadRequest(new ProblemDetails { Detail = "A data inicial não pode estar no futuro.", Status = 400 });
+        }
+
         var tenantId = GetAuthenticatedTenantId();
         if (tenantId is null)
         {

@@ -12,6 +12,7 @@ namespace EIP.Data.Connector.Application.Abstractions;
 /// </summary>
 public interface IConnectorSyncStore
 {
+    Task<bool> UpdateConfigurationAsync(Guid tenantId, Guid connectorInstanceId, string name, string baseUrl, CancellationToken cancellationToken);
     Task<ConnectorInstance?> FindInstanceAsync(Guid connectorInstanceId, CancellationToken cancellationToken);
 
     /// <summary>Todas as instâncias do tenant — usado pelo Catálogo de Métricas (Fase 3, E3.2) para
@@ -30,5 +31,9 @@ public interface IConnectorSyncStore
 
     Task<SyncRun?> FindRunAsync(Guid syncRunId, CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<SyncRun>> ListRunsAsync(Guid tenantId, Guid connectorInstanceId, int limit, CancellationToken cancellationToken, DateTimeOffset? before = null, Guid? beforeId = null);
+
     Task SaveRunAsync(SyncRun run, CancellationToken cancellationToken);
+
+    Task<long> CountRunsAsync(Guid tenantId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken);
 }

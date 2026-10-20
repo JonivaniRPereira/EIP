@@ -15,6 +15,48 @@ env:
   GITLEAKS_VERSION: "8.30.1"
 
 jobs:
+  frontend:
+    name: Frontend — testes e build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Configurar npm da aplicação
+        run: npm install --global npm@11.16.0
+
+      - name: Instalar dependências pelo lockfile
+        run: npm ci --no-audit --no-fund
+
+      - name: Testes do frontend
+        run: npm run test:ci
+
+      - name: Build de produção
+        run: npm run build
+
+      - name: Conferir fontes e licenças locais
+        run: npm run check:fonts
+
+      - name: Publicar resultados do frontend
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-results
+          path: frontend/test-results/*.xml
+          if-no-files-found: warn
+          retention-days: 14
+
   build-and-test:
     name: Build, lint, testes e scans
     runs-on: ubuntu-latest
@@ -39,7 +81,12 @@ jobs:
       # Inclui a suíte de isolamento multi-tenant do E2.6 (gate mínimo do épico E2 —
       # docs/roadmap/fase-0-backlog.md) e roda contra SQL Server efêmero via Testcontainers;
       # runners ubuntu-latest já têm Docker disponível, sem setup adicional.
+      - name: Preparar MinIO da fonte fixada para os testes
+        run: docker build -f deploy/docker-compose/minio-source.Dockerfile -t eip-minio-source:RELEASE.2025-04-08T15-41-24Z .
+
       - name: Testes (unitários + integração com Testcontainers)
+        env:
+          EIP_TEST_MINIO_IMAGE: eip-minio-source:RELEASE.2025-04-08T15-41-24Z
         run: dotnet test EIP.slnx --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
 
       - name: Publicar resultados de teste
@@ -72,7 +119,7 @@ jobs:
 
   docker-build:
     name: Build de imagens Docker (versionadas, sem publicação)
-    needs: build-and-test
+    needs: [build-and-test, frontend]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

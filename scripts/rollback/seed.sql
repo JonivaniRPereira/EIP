@@ -1,0 +1,13 @@
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+BEGIN TRANSACTION;
+EXEC sys.sp_set_session_context @key=N'TenantId', @value='00000000-0000-0000-0000-000000000001';
+INSERT tenant.Tenants (Id,Name,Slug,Status,PlanId,DataIsolationMode,DefaultTimezone,CreatedAt,UpdatedAt)
+VALUES ('11111111-1111-1111-1111-111111111111',N'Rollback A',N'rollback-a',N'Active',NEWID(),N'Shared',N'America/Sao_Paulo',SYSDATETIMEOFFSET(),SYSDATETIMEOFFSET()),
+('22222222-2222-2222-2222-222222222222',N'Rollback B',N'rollback-b',N'Active',NEWID(),N'Shared',N'America/Sao_Paulo',SYSDATETIMEOFFSET(),SYSDATETIMEOFFSET());
+INSERT tenant.Companies (Id,TenantId,Name,TaxId,DefaultCurrency,Status,CreatedAt,UpdatedAt)
+VALUES (NEWID(),'11111111-1111-1111-1111-111111111111',N'Empresa anterior A',N'SYNTHETIC-A',N'BRL',N'Active',SYSDATETIMEOFFSET(),SYSDATETIMEOFFSET()),
+(NEWID(),'22222222-2222-2222-2222-222222222222',N'Empresa anterior B',N'SYNTHETIC-B',N'USD',N'Active',SYSDATETIMEOFFSET(),SYSDATETIMEOFFSET());
+INSERT tenant.Memberships (Id,UserId,TenantId,Status,CreatedAt,UpdatedAt,Role)
+VALUES (NEWID(),NEWID(),'11111111-1111-1111-1111-111111111111',N'Active',SYSDATETIMEOFFSET(),SYSDATETIMEOFFSET(),N'Owner');
+COMMIT TRANSACTION;

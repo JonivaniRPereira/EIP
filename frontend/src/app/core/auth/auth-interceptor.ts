@@ -18,11 +18,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const token = auth.accessToken;
-  const authorizedReq = token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
+  const authorizedReq = token
+    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+    : req;
 
   return next(authorizedReq).pipe(
     catchError((error: unknown) => {
-      const isAuthEndpoint = req.url.includes('/auth/login') || req.url.includes('/auth/refresh');
+      const isAuthEndpoint = [
+        '/auth/login',
+        '/auth/refresh',
+        '/auth/logout',
+        '/auth/register',
+      ].some((path) => req.url.includes(path));
       if (error instanceof HttpErrorResponse && error.status === 401 && token && !isAuthEndpoint) {
         return from(auth.refresh()).pipe(
           switchMap((refreshed) => {

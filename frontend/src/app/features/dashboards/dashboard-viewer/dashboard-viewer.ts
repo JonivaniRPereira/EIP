@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { EchartLine } from '../../../shared/echart-line/echart-line';
+import { APP_LOCALE } from '../../../core/locale';
 import { DashboardsService } from '../dashboards.service';
 import { DashboardDto, WidgetDto, WidgetQueryResultDto } from '../models';
 
@@ -18,11 +19,22 @@ interface WidgetView {
 
 @Component({
   selector: 'app-dashboard-viewer',
-  imports: [RouterLink, DatePipe, DecimalPipe, MatButtonModule, MatProgressSpinnerModule, EchartLine],
+  imports: [
+    RouterLink,
+    DatePipe,
+    DecimalPipe,
+    MatButtonModule,
+    MatProgressSpinnerModule,
+    EchartLine,
+  ],
   templateUrl: './dashboard-viewer.html',
   styleUrl: './dashboard-viewer.scss',
 })
 export class DashboardViewer implements OnInit {
+  private readonly numbers = new Intl.NumberFormat(APP_LOCALE, { maximumFractionDigits: 2 });
+  formatCell(value: unknown): string {
+    return typeof value === 'number' ? this.numbers.format(value) : String(value ?? '—');
+  }
   private readonly route = inject(ActivatedRoute);
   private readonly dashboardsService = inject(DashboardsService);
 
@@ -33,7 +45,9 @@ export class DashboardViewer implements OnInit {
 
   /** Frescor dos dados (docs/12 §10) — o mesmo em todos os widgets nesta fase (1 dataset só, sales),
    * então basta olhar o primeiro resultado. */
-  readonly dataFreshnessAt = computed(() => this.widgetViews()[0]?.result.metadata.dataFreshnessAt ?? null);
+  readonly dataFreshnessAt = computed(
+    () => this.widgetViews()[0]?.result.metadata.dataFreshnessAt ?? null,
+  );
 
   async ngOnInit(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
@@ -50,7 +64,9 @@ export class DashboardViewer implements OnInit {
       ]);
 
       this.dashboard.set(dashboard);
-      this.widgetViews.set(dashboard.widgets.map((widget, index) => this.toWidgetView(widget, results[index])));
+      this.widgetViews.set(
+        dashboard.widgets.map((widget, index) => this.toWidgetView(widget, results[index])),
+      );
     } catch {
       this.errorMessage.set('Não foi possível carregar este painel.');
     } finally {
@@ -91,7 +107,9 @@ export class DashboardViewer implements OnInit {
   private toWidgetView(widget: WidgetDto, result: WidgetQueryResultDto): WidgetView {
     const dimensionKey = widget.queryDefinition.dimensions[0] ?? '';
     const metricKey = widget.queryDefinition.metrics[0] ?? '';
-    const tableColumns = [dimensionKey, ...widget.queryDefinition.metrics].filter((column) => column.length > 0);
+    const tableColumns = [dimensionKey, ...widget.queryDefinition.metrics].filter(
+      (column) => column.length > 0,
+    );
 
     return { widget, result, dimensionKey, metricKey, tableColumns };
   }

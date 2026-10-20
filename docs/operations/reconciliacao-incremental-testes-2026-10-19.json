@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "localDate": "2026-10-19",
+  "scenario": "Incremental canonical reconciliation with historical data",
+  "results": [
+    {
+      "report": "tests/Integration/EIP.Data.Pipeline.IntegrationTests/TestResults/reconciliation-incremental.trx",
+      "total": 13,
+      "passed": 13,
+      "failed": 0,
+      "sha256": "a34a64a3792924c2e5ba53fe70910fbbac576a6c6dc37443d67023ba748e3a3b"
+    },
+    {
+      "report": "tests/Integration/EIP.Data.Connector.IntegrationTests/TestResults/reconciliation-connector.trx",
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "sha256": "051887bc359fe69e54f44ea826c4259be49b03e59e068aacfa65e1135af040b0"
+    },
+    {
+      "report": "tests/Integration/EIP.Data.Pipeline.IntegrationTests/TestResults/reconciliation-final.trx",
+      "total": 11,
+      "passed": 11,
+      "failed": 0,
+      "sha256": "d7566fdd5cc8630c96b57a9c8f7a516dd841e932b33cbeb53230fd2006f3f26a"
+    }
+  ],
+  "note": "O recorte final de 11 integra a suite de 13; nao somar novamente."
+}

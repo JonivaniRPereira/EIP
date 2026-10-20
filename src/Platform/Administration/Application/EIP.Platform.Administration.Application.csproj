@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../../Shared/EIP.Shared.csproj" />
+  </ItemGroup>
+</Project>

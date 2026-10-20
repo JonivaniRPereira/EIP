@@ -1,0 +1,80 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.shell-container {
+  height: 100%;
+  background: var(--jp-paper);
+}
+.brand-heading {
+  padding: 24px 24px 22px;
+  border-bottom: 1px solid var(--jp-border);
+}
+.brand-heading img {
+  display: block;
+  width: 192px;
+  max-width: 100%;
+  height: auto;
+}
+.product-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  color: var(--jp-ink);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.product-label span {
+  max-width: 130px;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.14em;
+}
+.brand-toolbar {
+  background: var(--jp-paper);
+  color: var(--jp-ink);
+  border-bottom: 1px solid var(--jp-border);
+}
+.shell-sidebar {
+  width: 256px;
+  max-width: calc(100vw - 48px);
+  background: var(--jp-alt);
+  border-right: 1px solid var(--jp-border);
+  border-radius: 0;
+}
+
+.tenant-name {
+  min-width: 0;
+  max-width: 45vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.compact-brand {
+  display: none;
+}
+@media (max-width: 959px) {
+  .compact-brand {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin: 0 12px 0 4px;
+  }
+  .compact-brand img {
+    width: 132px;
+    height: auto;
+  }
+}
+
+.user-email {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  .user-email {
+    display: inline;
+  }
+}

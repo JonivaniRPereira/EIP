@@ -5,8 +5,6 @@
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
-@import 'tailwindcss';
-
 html {
   height: 100%;
   @include mat.theme(
@@ -15,10 +13,75 @@ html {
         primary: mat.$azure-palette,
         tertiary: mat.$blue-palette,
       ),
-      typography: Roboto,
+      typography: Arial,
       density: 0,
     )
   );
+}
+
+html {
+  --jp-paper: #f7f7f2;
+  --jp-alt: #eeefe8;
+  --jp-green: #285b45;
+  --jp-ink: #183b32;
+  --jp-muted: #526059;
+  --jp-border: #d5dbd2;
+  --mat-sys-primary: var(--jp-green);
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-primary-container: #e4eee5;
+  --mat-sys-on-primary-container: var(--jp-ink);
+  --mat-sys-secondary: var(--jp-muted);
+  --mat-sys-secondary-container: #e4eee5;
+  --mat-sys-on-secondary-container: var(--jp-ink);
+  --mat-sys-surface: var(--jp-paper);
+  --mat-sys-surface-container: var(--jp-alt);
+  --mat-sys-surface-container-low: #ffffff;
+  --mat-sys-surface-container-high: #ecefe9;
+  --mat-sys-on-surface: var(--jp-ink);
+  --mat-sys-on-surface-variant: var(--jp-muted);
+  --mat-sys-outline: #829487;
+  --mat-sys-outline-variant: var(--jp-border);
+  --mat-sys-corner-extra-small: 3px;
+  --mat-sys-corner-small: 3px;
+  --mat-sys-corner-medium: 4px;
+  --mat-sys-corner-large: 6px;
+  --mat-sys-corner-full: 4px;
+}
+body {
+  background: var(--jp-paper);
+}
+h1,
+h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--jp-ink);
+  letter-spacing: -0.035em;
+  font-weight: 400;
+}
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid #b87535;
+  outline-offset: 3px;
+}
+.auth-page {
+  min-height: 100%;
+  background: var(--jp-paper);
+  padding-block: 48px;
+}
+.auth-page mat-card {
+  padding: 24px 16px;
+  border: 1px solid var(--jp-border);
+  border-radius: 4px;
+  box-shadow: none;
+}
+.auth-brand {
+  width: 192px;
+  height: auto;
+  margin: 0 auto 24px;
+}
+.auth-page mat-card-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--jp-ink);
+  font-size: 28px;
 }
 
 body {

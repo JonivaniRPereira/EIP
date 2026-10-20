@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "completedAtUtc": "2026-10-18T12:57:11.9313093+00:00",
+  "sourceContainer": "eip-sqlserver",
+  "database": "EIP",
+  "image": "mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04",
+  "backupSha256": "A126798AD5F5840DA5CABEA29016A1011E5F9B6D3F58DD8A93A5E1BBD251C436",
+  "tables": 39,
+  "rows": 41.0,
+  "policies": 7,
+  "baselineContainerRemoved": true,
+  "restoredToNewInstance": true,
+  "backupVerified": true,
+  "checkDbPassed": true,
+  "tableHashesMatch": true,
+  "rlsProbePassed": true,
+  "elapsedSeconds": 25.55
+}

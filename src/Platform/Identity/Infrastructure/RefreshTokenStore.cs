@@ -43,13 +43,22 @@ public sealed class RefreshTokenStore : IRefreshTokenStore
             return new IssuedRefreshToken(rawToken, entity.ExpiresAt);
         });
 
-    public Task<RefreshToken?> FindActiveByRawTokenAsync(string rawToken, CancellationToken cancellationToken) =>
+    public Task<RefreshToken?> TryRedeemAsync(string rawToken, CancellationToken cancellationToken) =>
         RunWithSystemContextAsync(async () =>
         {
             var hash = Hash(rawToken);
             var token = await _dbContext.RefreshTokens.SingleOrDefaultAsync(rt => rt.TokenHash == hash, cancellationToken);
 
-            return token is not null && token.IsActive ? token : null;
+            if (token is null || !token.IsActive)
+            {
+                return null;
+            }
+
+            var now = DateTimeOffset.UtcNow;
+            var redeemed = await _dbContext.RefreshTokens
+                .Where(rt => rt.Id == token.Id && rt.RevokedAt == null && rt.ExpiresAt > now)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(rt => rt.RevokedAt, now), cancellationToken);
+            return redeemed == 1 ? token : null;
         });
 
     public Task RevokeAsync(RefreshToken token, Guid? replacedByTokenId, CancellationToken cancellationToken) =>

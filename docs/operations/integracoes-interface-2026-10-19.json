@@ -1,0 +1,24 @@
+{
+  "reviewedAt": "2026-10-19",
+  "status": "passed",
+  "scope": "Connector registration and sync history UI, tenant-scoped read endpoints",
+  "apiTestsPassed": 75,
+  "frontendTestsPassed": 21,
+  "frontendTestFiles": 14,
+  "hostBuild": "passed",
+  "frontendProductionBuild": "passed",
+  "gatewayCorsExposeHeaders": "Retry-After",
+  "crossTenantListingTests": "passed",
+  "browser": {
+    "organization": "Empresa Demo",
+    "salesInvoicesReceived": 4,
+    "dashboardId": "278f810f-b46a-4fac-ab65-aff0927eb803",
+    "allThreeSyncsSucceeded": true,
+    "customersReceived": 6,
+    "productsReceived": 5,
+    "quotaRejectedRepeat": true,
+    "dashboardNetRevenue": 11110
+  },
+  "newTables": 0,
+  "productionCertification": false
+}

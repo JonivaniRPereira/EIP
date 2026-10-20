@@ -40,6 +40,7 @@ public sealed class ConnectorSyncQuotaTests
                 new("ConnectionStrings:CanonicalDb", _fixture.ConnectionString),
                 new("ConnectionStrings:WarehouseDb", _fixture.ConnectionString),
                 new("ConnectionStrings:DashboardDb", _fixture.ConnectionString),
+                new("ConnectionStrings:UsageDb", _fixture.ConnectionString),
                 new("ConnectionStrings:Redis", _fixture.RedisConnectionString),
                 new("Connector:SyncQuota:PermitLimit", "2"),
                 new("Connector:SyncQuota:WindowSeconds", "60"),

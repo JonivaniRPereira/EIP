@@ -1,0 +1,90 @@
+{
+  "completedAtUtc": "2026-10-19T11:04:15.6270435+00:00",
+  "status": "passed",
+  "minioSourceTag": "RELEASE.2025-04-08T15-41-24Z",
+  "minioSourceModule": "v0.0.0-20250408154124-d0cada583fce",
+  "image": "eip-minio-source:RELEASE.2025-04-08T15-41-24Z",
+  "imageId": "sha256:1f0d3b8051e3e49485459817fddfa78b2d46385c66c04b38979636a37634a9db",
+  "binaryVersion": "DEVELOPMENT.GOGET",
+  "goVersion": "go1.24.13",
+  "suiteCount": 9,
+  "totalTests": 122.0,
+  "passedTests": 122.0,
+  "suites": [
+    {
+      "assembly": "eip.data.canonical.infrastructure.integrationtests.dll",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "assembly": "eip.data.catalog.integrationtests.dll",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "assembly": "eip.data.connector.integrationtests.dll",
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "assembly": "eip.data.datalake.infrastructure.integrationtests.dll",
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "assembly": "eip.data.pipeline.integrationtests.dll",
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "assembly": "eip.data.warehouse.integrationtests.dll",
+      "total": 11,
+      "passed": 11,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "assembly": "eip.host.integrationtests.dll",
+      "total": 73,
+      "passed": 73,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "assembly": "eip.intelligence.dashboard.infrastructure.integrationtests.dll",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "assembly": "eip.platform.tenant.infrastructure.integrationtests.dll",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "notExecuted": 0
+    }
+  ],
+  "gatewayIngestion": "passed",
+  "rawObjectReads": 3,
+  "rawChecksumsVerified": true,
+  "netRevenue": 11110,
+  "publishedDashboard": true,
+  "localHealth": {
+    "minio": 200,
+    "apiReadiness": 200,
+    "frontend": 200
+  },
+  "productionQualified": false,
+  "historicalSnapshotPreserved": true
+}

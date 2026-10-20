@@ -118,7 +118,7 @@ public sealed class CanonicalRecordStore : ICanonicalRecordStore
         Guid? connectorInstanceId,
         DateTimeOffset? createdFrom,
         DateTimeOffset? createdTo,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, int? limit = null, DateTimeOffset? before = null, Guid? beforeId = null, bool includeRequested = true)
     {
         await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         var query = db.QuarantineEntries.Where(q => q.TenantId == tenantId);
@@ -138,7 +138,20 @@ public sealed class CanonicalRecordStore : ICanonicalRecordStore
             query = query.Where(q => q.CreatedAt <= toValue);
         }
 
-        return await query.OrderByDescending(q => q.CreatedAt).ToListAsync(cancellationToken);
+        if (!includeRequested)
+        {
+            query = query.Where(q => q.ResolvedAt == null);
+        }
+        if (before is { } date && beforeId is { } cursorId)
+        {
+            query = query.Where(q => q.CreatedAt < date || (q.CreatedAt == date && q.Id.CompareTo(cursorId) < 0));
+        }
+        query = query.OrderByDescending(q => q.CreatedAt).ThenByDescending(q => q.Id);
+        if (limit is { } count)
+        {
+            query = query.Take(Math.Clamp(count, 1, 100));
+        }
+        return await query.ToListAsync(cancellationToken);
     }
 
     public async Task<CanonicalQuarantineEntry?> FindQuarantineEntryAsync(Guid tenantId, Guid quarantineEntryId, CancellationToken cancellationToken)
@@ -160,10 +173,15 @@ public sealed class CanonicalRecordStore : ICanonicalRecordStore
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<(int Count, decimal NetAmountTotal)> GetSalesInvoiceTotalsAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken)
+    public async Task<(int Count, decimal NetAmountTotal)> GetSalesInvoiceTotalsAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken, string? rawObjectUri = null)
     {
         await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         var invoices = db.SalesInvoices.Where(i => i.TenantId == tenantId && i.SourceSystemId == sourceSystemId);
+        if (rawObjectUri is not null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(rawObjectUri);
+            invoices = invoices.Where(i => i.RawObjectUri == rawObjectUri);
+        }
 
         var count = await invoices.CountAsync(cancellationToken);
         var netAmountTotal = count == 0 ? 0m : await invoices.SumAsync(i => i.NetAmount, cancellationToken);

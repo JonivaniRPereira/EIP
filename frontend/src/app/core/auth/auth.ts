@@ -4,7 +4,13 @@ import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, RegisterRequest, SelectTenantRequest, TenantOption } from './models';
+import {
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+  SelectTenantRequest,
+  TenantOption,
+} from './models';
 
 interface StoredSession {
   accessToken: string;
@@ -30,15 +36,23 @@ export class AuthService {
 
   private readonly session = signal<StoredSession | null>(this.readStoredSession());
   private readonly pendingTenantOptions = signal<TenantOption[]>([]);
+  private refreshInFlight: Promise<boolean> | null = null;
 
   readonly isAuthenticated = computed(() => this.session() !== null);
   readonly availableTenants = computed(() => this.pendingTenantOptions());
   readonly tenantId = computed(() => this.decodeClaim(this.session()?.accessToken, 'tenant_id'));
-  readonly requiresTenantSelection = computed(() => this.isAuthenticated() && this.tenantId() === null);
+  readonly requiresTenantSelection = computed(
+    () => this.isAuthenticated() && this.tenantId() === null,
+  );
   readonly userEmail = computed(() => this.decodeClaim(this.session()?.accessToken, 'email'));
 
   get accessToken(): string | null {
     return this.session()?.accessToken ?? null;
+  }
+
+  hasPermission(permission: string): boolean {
+    const claims = this.decodeClaim(this.session()?.accessToken, 'permissions');
+    return typeof claims === 'string' && claims.split(',').includes(permission);
   }
 
   async login(request: LoginRequest): Promise<void> {
@@ -63,7 +77,17 @@ export class AuthService {
   }
 
   /** Usado pelo interceptor quando o access token expira — nunca chamado diretamente pelas telas. */
-  async refresh(): Promise<boolean> {
+  refresh(): Promise<boolean> {
+    if (this.refreshInFlight) return this.refreshInFlight;
+    const pending = this.performRefresh();
+    this.refreshInFlight = pending;
+    void pending.finally(() => {
+      if (this.refreshInFlight === pending) this.refreshInFlight = null;
+    });
+    return pending;
+  }
+
+  private async performRefresh(): Promise<boolean> {
     const current = this.session();
     if (!current) {
       return false;
@@ -75,18 +99,27 @@ export class AuthService {
           refreshToken: current.refreshToken,
         }),
       );
+      if (this.session()?.refreshToken !== current.refreshToken) return false;
       this.applyAuthResponse(response);
       return true;
     } catch {
-      this.logout();
+      if (this.session()?.refreshToken === current.refreshToken) this.logout();
       return false;
     }
   }
 
   logout(): void {
+    const refreshToken = this.session()?.refreshToken;
     this.session.set(null);
     this.pendingTenantOptions.set([]);
     localStorage.removeItem(STORAGE_KEY);
+    if (refreshToken) {
+      this.http.post(`${environment.apiBaseUrl}/auth/logout`, { refreshToken }).subscribe({
+        error: () => {
+          /* A sessão local permanece encerrada mesmo sem conexão. */
+        },
+      });
+    }
     void this.router.navigateByUrl('/login');
   }
 
@@ -99,7 +132,9 @@ export class AuthService {
 
     this.session.set(stored);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-    this.pendingTenantOptions.set(response.requiresTenantSelection ? response.availableTenants : []);
+    this.pendingTenantOptions.set(
+      response.requiresTenantSelection ? response.availableTenants : [],
+    );
   }
 
   private readStoredSession(): StoredSession | null {

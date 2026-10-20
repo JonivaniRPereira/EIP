@@ -37,7 +37,7 @@ public interface ICanonicalRecordStore
         Guid? connectorInstanceId,
         DateTimeOffset? createdFrom,
         DateTimeOffset? createdTo,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken, int? limit = null, DateTimeOffset? before = null, Guid? beforeId = null, bool includeRequested = true);
 
     Task<CanonicalQuarantineEntry?> FindQuarantineEntryAsync(Guid tenantId, Guid quarantineEntryId, CancellationToken cancellationToken);
 
@@ -46,8 +46,9 @@ public interface ICanonicalRecordStore
     Task MarkQuarantineEntryResolvedAsync(Guid quarantineEntryId, DateTimeOffset resolvedAt, CancellationToken cancellationToken);
 
     /// <summary>Estado atual persistido para a fatia Comercial de um conector — contagem de faturas e
-    /// soma de <c>NetAmount</c> — usado pela reconciliação Canônico↔Origem (docs/04 §8.3, E4.3).</summary>
-    Task<(int Count, decimal NetAmountTotal)> GetSalesInvoiceTotalsAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken);
+    /// soma de <c>NetAmount</c>. Com rawObjectUri, restringe ao lote persistido dessa extração;
+    /// sem ele, mantém os totais históricos completos da origem.</summary>
+    Task<(int Count, decimal NetAmountTotal)> GetSalesInvoiceTotalsAsync(Guid tenantId, Guid sourceSystemId, CancellationToken cancellationToken, string? rawObjectUri = null);
 
     /// <summary>Mesma ideia de <see cref="GetSalesInvoiceTotalsAsync"/>, mas no grão de item (não de
     /// cabeçalho da fatura) — usado pela reconciliação Canônico↔Fato (docs/09-Data-Warehouse.md §8.2,

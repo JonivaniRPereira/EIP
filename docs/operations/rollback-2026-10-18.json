@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "completedAtUtc": "2026-10-18T13:12:57.2079957+00:00",
+  "previousMigration": "20260801174154_AddRoleToMembership",
+  "candidateMigration": "20260802013236_AddCompanyCountryCodeAndTradeName",
+  "preexistingTables": 4,
+  "preexistingRows": 8.0,
+  "tableHashesMatch": true,
+  "rlsProbePassed": true,
+  "checkDbPassed": true,
+  "previousRevision": "3c2de5098d68eb5faa783842a7ce72c47c8b0c3c",
+  "candidateSource": "working-tree",
+  "publishedHostHashes": {
+    "previous": "D77F49E5660F2C5BD96D47DE3DE0B740D40F0419461A969EA6E75AE5825993C2",
+    "candidate": "0341550AB2FF17EA4F273892C15C3EC1893E83AD34C8368C70F116AFD0D589A3"
+  },
+  "previousImage": "sha256:4c36c61eb46a325669200a55f635347f60d9a7df9033cb3474f51b124c9f78f6",
+  "candidateImage": "sha256:b099d2740b9d4e3b05e4d6517d63002f0668c11097f5a43e5766e887d41fe7c9",
+  "rolledBackImage": "sha256:4c36c61eb46a325669200a55f635347f60d9a7df9033cb3474f51b124c9f78f6",
+  "previousOpenApiHash": "199DD5AED163A24E42305CB0735CBB0E933E100AAEAFF117B0F0589F68825327",
+  "candidateOpenApiHash": "EB029F15B7218C95342EDCC01A1E9C72E8B6EEB4EBA6C838F015ECECE5C6CD0F",
+  "rolledBackOpenApiHash": "199DD5AED163A24E42305CB0735CBB0E933E100AAEAFF117B0F0589F68825327",
+  "imageRollbackPassed": true,
+  "livenessPassed": true,
+  "fullReadinessTested": false,
+  "elapsedSeconds": 85.41
+}

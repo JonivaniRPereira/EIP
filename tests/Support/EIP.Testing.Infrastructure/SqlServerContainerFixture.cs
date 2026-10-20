@@ -4,6 +4,7 @@ using EIP.Data.Warehouse.Infrastructure;
 using EIP.Intelligence.Dashboard.Infrastructure;
 using EIP.Platform.Identity.Infrastructure;
 using EIP.Platform.Tenant.Infrastructure;
+using EIP.Platform.Administration.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.MsSql;
 using Testcontainers.RabbitMq;
@@ -34,6 +35,13 @@ public static class DatabaseMigrator
 {
     public static async Task MigrateAllAsync(string connectionString)
     {
+        var usageOptions = new DbContextOptionsBuilder<UsageDbContext>()
+            .UseSqlServer(connectionString, sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", UsageDbContext.Schema)).Options;
+        await using (var usageDb = new UsageDbContext(usageOptions))
+        {
+            await usageDb.Database.MigrateAsync();
+        }
+
         var tenantOptions = new DbContextOptionsBuilder<TenantDbContext>()
             .UseSqlServer(connectionString, sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", TenantDbContext.Schema))
             .Options;

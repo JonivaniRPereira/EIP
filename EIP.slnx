@@ -94,6 +94,16 @@
     <Project Path="src/Intelligence/Dashboard/Infrastructure/EIP.Intelligence.Dashboard.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Platform/" />
+  <Folder Name="/src/Platform/Administration/" />
+  <Folder Name="/src/Platform/Administration/Api/">
+    <Project Path="src/Platform/Administration/Api/EIP.Platform.Administration.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/Administration/Application/">
+    <Project Path="src/Platform/Administration/Application/EIP.Platform.Administration.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Platform/Administration/Infrastructure/">
+    <Project Path="src/Platform/Administration/Infrastructure/EIP.Platform.Administration.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Platform/Identity/" />
   <Folder Name="/src/Platform/Identity/Api/">
     <Project Path="src/Platform/Identity/Api/EIP.Platform.Identity.Api.csproj" />

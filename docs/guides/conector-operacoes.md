@@ -18,6 +18,17 @@ métricas/logs observar. Não repete `docs/guides/ambiente-local.md` (como subir
 
 # 2. Como uma sincronização flui (resumo operacional)
 
+Desde a revisão E6.1, o Host e o Worker exigem uma lista operacional de URLs exatas em
+`ReferenceRest:AllowedEndpoints`. A configuração local autoriza apenas os três endpoints
+`http://localhost:5080/api/v1/sample/{customers|products|sales-invoices}`. Sem lista, tudo é negado;
+não existem wildcards nem liberação por tenant. URLs com credenciais, query ou fragmento não são
+aceitas. O watermark é acrescentado internamente após validar a URL base.
+
+Redirects e cookies estão desabilitados; o corpo tem limite padrão de 8 MiB, configurável por
+`ReferenceRest:MaxResponseBytes` (até 64 MiB), e timeout de leitura. Um erro no relatório público
+de sync agora é genérico: diagnosticar os detalhes nos logs pelo CorrelationId. Fora de Development,
+destinos/conexões devem usar TLS e as credenciais locais padrão são recusadas.
+
 O disparo em `POST /api/v1/connectors/{id}/sync` tem quota por tenant e instância:
 por padrão, **1 solicitação por 60 segundos**. A primeira reserva aceita inicia a janela;
 tentativas excedentes retornam `429 ProblemDetails` com `Retry-After` em segundos inteiros
@@ -129,6 +140,52 @@ mudou na origem, credencial expirada — corrija antes).
 ---
 
 # 5. Métricas e sinais a observar
+
+A interface agora oferece cadastro, disparo e histórico em **Integrações**:
+[guia de uso e validação](integracoes-interface.md). Os endpoints e ferramentas deste runbook
+continuam disponíveis para operação e diagnóstico.
+
+Continuidade da interface: [quarentena e fila de falhas](falhas-interface.md) agora podem
+ser consultadas e reenviadas em **Integrações → Diagnóstico de falhas**. O reprocessamento
+de quarentena é integral, preserva watermark e registra solicitação, não confirmação de correção.
+
+## Visão operacional entre tenants (19/10/2026)
+
+Para a revisão diária local, o operador autorizado pode executar:
+
+```powershell
+./scripts/performance/Get-OperationalSnapshot.ps1
+```
+
+A coleta é somente de leitura no container `eip-sqlserver`, banco `EIP`, com credencial
+administrativa local resolvida dentro do container. Não é endpoint para usuários de tenant.
+Enumera os tenants e consulta cada um sob seu próprio `SESSION_CONTEXT`, sem desabilitar RLS
+nem presumir bypass pela sentinela de sistema. O JSON contém apenas IDs, contagens e horários;
+tratar esses metadados como operacionais restritos. O arquivo de saída deve ser novo.
+
+Campos: syncs criados nas últimas 24 horas; quantos desses estão atualmente `Failed`;
+quantidade atual de `Pending`/`Running`; último sync bem-sucedido; última carga Warehouse
+bem-sucedida e idade em segundos dessa carga. `failedRunsLast24Hours` mede estado atual de
+runs criados na janela, não tentativas históricas nem todos os incidentes ocorridos nela.
+Timestamp/idade `null` significa **nenhum sucesso registrado**, nunca frescor zero. Não é
+o atraso desde a atualização original do ERP. Sucesso de sync não equivale automaticamente
+a sucesso da carga Warehouse: os dois horários são separados.
+
+Coleta real de 19/10: [snapshot](../operations/operacao-tenants-2026-10-19.json), 11 tenants,
+8 runs pendentes, nenhum em execução/falha e nenhuma carga bem-sucedida registrada. Os
+pendentes vêm dos ensaios sintéticos; são um sinal de trabalho não concluído, não de saúde
+integral do pipeline. MinIO indisponível impede atestar ingestão completa nesta retomada.
+
+Após esse snapshot, no mesmo dia, o [MinIO foi recuperado](recuperacao-minio-ingestao.md)
+e o Worker processou os pedidos sintéticos. O [snapshot posterior](../operations/operacao-apos-recuperacao-storage-2026-10-19.json)
+mostra zero pendências e dois tenants com sucesso Warehouse. A evidência anterior não foi sobrescrita.
+
+Rotina manual: executar/conferir snapshot durante a operação; investigar pendências/idade
+segundo os passos deste runbook, correlacionar retries/DLQ no RabbitMQ e logs do Worker;
+registrar providência e repetir após correção. Não foi instalado agendamento, histórico
+central de snapshots nem alerta. IDs/contagens não substituem análise do tenant e da origem.
+
+## Sinais por componente
 
 Sem um dashboard operacional dedicado nesta fase (fora de escopo — ver
 `docs/roadmap/fase-3-backlog.md §3`), os sinais abaixo bastam para operar o conector no dia a dia:

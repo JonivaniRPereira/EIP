@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-19",
+  "status": "passed",
+  "reference": "https://www.jpcodecraft.com.br/",
+  "logoSource": "https://www.jpcodecraft.com.br/assets/img/jp-code-craft-logo.png",
+  "logoSha256": "ef3e79d56629c3920925ab3a5993f5b44cb10538f8225d4e829353b620254f0a",
+  "palette": { "paper": "#f7f7f2", "primary": "#285b45", "text": "#183b32", "border": "#d5dbd2" },
+  "footer": "© {year} JP Code Craft Solutions. Todos os direitos reservados. Desenvolvido por JP Code Craft Solutions",
+  "footerAllRoutes": true,
+  "frontendTestsPassed": 33,
+  "productionBuild": "passed",
+  "localFontCheck": "passed",
+  "browserChecks": ["wide dashboard", "compact dashboard", "compact menu navigation", "login", "long integrations page footer"],
+  "screenshots": ["screenshots/identidade-jp-codecraft-desktop-2026-10-19.png", "screenshots/identidade-jp-codecraft-compacto-2026-10-19.png"],
+  "backendOrDataChanges": false,
+  "remoteCiExecuted": false
+}

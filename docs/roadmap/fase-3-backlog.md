@@ -3,7 +3,7 @@
 **Projeto:** Enterprise Intelligence Platform (EIP)
 **Versão:** 1.0
 **Status:** Oficial
-**Última atualização:** Agosto/2026
+**Última atualização:** 19/10/2026 — Fase 3 encerrada no escopo definido no §3
 
 ---
 
@@ -68,24 +68,29 @@ Fases 0, 1 e 2. Onde um critério pressupõe piloto/cliente real que este projet
 marcado explicitamente como N/A nesta fase (mesmo padrão já usado para "cache" no fechamento da
 Fase 1, E8.3, e para "exportação" no fechamento da Fase 2):
 
-- [ ] Piloto atende múltiplos tenants sem incidente de isolamento.
+- [x] Piloto atende múltiplos tenants sem incidente de isolamento.
       *(Sem piloto real — reinterpretado como: testes de carga/isolamento com múltiplos tenants
       concorrentes simulados, E6.3, provam ausência de incidente de isolamento sob carga.)*
-- [ ] Conectores possuem monitoramento, retry, DLQ e documentação operacional.
-- [ ] Recuperação de backup e rollback de release foram testados.
-- [ ] Métricas de adoção, frescor, falha de sincronização e satisfação são acompanhadas.
+- [x] Conectores possuem monitoramento, retry, DLQ e documentação operacional.
+- [x] Recuperação de backup e rollback de release foram testados.
+- [x] Métricas de adoção, frescor, falha de sincronização e satisfação são acompanhadas.
       *(Adoção/satisfação são N/A nesta fase — pressupõem usuários reais. Frescor e falha de
       sincronização já são medidos desde as Fases 1/2; esta fase garante que ficam visíveis também
       numa perspectiva operacional entre tenants, não só por tenant individual.)*
-- [ ] Custos de infraestrutura e consulta são mensurados por tenant/plano.
+- [x] Custos de infraestrutura e consulta são mensurados por tenant/plano.
       *("Plano" é N/A nesta fase (sem billing) — reinterpretado como: uso mensurado por tenant
       (sincronizações, consultas analíticas), não custo em R$/USD, que exigiria dado real de
       infraestrutura de produção que este projeto não tem.)*
 
 Critério adicional obrigatório por conta da ADR-007 (mesmo texto usado para fechar as Fases 0, 1 e 2):
 
-- [ ] Toda tabela nova com `TenantId` possui política RLS ativa, e o gate automatizado
+- [x] Toda tabela nova com `TenantId` possui política RLS ativa, e o gate automatizado
       (`RlsCoverageTests`) continua passando sem exceções adicionadas.
+
+Revisão formal em 19/10/2026: [matriz de evidências e limites](fechamento-fase-3-2026-10-19.md).
+Os N/A acima permanecem; o fechamento não atesta produção ou pipeline completo na stack atual.
+Gate RLS/acesso cruzado/uso reexecutado: 7/7 aprovados. Frescor/falhas entre tenants agora
+também têm coleta operacional manual: [snapshot](../operations/operacao-tenants-2026-10-19.json).
 
 ---
 
@@ -308,69 +313,154 @@ Objetivo: fechar "consultas respeitam...quotas" (já parcial, guardrails por con
     Durante a validação, corrigido também `AuthService.RefreshAsync`: token anterior à criação
     da organização passa a reavaliar memberships, permitindo selecionar o tenant recém-criado
     e carregar suas permissões; o teste percorre registro → provisionamento → refresh → sync.
-- [ ] **E4.2** `GET /api/v1/admin/tenants/{tenantId}/usage` — contagem de sincronizações, consultas
+- [x] **E4.2** `GET /api/v1/admin/tenants/{tenantId}/usage` — contagem de sincronizações, consultas
       analíticas (`analytics.query`) e bytes armazenados no Data Lake, por período. Protegido por uma
       nova permissão de plataforma (não de tenant) — só quem administra a plataforma como um todo
       consulta uso de qualquer tenant, nunca um membro comum do próprio tenant.
   - *Depende de:* nenhuma.
   - *Aceite:* teste prova que os números batem com atividade real gerada no próprio teste (N syncs,
     M consultas → contadores refletem exatamente N e M).
+  - **Evidência (2026-10-18):** endpoint com intervalo UTC `[from,to)` obrigatório (máximo 366
+    dias). Runs contados na persistência existente; consultas bem-sucedidas, incluindo cache e
+    widgets, registradas duravelmente em `administration.AnalyticsQueries`, com RLS na própria
+    migration inicial; armazenamento lido por prefixo/paginação S3, somando objetos presentes com
+    `LastModified` no período. Sem backfill de consultas antigas nem snapshots de objetos removidos.
+    Nova permissão global `platform.tenant-usage.read`, verificada a cada request nas claims
+    persistidas do Identity: Owner/Admin de tenant não herdam essa permissão; revogação imediata
+    mesmo com token anterior. Leitura roda sob o tenant alvo, sem bypass RLS, e restaura o contexto.
+    `TenantUsageTests` gera 2 syncs/3 queries/2 objetos de 3+5 bytes e confirma exatamente 2/3/8,
+    além de período vazio, outro tenant, 401/403, revogação, tenant inválido/inexistente, RLS de
+    leitura e INSERT. `RawStorageUsageReaderTests` cobre paginação e bordas do intervalo.
+    **40/40 testes da API passando**, SQL Server/Redis reais e emulador S3Mock 5.1.0 em containers
+    temporários (MinIO específico ainda não homologado: download da imagem indisponível nesta
+    retomada; o emulador é só de teste e não substitui o Compose). Gate `RlsCoverageTests` passa
+    sem exceções novas. Ver `docs/guides/medicao-de-uso.md` para semântica e operação.
 
 ## E5 — Confiabilidade Operacional
 
 Objetivo: fechar "recuperação de backup e rollback de release foram testados" e estabelecer SLOs
 iniciais medidos (não alertados, §3).
 
-- [ ] **E5.1** Backup e restauração do SQL Server testados de verdade: `runbook` (`docs/guides/`)
+- [x] **E5.1** Backup e restauração do SQL Server testados de verdade: `runbook` (`docs/guides/`)
       documentando o processo, exercido ao vivo contra a stack local (backup → derrubar o container
       → restaurar → confirmar dado e RLS intactos).
   - *Depende de:* nenhuma.
   - *Aceite:* restauração executada ao vivo, dado íntegro confirmado depois (não só "o comando
     rodou sem erro").
-- [ ] **E5.2** Runbook de rollback de release: como reverter uma migration aplicada indevidamente e
+  - **Evidência (2026-10-18):** `scripts/backup/Test-Recovery.ps1` exercitado sobre um backup
+    `COPY_ONLY` + `CHECKSUM` do EIP local. Restaurado em container descartável, removido esse
+    container com seu armazenamento e restaurado o backup externo em uma nova instância.
+    `RESTORE VERIFYONLY`, `DBCC CHECKDB`, contagens e SHA-256 do conteúdo de **39 tabelas / 41 linhas**
+    coincidiram nas duas cópias; **7 políticas RLS** preservadas. Gate estrutural e prova funcional
+    (leitura sem contexto, isolamento A/B e bloqueio de INSERT cruzado) passaram antes/depois da
+    conferência. Ensaio completo em 25,55s no ambiente local; não é RTO de produção. Containers
+    temporários removidos; origem continua saudável, frontend HTTP 200 e API `Healthy`.
+    Runbook: `docs/guides/backup-restauracao.md`. Resumo sem payloads versionado em
+    `docs/operations/recuperacao-sql-2026-10-18.json`; `.bak` e manifestos mantidos fora do Git,
+    na pasta local de evidências exibida pelo script. A perda foi simulada somente na cópia,
+    preservando a instância usada pelo frontend. Data Lake/fila/cache não fazem parte deste ensaio.
+- [x] **E5.2** Runbook de rollback de release: como reverter uma migration aplicada indevidamente e
       como reverter para uma imagem Docker anterior, exercido ao vivo contra a stack local.
   - *Depende de:* nenhuma.
   - *Aceite:* uma migration é aplicada e revertida (`dotnet ef database update <migration anterior>`)
     ao vivo, dado pré-existente confirmado intacto.
-- [ ] **E5.3** SLOs iniciais definidos e documentados (`docs/guides/`) para os endpoints críticos
+  - **Evidência (2026-10-18):** `scripts/rollback/Test-Rollback.ps1` executado em SQL Server
+    descartável: baseline `AddRoleToMembership`, aplicação de `AddCompanyCountryCodeAndTradeName`
+    e reversão via `dotnet ef database update` para a baseline. Conteúdo e políticas de 4 tabelas /
+    8 linhas anteriores ao upgrade coincidiram por hash; RLS de leitura/INSERT e DBCC passaram.
+    Duas versões reais do Host publicadas (commit anterior `3c2de50` e código atual), empacotadas
+    em imagens locais distintas e executadas na sequência anterior → candidata → anterior.
+    ID de imagem e hash OpenAPI anteriores recuperados; liveness HTTP 200 nas três instâncias.
+    **Limite explícito:** ensaios de schema e imagem são independentes; readiness/fluxos completos
+    não foram exercitados nos containers de imagem. Isso não homologa uma combinação release/schema
+    para produção. Fonte de dados e frontend locais preservados. Runbook:
+    `docs/guides/rollback-release.md`; resumo: `docs/operations/rollback-2026-10-18.json`.
+- [x] **E5.3** SLOs iniciais definidos e documentados (`docs/guides/`) para os endpoints críticos
       (login, consulta analítica, health checks): latência alvo (p95/p99) e disponibilidade alvo.
       Medidos via as métricas OpenTelemetry/Prometheus já expostas desde a Fase 0 (E3) — sem alerta
       automatizado (§3).
   - *Depende de:* nenhuma.
   - *Aceite:* SLOs documentados, e uma consulta real contra `/metrics` mostra os números atuais
     comparáveis ao alvo definido (mesmo que ainda não formalmente monitorados 24/7).
+  - **Evidência (2026-10-18):** metas em `scripts/performance/slo-targets.json` e runbook em
+    `docs/guides/slos-iniciais.md`: login p95/p99 500/1.000ms, analytics 1.000/2.000ms, liveness
+    50/100ms e readiness 250/500ms; disponibilidade alvo 99,9% em janela móvel de 30 dias.
+    `Measure-Slo.ps1` executado com tenant sintético exclusivo, 5 aquecimentos e 100 amostras
+    sequenciais por endpoint. **400/400 HTTP 200** na amostra; p95/p99 do cliente: login
+    85,866/105,202ms, analytics 30,408/34,282ms, liveness 3,055/3,980ms e readiness
+    66,609/69,127ms. Consulta real ao exporter antes/depois de cada bloco confirmou deltas de
+    100 respostas por rota no histograma `http_server_request_duration_seconds`; limites
+    superiores dos buckets p95/p99 também ficaram dentro dos alvos. Resumo versionado em
+    `docs/operations/slo-2026-10-18.json`, snapshots `.prom` e amostras individuais fora do Git.
+    **Limites:** execução de baixa carga, dataset vazio e consulta pré-aquecida; não substitui
+    E6.3 nem comprova disponibilidade mensal (`rolling30DaySloEvaluated=false`). Sem servidor de
+    histórico Prometheus/alertas implantado nesta atividade; PromQL documentado para coleta futura.
 
 ## E6 — Hardening de Segurança, LGPD e Isolamento sob Carga
 
 Objetivo: fechar "piloto atende múltiplos tenants sem incidente de isolamento" (reinterpretado como
 teste de carga simulado, §3) e o hardening de segurança geral da fase.
 
-- [ ] **E6.1** Revisão de segurança formal de toda a superfície da API (autenticação, autorização,
+- [x] **E6.1** Revisão de segurança formal de toda a superfície da API (autenticação, autorização,
       RLS, exposição de erro, headers, CORS) — usar o skill `security-review` como ponto de partida
       e complementar manualmente onde ele cobre só o diff, não o sistema inteiro. Qualquer achado
       vira uma correção real, não uma exceção documentada (mesma disciplina de RLS já estabelecida).
   - *Depende de:* nenhuma.
   - *Aceite:* revisão concluída, achados (se houver) corrigidos e revalidados.
-- [ ] **E6.2** Revisão LGPD: documento (`docs/07-Seguranca.md` ou novo `docs/16-LGPD.md`) listando
+  - **Evidência (2026-10-18):** revisão manual de todos os controllers/composição, documentada em
+    `docs/security/revisao-api-2026-10-18.md` (skill `security-review` indisponível no catálogo/disco).
+    Corrigidos replay concorrente de refresh, emissão para usuário bloqueado, logout sem revogação,
+    SSRF/destinos sem autorização/redirects/cookies/resposta ilimitada do conector, vínculo de
+    empresa no cadastro, configuração padrão insegura fora de Development, erros públicos com
+    detalhe interno, validação/cache de autenticação, claims obrigatórias/tenant reservado e
+    segmento de chave do Data Lake. PKCS fixado em 10.0.13; auditoria NuGet de 51 projetos sem
+    pacote vulnerável conhecido. MFA exigido no endpoint global fora de Development; como o login
+    local não emite prova MFA, esse acesso permanece fechado nesse ambiente até integração confiável.
+    **73/73 testes da API**, **9/9 do conector/worker** e **16/16 do frontend** passando; dois testes
+    de erro/idempotência reexecutados com asserção de sanitização reforçada. Build Release da
+    solução e build de produção do frontend passaram. No ambiente local atualizado: login 200,
+    logout 204, replay de refresh 401, destino proibido 400, CORS permite o frontend e nega origem
+    estrangeira, métricas não expostas pelo Gateway (404), headers de proteção presentes.
+    Resumo: `docs/operations/seguranca-api-2026-10-18.json`. Não é certificação de produção:
+    MFA/federação, infraestrutura/TLS/segredos reais, runtime/imagens e frontend exigem homologação
+    no ambiente final; LGPD e carga continuam em E6.2/E6.3.
+- [x] **E6.2** Revisão LGPD: documento (`docs/07-Seguranca.md` ou novo `docs/16-LGPD.md`) listando
       quais dados pessoais a plataforma coleta (e-mail, nome, dados de cliente/fornecedor ingeridos
       via conector), onde ficam armazenados, por quanto tempo, e como um titular exerceria direito de
       acesso/exclusão hoje (mesmo que o processo ainda seja manual nesta fase).
   - *Depende de:* nenhuma.
   - *Aceite:* documento existe e foi revisado contra o schema real do banco (nenhum dado pessoal
     óbvio ficou de fora do inventário).
-- [ ] **E6.3** Teste de carga/isolamento: múltiplos tenants concorrentes (k6 ou equivalente) batendo
+  - *Evidência (18/10/2026):* [inventário e roteiro manual](../16-LGPD.md) confrontados com
+    [metadados das 39 tabelas do banco local](../operations/lgpd-schema-2026-10-18.json), sem
+    exportar valores pessoais. Inclui Identity, clientes, documentos comerciais, SCD2, campos
+    livres, raw, cache, filas, navegador, logs e backups. Retenção sem prazo/expurgo e ausência
+    de exclusão integral automatizada estão explicitadas como lacunas; nenhuma exclusão foi
+    executada e não há declaração de conformidade integral.
+- [x] **E6.3** Teste de carga/isolamento: múltiplos tenants concorrentes (k6 ou equivalente) batendo
       no Gateway simultaneamente (auth, consulta analítica, sync) — prova que a RLS e os guardrails
       seguram sob concorrência real, sem um tenant nunca ver dado de outro mesmo sob carga.
   - *Depende de:* nenhuma.
   - *Aceite:* execução real do teste de carga contra a stack local, relatório de resultados
     (throughput, latência, zero incidente de isolamento) documentado.
+  - *Evidência (19/10/2026):* [relatório](../guides/isolamento-sob-carga.md) e
+    [resultado estruturado](../operations/isolamento-carga-2026-10-19.json): quatro tenants,
+    oito fluxos, 280 chamadas em 44,920 s (6,233 req/s com pausas), zero divergência;
+    valores analíticos distintos, acessos cruzados negados, quotas e 40 trocas de contexto
+    RLS sem filtro. Rajada adicional de 120 chamadas produziu 76 bloqueios por IP.
+    Sync validado até aceite/publicação, sem atestar conclusão do Worker/raw indisponível.
 
 ## E7 — Fechamento da Fase
 
-- [ ] **E7.1** Revisão formal da seção 4 (Definition of Done) desta fase, com evidência por
+- [x] **E7.1** Revisão formal da seção 4 (Definition of Done) desta fase, com evidência por
       critério — mesmo processo aplicado às Fases 0, 1 e 2. Atualizar a tabela de rastreamento (§7)
       e a memória do projeto.
   - *Depende de:* todos os épicos anteriores.
+  - *Evidência (19/10/2026):* [revisão formal](fechamento-fase-3-2026-10-19.md), seis critérios
+    reconciliados com evidência e N/A preservados. Coleta operacional por tenant acrescentada
+    e exercitada; 7 testes selecionados de RLS/acesso cruzado/uso passaram sem ignorados.
+    [Memória versionada](memoria-projeto.md) atualizada. MinIO/Worker completo, requisitos
+    de piloto e homologação final continuam explicitamente nas próximas atividades.
 
 ---
 
@@ -408,9 +498,9 @@ Para não perder o foco (`docs/15-Roadmap.md §3`), os itens abaixo são explici
 | E1 — Provisionamento próprio de tenant | Concluído (E1.1–E1.3) |
 | E2 — Conector de referência: robustecimento operacional | Concluído (E2.1–E2.3) |
 | E3 — Catálogo de dados e linhagem | Concluído (E3.1–E3.2) |
-| E4 — Quotas e medição de uso por tenant | Em andamento (E4.1 concluído; E4.2 pendente) |
-| E5 — Confiabilidade operacional | Não iniciado |
-| E6 — Hardening de segurança, LGPD e isolamento sob carga | Não iniciado |
-| E7 — Fechamento da fase | Não iniciado |
+| E4 — Quotas e medição de uso por tenant | Concluído (E4.1–E4.2) |
+| E5 — Confiabilidade operacional | Concluído (E5.1–E5.3) |
+| E6 — Hardening de segurança, LGPD e isolamento sob carga | Concluído (E6.1–E6.3; evidências e limites documentados) |
+| E7 — Fechamento da fase | Concluído (E7.1, 19/10/2026; escopo reduzido e limites preservados) |
 
 Atualizar esta tabela conforme os épicos avançam.

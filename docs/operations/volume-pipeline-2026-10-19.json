@@ -1,0 +1,220 @@
+{
+  "status": "passed",
+  "completedAtUtc": "2026-10-20T00:20:42.096Z",
+  "scope": "Full SQL backup; raw recovery limited to selected Demo tenant",
+  "tenantId": "5e17b5c9-5862-4029-a627-d95261cbf8a7",
+  "rawObjects": 3,
+  "rawBytes": 3131,
+  "syntheticReferencesExcluded": 1,
+  "sql": {
+    "status": "passed",
+    "runId": "c788882020334a4ba94fce4a840479ca",
+    "restoredContainer": "eip-recovery-restored-c788882020334a4ba94fce4a840479ca",
+    "keptRestoredContainer": true,
+    "completedAtUtc": "2026-10-19T21:18:06.5302863-03:00",
+    "sourceContainer": "eip-sqlserver",
+    "database": "EIP",
+    "image": "mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04",
+    "backupSha256": "A2A27D7B01FE5DCBC9D117F5AD9B32484DA69F6D11674CE7DC584A3B0C482BF7",
+    "tables": 39,
+    "rows": 21090,
+    "policies": 7,
+    "baselineContainerRemoved": true,
+    "restoredToNewInstance": true,
+    "backupVerified": true,
+    "checkDbPassed": true,
+    "tableHashesMatch": true,
+    "rlsProbePassed": true,
+    "elapsedSeconds": 31.67
+  },
+  "counts": {
+    "customers": 6,
+    "products": 5,
+    "invoices": 4,
+    "facts": 6,
+    "netRevenue": 11110
+  },
+  "applicationReadback": {
+    "status": "passed",
+    "hostDllSha256": "15f0033b6206194198203c2352f191f9d35bda26e2bb797d2719c3292a289d80",
+    "loginPassed": true,
+    "anonymousDenied": true,
+    "readinessPassed": true,
+    "netRevenue": 11110,
+    "dashboardId": "278f810f-b46a-4fac-ab65-aff0927eb803",
+    "dashboardNetRevenue": 11110,
+    "lineagePassed": true,
+    "reconciliationPassed": true,
+    "cacheInitiallyEmpty": true,
+    "cacheKeysAfterQuery": 1,
+    "isolatedSqlStorageCacheBroker": true,
+    "ingestion": {
+      "status": "passed",
+      "workerDllSha256": "c95890db275ce8bc0aa0cea770e9510976a93fd9bc9f1ad037455484f387412f",
+      "runs": [
+        {
+          "elapsedMilliseconds": 7804,
+          "entity": "customers",
+          "syncRunId": "0aef1a28-84d4-4005-ba25-14b0872404e8",
+          "status": "Succeeded",
+          "received": 200,
+          "accepted": 200,
+          "updated": 0,
+          "rejected": 0,
+          "watermarkBefore": "2026-10-19T15:15:23.3561713Z",
+          "watermarkAfter": "2026-10-20T00:18:30.7300539Z",
+          "raw": {
+            "key": "5e17b5c9-5862-4029-a627-d95261cbf8a7/1a10dbc2-621b-4682-9c57-17eaa421e61a/customers/2026/10/20/0aef1a28-84d4-4005-ba25-14b0872404e8/cd365077dfd8.json",
+            "bytes": 24981,
+            "sha256": "423b181c6b4ff24cd2412ece560be8d8fe0f6c8cc850fd4694e52a237fad2978",
+            "syncRunId": "0aef1a28-84d4-4005-ba25-14b0872404e8"
+          }
+        },
+        {
+          "elapsedMilliseconds": 2414,
+          "entity": "products",
+          "syncRunId": "8103df33-58f6-47ec-9c29-53076c23d45e",
+          "status": "Succeeded",
+          "received": 50,
+          "accepted": 50,
+          "updated": 0,
+          "rejected": 0,
+          "watermarkBefore": "2026-10-19T12:16:08.5056323Z",
+          "watermarkAfter": "2026-10-20T00:18:35.8486188Z",
+          "raw": {
+            "key": "5e17b5c9-5862-4029-a627-d95261cbf8a7/ff9ff043-0814-4e10-8f84-46ec2016d371/products/2026/10/20/8103df33-58f6-47ec-9c29-53076c23d45e/7ca868fe6356.json",
+            "bytes": 7481,
+            "sha256": "0b9c898cf51cdb2e740d23b38ce016013cedcb1a28675cec3ecda1667f4b8f2c",
+            "syncRunId": "8103df33-58f6-47ec-9c29-53076c23d45e"
+          }
+        },
+        {
+          "elapsedMilliseconds": 48531,
+          "entity": "sales-invoices",
+          "syncRunId": "d54948ff-f14e-4420-93f0-8ff33529be21",
+          "status": "Succeeded",
+          "received": 2000,
+          "accepted": 2000,
+          "updated": 0,
+          "rejected": 0,
+          "watermarkBefore": "2026-10-19T12:16:28.6829176Z",
+          "watermarkAfter": "2026-10-20T00:18:38.2524551Z",
+          "raw": {
+            "key": "5e17b5c9-5862-4029-a627-d95261cbf8a7/1441ef69-21f6-4061-88e5-e372325e1693/sales-invoices/2026/10/20/d54948ff-f14e-4420-93f0-8ff33529be21/229de909b960.json",
+            "bytes": 515391,
+            "sha256": "174ce0978b22f0cf6c300c5546150dadca867963002cebcdae20567cfbea8aa8",
+            "syncRunId": "d54948ff-f14e-4420-93f0-8ff33529be21"
+          }
+        }
+      ],
+      "countsBefore": {
+        "customers": 6,
+        "products": 5,
+        "invoices": 4,
+        "facts": 6,
+        "netRevenue": 11110
+      },
+      "countsAfter": {
+        "customers": 206,
+        "products": 55,
+        "invoices": 2004,
+        "facts": 2006,
+        "netRevenue": 211110
+      },
+      "newRawObjects": 3,
+      "noDuplicateBusinessRows": true,
+      "freshnessBefore": "2026-10-19T09:16:29.5481933-03:00",
+      "freshnessAfter": "2026-10-19T21:20:37.198758-03:00",
+      "lineagePassed": true,
+      "reconciliationPassed": true,
+      "queuesDrained": true,
+      "finalQueues": [
+        {
+          "name": "connector.sync.retry.30s",
+          "messages_ready": 0,
+          "messages_unacknowledged": 0,
+          "consumers": 0
+        },
+        {
+          "name": "connector.sync.retry.90s",
+          "messages_ready": 0,
+          "messages_unacknowledged": 0,
+          "consumers": 0
+        },
+        {
+          "name": "connector.sync.retry.10s",
+          "messages_ready": 0,
+          "messages_unacknowledged": 0,
+          "consumers": 0
+        },
+        {
+          "name": "connector.sync.requested.dlq",
+          "messages_ready": 0,
+          "messages_unacknowledged": 0,
+          "consumers": 0
+        },
+        {
+          "name": "connector.sync.requested",
+          "messages_ready": 0,
+          "messages_unacknowledged": 0,
+          "consumers": 1
+        }
+      ],
+      "retry": {
+        "enabled": false,
+        "failedStatusObserved": false,
+        "queuedRetryObserved": false
+      },
+      "volume": {
+        "sizes": {
+          "customers": 200,
+          "products": 50,
+          "sales-invoices": 2000
+        },
+        "sourceRequests": [
+          {
+            "entity": "customers",
+            "at": "2026-10-20T00:18:30.908Z",
+            "records": 200,
+            "bytes": 24981,
+            "sha256": "423b181c6b4ff24cd2412ece560be8d8fe0f6c8cc850fd4694e52a237fad2978",
+            "updatedSince": "2026-10-19T12:15:23.3561713-03:00"
+          },
+          {
+            "entity": "products",
+            "at": "2026-10-20T00:18:35.85Z",
+            "records": 50,
+            "bytes": 7481,
+            "sha256": "0b9c898cf51cdb2e740d23b38ce016013cedcb1a28675cec3ecda1667f4b8f2c",
+            "updatedSince": "2026-10-19T09:16:08.5056323-03:00"
+          },
+          {
+            "entity": "sales-invoices",
+            "at": "2026-10-20T00:18:38.252Z",
+            "records": 2000,
+            "bytes": 515391,
+            "sha256": "174ce0978b22f0cf6c300c5546150dadca867963002cebcdae20567cfbea8aa8",
+            "updatedSince": "2026-10-19T09:16:28.6829176-03:00"
+          }
+        ],
+        "requestPattern": "Three sequential full response payloads; one sync per entity; no pacing or concurrency",
+        "warehouseWaitMilliseconds": 70747,
+        "analyticalQueryMilliseconds": 74.804
+      },
+      "scope": "Synthetic 200 customers, 50 products and 2000 invoices through isolated raw/canonical/Warehouse/API; additive to restored Demo"
+    },
+    "scope": "Development Host and Worker on restored copies; no Gateway/browser restart"
+  },
+  "allReferencedRealObjectsRestored": true,
+  "checksumsMatch": true,
+  "metadataMatch": true,
+  "corruptionDetected": true,
+  "sourceObjectsModified": false,
+  "applicationConnectionsChanged": false,
+  "limitations": [
+    "Development API and Worker only; no Gateway/browser restart",
+    "Not an atomic distributed snapshot or recovery of all tenants",
+    "No RPO/RTO commitment or broker/cache/secret recovery"
+  ],
+  "isolatedContainersRemoved": true
+}

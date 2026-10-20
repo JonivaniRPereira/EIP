@@ -114,6 +114,100 @@ public sealed class CanonicalReconciliationServiceTests : IAsyncDisposable
         }
     }
 
+    [Theory]
+    [InlineData(false, 1, 100, true)]
+    [InlineData(true, 1, 150, true)]
+    [InlineData(false, 1, 500, false)]
+    [InlineData(true, 1, 500, false)]
+    [InlineData(false, 2, 100, false)]
+    [InlineData(false, 1, 101, true)]
+    [InlineData(false, 1, 102, false)]
+    public async Task ReconcileIncrementalBatch_WithHistory_UsesOnlyPersistedBatchAndDetectsDivergence(
+        bool updateExisting, int reportedCount, int reportedAmount, bool expectedMatch)
+    {
+        var tenantId = Guid.NewGuid();
+        var companyId = Guid.NewGuid();
+        var sourceId = Guid.NewGuid();
+        _tenantContextAccessor.Current = new TenantContext(tenantId);
+        try
+        {
+            await SeedCustomerAndProductAsync(tenantId, companyId);
+            await PersistInvoiceAsync(tenantId, companyId, sourceId, "OLD-1", 100);
+            await PersistInvoiceAsync(tenantId, companyId, sourceId, "OLD-2", 100);
+            var batch = await PersistInvoiceAsync(tenantId, companyId, sourceId,
+                updateExisting ? "OLD-1" : "NEW-1", updateExisting ? 150 : 100);
+
+            // Mesmo raw em outra origem não pode entrar nos totais do conector alvo.
+            await PersistInvoiceAsync(tenantId, companyId, Guid.NewGuid(), "FOREIGN", 1000, batch.RawObjectUri);
+            var result = await _reconciliationService.ReconcileSalesInvoicesAsync(
+                tenantId, sourceId, reportedCount, reportedAmount, 0.01m, CancellationToken.None, batch.RawObjectUri);
+
+            result.IsWithinTolerance.Should().Be(expectedMatch);
+            result.ActualCount.Should().Be(1);
+            result.ActualNetAmountTotal.Should().Be(updateExisting ? 150m : 100m);
+            if (expectedMatch)
+            {
+                result.Discrepancy.Should().BeNull();
+            }
+            else
+            {
+                result.Discrepancy.Should().NotBeNullOrEmpty();
+            }
+
+            // Sem filtro, o contrato histórico continua consultando toda a origem.
+            var totals = await _reconciliationService.ReconcileSalesInvoicesAsync(
+                tenantId, sourceId, updateExisting ? 2 : 3, updateExisting ? 250m : 300m,
+                0.01m, CancellationToken.None);
+            totals.IsWithinTolerance.Should().BeTrue();
+            var incompleteFullReport = await _reconciliationService.ReconcileSalesInvoicesAsync(
+                tenantId, sourceId, 1, updateExisting ? 150m : 100m, 0.01m, CancellationToken.None);
+            incompleteFullReport.IsWithinTolerance.Should().BeFalse(
+                "um relatório completo não pode omitir o histórico persistido");
+        }
+        finally { _tenantContextAccessor.Current = null; }
+    }
+
+    [Theory]
+    [InlineData(0, 0, true)]
+    [InlineData(1, 100, false)]
+    public async Task ReconcileUnpersistedBatch_WithHistory_DoesNotCountHistoricalRows(
+        int reportedCount, int reportedAmount, bool expectedMatch)
+    {
+        var tenantId = Guid.NewGuid();
+        var companyId = Guid.NewGuid();
+        var sourceId = Guid.NewGuid();
+        _tenantContextAccessor.Current = new TenantContext(tenantId);
+        try
+        {
+            await SeedCustomerAndProductAsync(tenantId, companyId);
+            await PersistInvoiceAsync(tenantId, companyId, sourceId, "HISTORY", 100);
+            var result = await _reconciliationService.ReconcileSalesInvoicesAsync(
+                tenantId, sourceId, reportedCount, reportedAmount, 0.01m,
+                CancellationToken.None, $"tests/{Guid.NewGuid():N}.json");
+            result.IsWithinTolerance.Should().Be(expectedMatch);
+            result.ActualCount.Should().Be(0);
+            result.ActualNetAmountTotal.Should().Be(0);
+        }
+        finally { _tenantContextAccessor.Current = null; }
+    }
+
+    private async Task<PipelineProcessingRequest> PersistInvoiceAsync(
+        Guid tenantId, Guid companyId, Guid sourceId, string number, int amount, string? rawKey = null)
+    {
+        var content = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(new[] {
+            new { invoiceNumber = number, issueDate = "2026-01-01", customerCode = "REC-C1", currencyCode = "BRL",
+                items = new[] { new { lineNumber = 1, productCode = "REC-P1", quantity = 1, unitPrice = amount } } }
+        });
+        var request = BuildRequest(tenantId, companyId, sourceId, CanonicalSourceEntities.SalesInvoices, content);
+        if (rawKey is not null)
+        {
+            request = request with { RawObjectUri = rawKey };
+        }
+        var result = await _pipelineProcessor.ProcessAsync(request, CancellationToken.None);
+        result.AcceptedCount.Should().Be(1);
+        return request;
+    }
+
     private async Task SeedCustomerAndProductAsync(Guid tenantId, Guid companyId)
     {
         var customerContent = Encoding.UTF8.GetBytes("""[{"code":"REC-C1","name":"Cliente Reconciliação"}]""");

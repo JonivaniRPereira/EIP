@@ -1,0 +1,32 @@
+{
+  "reviewedAt": "2026-10-18",
+  "scope": "API, authentication, tenant isolation, reference connector, worker HTTP, startup configuration",
+  "hostIntegrationTests": 73,
+  "connectorIntegrationTests": 9,
+  "connectorErrorRegressionTests": 2,
+  "frontendTests": 16,
+  "frontendProductionBuild": "passed",
+  "nugetProjectsScanned": 51,
+  "knownVulnerableNugetEntries": 0,
+  "cryptographyPackage": "System.Security.Cryptography.Pkcs 10.0.13",
+  "productionCertification": false,
+  "skill": "manual review; security-review skill unavailable",
+  "localSmoke": {
+    "apiHealthy": true,
+    "loginStatus": 200,
+    "logoutStatus": 204,
+    "refreshAfterLogout": 401,
+    "unapprovedDestination": 400,
+    "corsAllowsFrontend": true,
+    "corsDeniesForeign": true,
+    "gatewayMetricsStatus": 404,
+    "authNoStore": true,
+    "nosniff": true,
+    "frontendStatus": 200
+  },
+  "productionDefaultsRejected": {
+    "host": true,
+    "worker": true
+  },
+  "solutionReleaseBuild": "passed"
+}

@@ -4,6 +4,7 @@ obj/
 *.user
 *.suo
 .vs/
+TestResults/
 
 # Angular / Node
 node_modules/
@@ -20,6 +21,7 @@ appsettings.*.local.json
 
 # Dados locais (Docker, volumes)
 docker/**/data/
+*.bak
 
 # Editores
 .vscode/*

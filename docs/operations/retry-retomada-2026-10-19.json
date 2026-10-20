@@ -1,0 +1,200 @@
+{
+  "status": "passed",
+  "completedAtUtc": "2026-10-19T20:44:48.274Z",
+  "scope": "Full SQL backup; raw recovery limited to selected Demo tenant",
+  "tenantId": "5e17b5c9-5862-4029-a627-d95261cbf8a7",
+  "rawObjects": 3,
+  "rawBytes": 3131,
+  "syntheticReferencesExcluded": 1,
+  "sql": {
+    "status": "passed",
+    "runId": "b22825d09e2546018bdc93e013fcb0df",
+    "restoredContainer": "eip-recovery-restored-b22825d09e2546018bdc93e013fcb0df",
+    "keptRestoredContainer": true,
+    "completedAtUtc": "2026-10-19T17:44:00.0465167-03:00",
+    "sourceContainer": "eip-sqlserver",
+    "database": "EIP",
+    "image": "mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04",
+    "backupSha256": "3C252A1D0122CA4036D5308C1ABBE11BA11DDE490BDF121F3ADCB29C1370869D",
+    "tables": 39,
+    "rows": 21090,
+    "policies": 7,
+    "baselineContainerRemoved": true,
+    "restoredToNewInstance": true,
+    "backupVerified": true,
+    "checkDbPassed": true,
+    "tableHashesMatch": true,
+    "rlsProbePassed": true,
+    "elapsedSeconds": 32.18
+  },
+  "counts": {
+    "customers": 6,
+    "products": 5,
+    "invoices": 4,
+    "facts": 6,
+    "netRevenue": 11110
+  },
+  "applicationReadback": {
+    "status": "passed",
+    "hostDllSha256": "15f0033b6206194198203c2352f191f9d35bda26e2bb797d2719c3292a289d80",
+    "loginPassed": true,
+    "anonymousDenied": true,
+    "readinessPassed": true,
+    "netRevenue": 11110,
+    "dashboardId": "278f810f-b46a-4fac-ab65-aff0927eb803",
+    "dashboardNetRevenue": 11110,
+    "lineagePassed": true,
+    "reconciliationPassed": true,
+    "cacheInitiallyEmpty": true,
+    "cacheKeysAfterQuery": 1,
+    "isolatedSqlStorageCacheBroker": true,
+    "ingestion": {
+      "status": "passed",
+      "workerDllSha256": "c95890db275ce8bc0aa0cea770e9510976a93fd9bc9f1ad037455484f387412f",
+      "runs": [
+        {
+          "entity": "customers",
+          "syncRunId": "a9813eb1-56b7-4eaf-97b3-1d17c931d26b",
+          "status": "Succeeded",
+          "received": 1,
+          "accepted": 1,
+          "updated": 1,
+          "rejected": 0,
+          "watermarkBefore": "2026-10-19T15:15:23.3561713Z",
+          "watermarkAfter": "2026-10-19T20:44:36.8492819Z",
+          "raw": {
+            "key": "5e17b5c9-5862-4029-a627-d95261cbf8a7/1a10dbc2-621b-4682-9c57-17eaa421e61a/customers/2026/10/19/a9813eb1-56b7-4eaf-97b3-1d17c931d26b/b05ad6dc4cea.json",
+            "bytes": 223,
+            "sha256": "fcf6fc4ebf21a719b431bbe9ff9f0e1ac2fd711a1f5b58df2ea61905086600c5",
+            "syncRunId": "a9813eb1-56b7-4eaf-97b3-1d17c931d26b"
+          }
+        },
+        {
+          "entity": "products",
+          "syncRunId": "5b8bd746-4799-4d91-998f-d90c3a962cb9",
+          "status": "Succeeded",
+          "received": 1,
+          "accepted": 1,
+          "updated": 1,
+          "rejected": 0,
+          "watermarkBefore": "2026-10-19T12:16:08.5056323Z",
+          "watermarkAfter": "2026-10-19T20:44:40.1669552Z",
+          "raw": {
+            "key": "5e17b5c9-5862-4029-a627-d95261cbf8a7/ff9ff043-0814-4e10-8f84-46ec2016d371/products/2026/10/19/5b8bd746-4799-4d91-998f-d90c3a962cb9/1e896371c4ea.json",
+            "bytes": 166,
+            "sha256": "5d7d084fc7f4f0e3b353016bbec6b4ed5aa7413f3e90a5935f63389f5937350c",
+            "syncRunId": "5b8bd746-4799-4d91-998f-d90c3a962cb9"
+          }
+        },
+        {
+          "entity": "sales-invoices",
+          "syncRunId": "77f9ef4a-d3e0-44a3-bd58-c6a6f3581666",
+          "status": "Succeeded",
+          "received": 1,
+          "accepted": 1,
+          "updated": 1,
+          "rejected": 0,
+          "watermarkBefore": "2026-10-19T12:16:28.6829176Z",
+          "watermarkAfter": "2026-10-19T20:44:41.334224Z",
+          "raw": {
+            "key": "5e17b5c9-5862-4029-a627-d95261cbf8a7/1441ef69-21f6-4061-88e5-e372325e1693/sales-invoices/2026/10/19/77f9ef4a-d3e0-44a3-bd58-c6a6f3581666/29d819a2a666.json",
+            "bytes": 266,
+            "sha256": "ed3cb75517bde7827b9d416eafcc49651d9fd8f92e6f40fd7416f8fbd0eca948",
+            "syncRunId": "77f9ef4a-d3e0-44a3-bd58-c6a6f3581666"
+          }
+        }
+      ],
+      "countsBefore": {
+        "customers": 6,
+        "products": 5,
+        "invoices": 4,
+        "facts": 6,
+        "netRevenue": 11110
+      },
+      "countsAfter": {
+        "customers": 6,
+        "products": 5,
+        "invoices": 4,
+        "facts": 6,
+        "netRevenue": 11110
+      },
+      "newRawObjects": 3,
+      "noDuplicateBusinessRows": true,
+      "freshnessBefore": "2026-10-19T09:16:29.5481933-03:00",
+      "freshnessAfter": "2026-10-19T17:44:43.4737549-03:00",
+      "lineagePassed": true,
+      "reconciliationPassed": true,
+      "queuesDrained": true,
+      "finalQueues": [
+        {
+          "name": "connector.sync.retry.30s",
+          "messages_ready": 0,
+          "messages_unacknowledged": 0,
+          "consumers": 0
+        },
+        {
+          "name": "connector.sync.retry.90s",
+          "messages_ready": 0,
+          "messages_unacknowledged": 0,
+          "consumers": 0
+        },
+        {
+          "name": "connector.sync.retry.10s",
+          "messages_ready": 0,
+          "messages_unacknowledged": 0,
+          "consumers": 0
+        },
+        {
+          "name": "connector.sync.requested.dlq",
+          "messages_ready": 0,
+          "messages_unacknowledged": 0,
+          "consumers": 0
+        },
+        {
+          "name": "connector.sync.requested",
+          "messages_ready": 0,
+          "messages_unacknowledged": 0,
+          "consumers": 1
+        }
+      ],
+      "retry": {
+        "enabled": true,
+        "failedStatusObserved": true,
+        "queuedRetryObserved": true,
+        "watermarkPreservedDuringFailure": true,
+        "queueDuringFailure": {
+          "name": "connector.sync.retry.10s",
+          "messages_ready": 1,
+          "messages_unacknowledged": 0,
+          "consumers": 0
+        },
+        "attempts": [
+          {
+            "at": "2026-10-19T20:44:26.589Z",
+            "status": 503
+          },
+          {
+            "at": "2026-10-19T20:44:36.854Z",
+            "status": 200
+          }
+        ],
+        "delayMilliseconds": 10265,
+        "sameRunRecovered": true
+      },
+      "scope": "Three incremental Demo syncs via isolated API/Worker/broker to restored SQL/storage; no original endpoints used"
+    },
+    "scope": "Development Host and Worker on restored copies; no Gateway/browser restart"
+  },
+  "allReferencedRealObjectsRestored": true,
+  "checksumsMatch": true,
+  "metadataMatch": true,
+  "corruptionDetected": true,
+  "sourceObjectsModified": false,
+  "applicationConnectionsChanged": false,
+  "limitations": [
+    "Development API and Worker only; no Gateway/browser restart",
+    "Not an atomic distributed snapshot or recovery of all tenants",
+    "No RPO/RTO commitment or broker/cache/secret recovery"
+  ],
+  "isolatedContainersRemoved": true
+}

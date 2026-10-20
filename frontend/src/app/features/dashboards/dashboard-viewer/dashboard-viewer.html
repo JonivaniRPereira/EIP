@@ -1,98 +1,109 @@
 <div class="mx-auto max-w-5xl">
-  <a routerLink="/dashboards" class="text-sm text-blue-700 hover:underline">&larr; Voltar aos painéis</a>
+  <a routerLink="/dashboards" class="text-sm text-blue-700 hover:underline"
+    >&larr; Voltar aos painéis</a
+  >
 
-    @if (loading()) {
-      <div class="mt-6 flex items-center gap-2 text-sm text-gray-600">
-        <mat-spinner diameter="20" />
-        Carregando...
+  @if (loading()) {
+    <div class="mt-6 flex items-center gap-2 text-sm text-gray-600">
+      <mat-spinner diameter="20" />
+      Carregando...
+    </div>
+  } @else if (errorMessage(); as message) {
+    <p class="mt-6 text-sm text-red-600">{{ message }}</p>
+  } @else if (dashboard(); as d) {
+    <header class="mb-6 mt-4 flex flex-wrap items-end justify-between gap-2">
+      <div>
+        <h1 class="text-2xl font-semibold text-gray-900">{{ d.name }}</h1>
+        <p class="text-sm text-gray-600">
+          @if (dataFreshnessAt(); as freshness) {
+            Dados atualizados em {{ freshness | date: 'short' }}
+          } @else {
+            Sem carga de dados concluída ainda para este tenant.
+          }
+        </p>
       </div>
-    } @else if (errorMessage(); as message) {
-      <p class="mt-6 text-sm text-red-600">{{ message }}</p>
-    } @else if (dashboard(); as d) {
-      <header class="mb-6 mt-4 flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 class="text-2xl font-semibold text-gray-900">{{ d.name }}</h1>
-          <p class="text-sm text-gray-600">
-            @if (dataFreshnessAt(); as freshness) {
-              Dados atualizados em {{ freshness | date: 'short' }}
-            } @else {
-              Sem carga de dados concluída ainda para este tenant.
+      <a mat-button [routerLink]="['/dashboards', d.id, 'edit']">Editar</a>
+    </header>
+
+    @if (d.widgets.length === 0) {
+      <p class="text-sm text-gray-600">Este painel ainda não tem widgets.</p>
+    } @else {
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        @for (view of widgetViews(); track view.widget.title + $index) {
+          <section
+            class="rounded-lg bg-white p-4 shadow-sm"
+            [class.sm:col-span-2]="view.widget.type !== 'Kpi'"
+            [attr.aria-label]="view.widget.title"
+          >
+            <h2 class="mb-1 text-sm font-medium text-gray-700">{{ view.widget.title }}</h2>
+            @if (filterSummary(view.widget); as filters) {
+              <p class="mb-2 text-xs text-gray-500">Filtros: {{ filters }}</p>
             }
-          </p>
-        </div>
-        <a mat-button [routerLink]="['/dashboards', d.id, 'edit']">Editar</a>
-      </header>
 
-      @if (d.widgets.length === 0) {
-        <p class="text-sm text-gray-600">Este painel ainda não tem widgets.</p>
-      } @else {
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          @for (view of widgetViews(); track view.widget.title + $index) {
-            <section
-              class="rounded-lg bg-white p-4 shadow-sm"
-              [class.sm:col-span-2]="view.widget.type !== 'Kpi'"
-              [attr.aria-label]="view.widget.title"
-            >
-              <h2 class="mb-1 text-sm font-medium text-gray-700">{{ view.widget.title }}</h2>
-              @if (filterSummary(view.widget); as filters) {
-                <p class="mb-2 text-xs text-gray-500">Filtros: {{ filters }}</p>
+            @switch (view.widget.type) {
+              @case ('Kpi') {
+                <p class="text-3xl font-semibold text-gray-900">
+                  {{ kpiValue(view) | number: '1.0-2' }}
+                  @if (view.widget.visualization.unit; as unit) {
+                    <span class="text-lg font-normal text-gray-500">{{ unit }}</span>
+                  }
+                </p>
+                <p class="text-xs text-gray-500">{{ kpiCaption(view) }}</p>
+                <span class="sr-only"
+                  >{{ view.widget.title }}: {{ kpiValue(view) | number: '1.0-2' }}
+                  {{ view.widget.visualization.unit }}</span
+                >
               }
-
-              @switch (view.widget.type) {
-                @case ('Kpi') {
-                  <p class="text-3xl font-semibold text-gray-900">
-                    {{ kpiValue(view) | number: '1.0-2' }}
-                    @if (view.widget.visualization.unit; as unit) {
-                      <span class="text-lg font-normal text-gray-500">{{ unit }}</span>
+              @case ('LineChart') {
+                <div class="h-64">
+                  <app-echart-line
+                    [categories]="lineCategories(view)"
+                    [values]="lineValues(view)"
+                    [seriesName]="view.metricKey"
+                    [ariaLabel]="
+                      view.widget.title +
+                      ': gráfico de linha com ' +
+                      view.result.data.length +
+                      ' pontos'
+                    "
+                  />
+                </div>
+                <span class="sr-only">
+                  {{ view.widget.title }}: valores por {{ view.dimensionKey }} —
+                  @for (row of view.result.data; track $index) {
+                    {{ row[view.dimensionKey] }}: {{ formatCell(row[view.metricKey]) }}
+                    @if (!$last) {
+                      ,
                     }
-                  </p>
-                  <p class="text-xs text-gray-500">{{ kpiCaption(view) }}</p>
-                  <span class="sr-only">{{ view.widget.title }}: {{ kpiValue(view) }} {{ view.widget.visualization.unit }}</span>
-                }
-                @case ('LineChart') {
-                  <div class="h-64">
-                    <app-echart-line
-                      [categories]="lineCategories(view)"
-                      [values]="lineValues(view)"
-                      [seriesName]="view.metricKey"
-                      [ariaLabel]="view.widget.title + ': gráfico de linha com ' + view.result.data.length + ' pontos'"
-                    />
-                  </div>
-                  <span class="sr-only">
-                    {{ view.widget.title }}: valores por {{ view.dimensionKey }} —
-                    @for (row of view.result.data; track $index) {
-                      {{ row[view.dimensionKey] }}: {{ row[view.metricKey] }}@if (!$last) {
-                        ,
-                      }
-                    }
-                  </span>
-                }
-                @case ('Table') {
-                  <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                      <thead>
-                        <tr class="border-b border-gray-200 text-gray-500">
+                  }
+                </span>
+              }
+              @case ('Table') {
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-sm">
+                    <thead>
+                      <tr class="border-b border-gray-200 text-gray-500">
+                        @for (column of view.tableColumns; track column) {
+                          <th class="py-1 pr-4 font-medium">{{ column }}</th>
+                        }
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of view.result.data; track $index) {
+                        <tr class="border-b border-gray-100">
                           @for (column of view.tableColumns; track column) {
-                            <th class="py-1 pr-4 font-medium">{{ column }}</th>
+                            <td class="py-1 pr-4 text-gray-800">{{ formatCell(row[column]) }}</td>
                           }
                         </tr>
-                      </thead>
-                      <tbody>
-                        @for (row of view.result.data; track $index) {
-                          <tr class="border-b border-gray-100">
-                            @for (column of view.tableColumns; track column) {
-                              <td class="py-1 pr-4 text-gray-800">{{ row[column] }}</td>
-                            }
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                }
+                      }
+                    </tbody>
+                  </table>
+                </div>
               }
-            </section>
-          }
-        </div>
-      }
+            }
+          </section>
+        }
+      </div>
     }
+  }
 </div>

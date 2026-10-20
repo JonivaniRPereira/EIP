@@ -1,0 +1,36 @@
+@import '@fontsource/roboto/latin-300.css';
+@import '@fontsource/roboto/latin-400.css';
+@import '@fontsource/roboto/latin-500.css';
+@import '@fontsource/material-icons/index.css';
+@import 'tailwindcss';
+
+@theme {
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --color-blue-50: #edf3ec;
+  --color-blue-100: #e2ecdf;
+  --color-blue-600: #285b45;
+  --color-blue-700: #214b3b;
+  --color-gray-50: #f7f7f2;
+  --color-gray-200: #d5dbd2;
+  --color-gray-500: #606d65;
+  --color-gray-600: #526059;
+  --color-gray-700: #364d40;
+  --color-gray-900: #183b32;
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}

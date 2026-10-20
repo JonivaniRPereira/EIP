@@ -2,10 +2,9 @@ namespace EIP.Data.Canonical.Application;
 
 /// <summary>
 /// Implementação de referência: compara o relatório de uma sincronização contra o estado persistido
-/// (docs/04 §8.3). Neste conector de referência (extração completa a cada sincronização, sem
-/// watermark/incremental ainda — E7.1/E7.2 da Fase 1), "reportado nesta execução" e "persistido no
-/// total" devem coincidir sempre que nada deu errado; uma divergência aqui é sinal de um bug real
-/// (ex. commit parcial), não de uma sincronização incremental legítima.
+/// (docs/04 §8.3). O lote identificado pelo raw restringe os totais persistidos à mesma
+/// extração reportada, incluindo atualizações de registros antigos. O histórico completo
+/// continua disponível sem esse filtro para relatórios que tenham esse mesmo escopo.
 /// </summary>
 public sealed class CanonicalReconciliationService : ICanonicalReconciliationService
 {
@@ -22,9 +21,10 @@ public sealed class CanonicalReconciliationService : ICanonicalReconciliationSer
         int reportedCount,
         decimal reportedNetAmountTotal,
         decimal toleranceFraction,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? rawObjectUri = null)
     {
-        var (actualCount, actualNetAmountTotal) = await _store.GetSalesInvoiceTotalsAsync(tenantId, sourceSystemId, cancellationToken);
+        var (actualCount, actualNetAmountTotal) = await _store.GetSalesInvoiceTotalsAsync(tenantId, sourceSystemId, cancellationToken, rawObjectUri);
 
         var countMatches = actualCount == reportedCount;
         var amountWithinTolerance = IsWithinTolerance(reportedNetAmountTotal, actualNetAmountTotal, toleranceFraction);

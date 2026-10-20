@@ -20,6 +20,29 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 
 var builder = Host.CreateApplicationBuilder(args);
+if (!builder.Environment.IsDevelopment())
+{
+    foreach (var name in new[] { "TenantDb", "ConnectorDb", "CanonicalDb", "WarehouseDb" })
+    {
+        var value = builder.Configuration.GetConnectionString(name) ?? string.Empty;
+        var sql = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(value);
+        if (value.Contains("Dev_Only", StringComparison.OrdinalIgnoreCase) || sql.UserID.Equals("sa", StringComparison.OrdinalIgnoreCase)
+            || sql.TrustServerCertificate || sql.Encrypt.ToString() is not ("True" or "Mandatory" or "Strict"))
+        {
+            throw new InvalidOperationException("Worker exige conexões SQL restritas e TLS fora de Development.");
+        }
+    }
+
+    var secret = builder.Configuration["DataLake:SecretKey"] ?? string.Empty;
+    if (string.IsNullOrWhiteSpace(secret) || secret.Contains("Dev_Only", StringComparison.OrdinalIgnoreCase)
+        || !Uri.TryCreate(builder.Configuration["DataLake:ServiceUrl"], UriKind.Absolute, out var storage) || storage.Scheme != "https"
+        || !Uri.TryCreate(builder.Configuration.GetConnectionString("RabbitMQ"), UriKind.Absolute, out var broker) || broker.Scheme != "amqps"
+        || (builder.Configuration.GetConnectionString("RabbitMQ")?.Contains("Dev_Only", StringComparison.OrdinalIgnoreCase) ?? true)
+        || builder.Configuration.GetSection("ReferenceRest:AllowedEndpoints").Get<string[]>()?.Any(url => !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) == true)
+    {
+        throw new InvalidOperationException("Worker exige configuração segura de storage, broker e destinos fora de Development.");
+    }
+}
 
 builder.Services.AddSerilog(loggerConfiguration => loggerConfiguration
     .ReadFrom.Configuration(builder.Configuration)
@@ -75,7 +98,10 @@ builder.Services.AddRawObjectStore(dataLakeOptions);
 
 builder.Services.AddSingleton<IPipelineProcessor, PipelineProcessor>();
 
-builder.Services.AddHttpClient(HttpReferenceRestClient.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(10));
+builder.Services.AddReferenceRestHttpClient();
+builder.Services.AddOptions<ReferenceRestOptions>().BindConfiguration("ReferenceRest")
+    .Validate(options => options.MaxResponseBytes is > 0 and <= 67108864, "Limite de resposta do conector inválido.").ValidateOnStart();
+builder.Services.AddSingleton<IReferenceEndpointPolicy, ReferenceEndpointPolicy>();
 builder.Services.AddSingleton<IReferenceRestClient, HttpReferenceRestClient>();
 
 builder.Services.AddSingleton<IConnectorSyncProcessor, ConnectorSyncProcessor>();

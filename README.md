@@ -345,17 +345,25 @@ Ela foi projetada para tornar-se a camada central de Inteligência Corporativa d
 
 # Status do Projeto
 
-**Fase Atual:** Fase 3 — Produto Operável e Expansão Controlada, em andamento. Fases 0–2 formalmente encerradas nos respectivos backlogs; Fase 3 com E1–E3 registrados como concluídos e E4–E7 pendentes.
+**Fase Atual:** Fase 3 encerrada em 19/10/2026 no escopo reduzido de engenharia (E1–E7).
+Melhorias posteriores da interface entregues; preparação do piloto organizada, ainda sem homologação de entrada.
 
 **Versão da Documentação:** 1.0
 
 **Status:** Além da fundação, o repositório inclui pipeline de dados, Warehouse, camada semântica,
 Analytics Engine, Dashboard Builder, provisionamento próprio de tenant, retry/DLQ e catálogo/linhagem.
-O histórico de implementação e aceite está nos backlogs de cada fase. A revalidação de 17/10/2026
-foi parcial: frontend validado em desenvolvimento; backend e integração ainda dependem do ambiente.
-Veja [revisão e próximas tarefas](docs/roadmap/revisao-2026-10-17.md),
+O histórico de implementação e aceite está nos backlogs de cada fase. A Fase 3 foi encerrada em
+19/10/2026 no escopo de engenharia definido no backlog, com evidências de uso, recuperação,
+segurança, LGPD e isolamento concorrente. Após o fechamento, o MinIO foi recuperado e o
+[pipeline completo foi validado localmente](docs/guides/recuperacao-minio-ingestao.md), incluindo
+leitura dos objetos brutos, Warehouse, reconciliação e painel publicado. Isso não representa
+homologação de produção.
+Veja [fechamento e próximas tarefas](docs/roadmap/fechamento-fase-3-2026-10-19.md),
+[tarefas e critérios de entrada do piloto](docs/roadmap/preparacao-piloto.md),
+[revisão dos ensaios locais L01–L07](docs/roadmap/revisao-laboratorio-2026-10-19.md),
+[organização da entrega acumulada](docs/roadmap/organizacao-entrega-2026-10-19.md),
 [backlog da Fase 3](docs/roadmap/fase-3-backlog.md) e
-[guia local](docs/guides/ambiente-local.md) (com atualização pendente indicada na revisão).
+[guia local](docs/guides/ambiente-local.md).
 
 ---
 

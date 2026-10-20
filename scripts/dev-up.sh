@@ -25,7 +25,11 @@ if [ ! -f "${ENV_FILE}" ]; then
 fi
 
 echo "Subindo dependências locais..."
-docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" up -d
+COMPOSE_ARGS=(--env-file "${ENV_FILE}" -f "${COMPOSE_FILE}")
+if [ "${EIP_BUILD_MINIO_SOURCE:-0}" = "1" ]; then
+  COMPOSE_ARGS+=(-f "${COMPOSE_DIR}/compose.minio-source.yml")
+fi
+docker compose "${COMPOSE_ARGS[@]}" up -d --build
 
 SERVICES="eip-sqlserver eip-redis eip-rabbitmq eip-minio"
 TIMEOUT_SECONDS=180

@@ -29,7 +29,7 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.scss"]
+            "styles": ["src/vendor.css", "src/styles.scss"]
           },
           "configurations": {
             "production": {
@@ -74,7 +74,13 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "configurations": {
+            "ci": {
+              "watch": false,
+              "reporters": ["default", ["junit", { "outputFile": "test-results/frontend.xml" }]]
+            }
+          }
         }
       }
     }

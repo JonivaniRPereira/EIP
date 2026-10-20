@@ -3,7 +3,7 @@ namespace EIP.Data.Canonical.Application;
 /// <summary>Resultado de uma reconciliação Canônico↔Origem (docs/04-Modelo-Canonico.md §8.3) para a
 /// fatia Comercial. <see cref="ReportedCount"/>/<see cref="ReportedNetAmountTotal"/> vêm do relatório
 /// do <c>SyncRun</c> (E4.1); <see cref="ActualCount"/>/<see cref="ActualNetAmountTotal"/> vêm do que
-/// está de fato persistido no Modelo Canônico agora.</summary>
+/// está de fato persistido no Modelo Canônico agora, no escopo do lote raw quando informado.</summary>
 public sealed record SalesInvoiceReconciliationResult(
     int ReportedCount,
     decimal ReportedNetAmountTotal,
@@ -26,5 +26,6 @@ public interface ICanonicalReconciliationService
         int reportedCount,
         decimal reportedNetAmountTotal,
         decimal toleranceFraction,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        string? rawObjectUri = null);
 }

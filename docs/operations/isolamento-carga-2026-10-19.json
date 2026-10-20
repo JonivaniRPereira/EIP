@@ -1,0 +1,110 @@
+{
+  "status": "passed",
+  "completedAtUtc": "2026-10-19T10:40:03.245Z",
+  "runId": "a2efdca3d64741c39cdcde5128b9f55e",
+  "tenants": [
+    {
+      "tenantId": "9ddbfbd0-0273-4f6a-ba6d-71e6531def42",
+      "connectorId": "1b8ab720-81d9-4320-a597-8b660bee56ca",
+      "customerId": "931de071-feee-45a2-9147-2a5b4cc47ef2",
+      "syncRunId": "e986d3ba-fffb-4edb-a55b-45b115493878",
+      "expectedNetRevenue": 1001
+    },
+    {
+      "tenantId": "cc3dc7d4-86a1-49b5-a183-05390018c9d8",
+      "connectorId": "9724639c-d209-4466-aafe-b9c6c0e9884f",
+      "customerId": "0b937ea5-35ad-4669-a599-97838550a5ff",
+      "syncRunId": "f809006c-8ee8-4e2a-8e8b-100050daf1ff",
+      "expectedNetRevenue": 2001
+    },
+    {
+      "tenantId": "988b73ca-7503-467e-a0c5-b42d089b10e3",
+      "connectorId": "3d97c0cc-31fe-4eed-86a9-67c81455203e",
+      "customerId": "96288142-11b2-435a-b217-d4e035eff30a",
+      "syncRunId": "d4627fe6-3806-4691-a79e-8a062c969fa7",
+      "expectedNetRevenue": 3001
+    },
+    {
+      "tenantId": "ab29d101-7854-4c64-b8d5-223c7d63aef8",
+      "connectorId": "8c1fe076-3f9b-44f8-a560-fb1c4461597e",
+      "customerId": "8899e9e3-6393-4427-8c47-bd93f2c96c94",
+      "syncRunId": "1ff1bde2-b37c-474b-a3bc-ac80711e2a9e",
+      "expectedNetRevenue": 4001
+    }
+  ],
+  "workers": 8,
+  "iterationsPerWorker": 5,
+  "roundDelayMs": 11000,
+  "requests": 280,
+  "elapsedSeconds": 44.92,
+  "requestsPerSecond": 6.233,
+  "statistics": {
+    "login": {
+      "requests": 40,
+      "statuses": {
+        "200": 40
+      },
+      "p95Ms": 175.857,
+      "p99Ms": 177.598
+    },
+    "invalid-query": {
+      "requests": 40,
+      "statuses": {
+        "400": 40
+      },
+      "p95Ms": 24.051,
+      "p99Ms": 26.477
+    },
+    "foreign-run": {
+      "requests": 40,
+      "statuses": {
+        "404": 40
+      },
+      "p95Ms": 39.575,
+      "p99Ms": 52.235
+    },
+    "own-run": {
+      "requests": 40,
+      "statuses": {
+        "200": 40
+      },
+      "p95Ms": 50.966,
+      "p99Ms": 52.601
+    },
+    "foreign-sync": {
+      "requests": 40,
+      "statuses": {
+        "400": 40
+      },
+      "p95Ms": 32.129,
+      "p99Ms": 52.46
+    },
+    "quota": {
+      "requests": 40,
+      "statuses": {
+        "429": 40
+      },
+      "p95Ms": 35.283,
+      "p99Ms": 52.506
+    },
+    "analytics": {
+      "requests": 40,
+      "statuses": {
+        "200": 40
+      },
+      "p95Ms": 61.54,
+      "p99Ms": 70.602
+    }
+  },
+  "gatewayBurst": {
+    "requests": 120,
+    "rejected": 76,
+    "unauthorized": 44
+  },
+  "failures": [],
+  "rlsContextSwitches": 40,
+  "rawStorageExercised": false,
+  "workerCompletionAsserted": false,
+  "retainedSyntheticData": true,
+  "scope": "Gateway auth, populated analytics/cache, sync acceptance and quota, cross-tenant access; direct SQL unfiltered RLS context switching"
+}

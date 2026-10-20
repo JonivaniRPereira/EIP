@@ -4,6 +4,7 @@ using EIP.Data.Canonical.Application;
 using EIP.Data.Canonical.Domain;
 using EIP.Data.Connector.Api.Contracts;
 using EIP.Data.Connector.Application;
+using EIP.Data.Connector.Application.Contracts;
 using EIP.Shared.Contracts.Connectors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -36,7 +37,8 @@ public sealed class QuarantineController : ControllerBase
         [FromQuery] Guid? connectorInstanceId,
         [FromQuery] DateTimeOffset? createdFrom,
         [FromQuery] DateTimeOffset? createdTo,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, [FromQuery] int? limit = null, [FromQuery] DateTimeOffset? before = null,
+        [FromQuery] Guid? beforeId = null, [FromQuery] bool includeRequested = true)
     {
         var tenantId = GetAuthenticatedTenantId();
         if (tenantId is null)
@@ -44,7 +46,12 @@ public sealed class QuarantineController : ControllerBase
             return Problem(detail: "Tenant não selecionado.", statusCode: StatusCodes.Status403Forbidden);
         }
 
-        var entries = await _canonicalRecordStore.ListQuarantineEntriesAsync(tenantId.Value, connectorInstanceId, createdFrom, createdTo, cancellationToken);
+        if (limit is < 1 or > 100 || before.HasValue != beforeId.HasValue || beforeId == Guid.Empty)
+        {
+            return BadRequest(new ProblemDetails { Detail = "Paginação inválida: limite de 1 a 100 e cursor com data e identificador.", Status = 400 });
+        }
+        var entries = await _canonicalRecordStore.ListQuarantineEntriesAsync(tenantId.Value, connectorInstanceId, createdFrom, createdTo,
+            cancellationToken, limit ?? (before.HasValue ? 50 : null), before, beforeId, includeRequested);
 
         return Ok(entries.Select(ToDto).ToList());
     }
@@ -69,12 +76,23 @@ public sealed class QuarantineController : ControllerBase
         {
             return NotFound();
         }
+        if (entry.ResolvedAt is not null)
+        {
+            return Problem(detail: "Reprocessamento já solicitado para este registro.", statusCode: StatusCodes.Status409Conflict);
+        }
 
         var correlationId = HttpContext.Items.TryGetValue("X-Correlation-Id", out var value) && value is string existing
             ? existing
             : Guid.NewGuid().ToString();
 
-        var result = await _connectorSyncService.RequestSyncAsync(entry.ConnectorInstanceId, tenantId.Value, correlationId, reprocessFromUtc: null, cancellationToken);
+        var result = await _connectorSyncService.RequestSyncAsync(entry.ConnectorInstanceId, tenantId.Value, correlationId,
+            reprocessFromUtc: SyncRequestedMessage.FullReprocessFromUtc, cancellationToken);
+        if (result.RetryAfter is { } retryAfter)
+        {
+            Response.Headers.RetryAfter = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds))
+                .ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return Problem(detail: result.Error, statusCode: StatusCodes.Status429TooManyRequests);
+        }
         if (!result.Success)
         {
             return Problem(detail: result.Error, statusCode: StatusCodes.Status400BadRequest);

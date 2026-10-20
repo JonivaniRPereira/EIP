@@ -50,6 +50,7 @@ public sealed class AnalyticsQueryTimeoutTests : IAsyncLifetime
             webHostBuilder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(
             [
                 new("ConnectionStrings:TenantDb", _sharedFixture.ConnectionString),
+                new("ConnectionStrings:UsageDb", _sharedFixture.ConnectionString),
                 new("ConnectionStrings:IdentityDb", _sharedFixture.ConnectionString),
                 new("ConnectionStrings:ConnectorDb", _sharedFixture.ConnectionString),
                 new("ConnectionStrings:CanonicalDb", _sharedFixture.ConnectionString),

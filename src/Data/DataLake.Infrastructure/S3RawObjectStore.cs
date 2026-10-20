@@ -11,7 +11,7 @@ namespace EIP.Data.DataLake.Infrastructure;
 /// <c>{tenantId}/{sourceSystemId}/{sourceEntity}/{yyyy}/{MM}/{dd}/{syncRunId}/{sequencial}.json</c>
 /// — sempre construída aqui a partir de <see cref="RawObjectMetadata"/>, nunca aceita do chamador.
 /// </summary>
-public sealed class S3RawObjectStore : IRawObjectStore, IDisposable
+public sealed class S3RawObjectStore : IRawObjectStore, IRawStorageUsageReader, IDisposable
 {
     private readonly IAmazonS3 _s3Client;
     private readonly string _bucketName;
@@ -31,6 +31,12 @@ public sealed class S3RawObjectStore : IRawObjectStore, IDisposable
         if (metadata.TenantId == Guid.Empty)
         {
             throw new ArgumentException("TenantId é obrigatório.", nameof(metadata));
+        }
+
+        if (string.IsNullOrWhiteSpace(metadata.SourceEntity) || metadata.SourceEntity.Length > 100
+            || metadata.SourceEntity.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not ('-' or '_')))
+        {
+            throw new ArgumentException("SourceEntity deve ser um segmento seguro de chave.", nameof(metadata));
         }
 
         await EnsureBucketExistsAsync(cancellationToken);
@@ -96,6 +102,48 @@ public sealed class S3RawObjectStore : IRawObjectStore, IDisposable
         while (continuationToken is not null);
 
         return keys;
+    }
+
+    public async Task<RawStorageUsage> ReadUsageAsync(Guid tenantId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken)
+    {
+        if (tenantId == Guid.Empty || from >= to)
+        {
+            throw new ArgumentException("Tenant e período válidos são obrigatórios.");
+        }
+
+        long bytes = 0;
+        long objects = 0;
+        string? continuationToken = null;
+        try
+        {
+            do
+            {
+                var page = await _s3Client.ListObjectsV2Async(new ListObjectsV2Request
+                {
+                    BucketName = _bucketName,
+                    Prefix = TenantPrefix(tenantId),
+                    ContinuationToken = continuationToken,
+                }, cancellationToken);
+                foreach (var item in page.S3Objects)
+                {
+                    if (item.LastModified is { } modified && modified >= from.UtcDateTime && modified < to.UtcDateTime)
+                    {
+                        bytes = checked(bytes + (item.Size ?? 0));
+                        objects++;
+                    }
+                }
+
+                continuationToken = page.IsTruncated == true ? page.NextContinuationToken : null;
+            }
+            while (continuationToken is not null);
+        }
+        catch (AmazonS3Exception ex) when (ex.ErrorCode == "NoSuchBucket")
+        {
+            // Um tenant sem ingestão pode ser consultado antes da primeira criação do bucket.
+            return new RawStorageUsage(0, 0);
+        }
+
+        return new RawStorageUsage(bytes, objects);
     }
 
     private async Task EnsureBucketExistsAsync(CancellationToken cancellationToken)

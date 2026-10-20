@@ -6,6 +6,25 @@ namespace EIP.Data.Connector.Application;
 
 public sealed class ConnectorSyncService : IConnectorSyncService
 {
+    public async Task<ConnectorInstance?> UpdateConfigurationAsync(Guid tenantId, Guid connectorInstanceId, string name, string baseUrl, CancellationToken cancellationToken)
+    {
+        if (!await _store.UpdateConfigurationAsync(tenantId, connectorInstanceId, name, baseUrl, cancellationToken))
+        {
+            return null;
+        }
+
+        return await _store.FindInstanceAsync(connectorInstanceId, cancellationToken);
+    }
+    public Task<IReadOnlyList<ConnectorInstance>> ListInstancesAsync(Guid tenantId, CancellationToken cancellationToken) =>
+        _store.ListInstancesAsync(tenantId, cancellationToken);
+
+    public async Task<IReadOnlyList<SyncRun>?> ListRunsAsync(Guid tenantId, Guid connectorInstanceId, int limit, CancellationToken cancellationToken, DateTimeOffset? before = null, Guid? beforeId = null)
+    {
+        var instance = await _store.FindInstanceAsync(connectorInstanceId, cancellationToken);
+        return instance is null || instance.TenantId != tenantId
+            ? null
+            : await _store.ListRunsAsync(tenantId, connectorInstanceId, limit, cancellationToken, before, beforeId);
+    }
     private readonly IConnectorSyncStore _store;
     private readonly IConnectorSyncPublisher _publisher;
     private readonly IConnectorSyncQuota _quota;
@@ -67,7 +86,7 @@ public sealed class ConnectorSyncService : IConnectorSyncService
             // Sem outbox transacional na Fase 0 (fica para hardening futuro): se a publicação falhar
             // depois do SyncRun já persistido, o run é marcado Failed em vez de ficar Pending para
             // sempre sem nenhuma mensagem jamais publicada.
-            run.Fail($"Falha ao publicar mensagem de sincronização: {ex.Message}");
+            run.Fail("Falha ao publicar mensagem de sincronização.");
             await _store.SaveRunAsync(run, cancellationToken);
             return SyncRunRequestResult.Failed("Falha ao solicitar sincronização.");
         }

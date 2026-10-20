@@ -8,6 +8,7 @@ using EIP.Data.Catalog.Application;
 using EIP.Data.Connector.Application;
 using EIP.Data.Connector.Application.Abstractions;
 using EIP.Data.Connector.Infrastructure;
+using EIP.Data.DataLake.Infrastructure;
 using EIP.Data.Semantic.Application;
 using EIP.Data.Warehouse.Application;
 using EIP.Data.Warehouse.Infrastructure;
@@ -15,11 +16,14 @@ using EIP.Host;
 using EIP.Intelligence.Analytics.Application;
 using EIP.Intelligence.Analytics.Infrastructure;
 using EIP.Intelligence.Dashboard.Infrastructure;
+using EIP.Platform.Administration.Application;
+using EIP.Platform.Administration.Infrastructure;
 using EIP.Platform.Identity.Application;
 using EIP.Platform.Identity.Application.Abstractions;
 using EIP.Platform.Identity.Domain;
 using EIP.Platform.Identity.Infrastructure;
 using EIP.Platform.Tenant.Infrastructure;
+using EIP.Shared.Contracts.Administration;
 using EIP.Shared.Contracts.Tenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -39,6 +43,7 @@ const string CorrelationIdHeaderName = "X-Correlation-Id";
 const string ReadyTag = "ready";
 
 var builder = WebApplication.CreateBuilder(args);
+StartupSecurityValidation.Validate(builder.Configuration, builder.Environment.IsDevelopment());
 
 builder.Host.UseSerilog((context, services, loggerConfiguration) => loggerConfiguration
     .ReadFrom.Configuration(context.Configuration)
@@ -111,7 +116,19 @@ builder.Services.AddDbContextFactory<DashboardDbContext>((sp, options) =>
     options.UseSqlServer(GetRequiredConnectionString(sp, "DashboardDb"))
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 
+builder.Services.AddDbContextFactory<UsageDbContext>((sp, options) =>
+    options.UseSqlServer(GetRequiredConnectionString(sp, "UsageDb"), sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", UsageDbContext.Schema))
+        .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
+builder.Services.AddScoped<IAnalyticsUsageRecorder, AnalyticsUsageRecorder>();
+builder.Services.AddScoped<ITenantUsageReader, TenantUsageReader>();
+builder.Services.AddScoped<ITenantDirectory, TenantDirectory>();
+builder.Services.AddRawObjectStore(sp => sp.GetRequiredService<IConfiguration>().GetSection(S3RawObjectStoreOptions.SectionName).Get<S3RawObjectStoreOptions>()
+    ?? throw new InvalidOperationException("DataLake não configurado."));
+
 builder.Services.AddScoped<IConnectorSyncStore, ConnectorSyncStore>();
+builder.Services.AddOptions<ReferenceRestOptions>().BindConfiguration("ReferenceRest")
+    .Validate(options => options.MaxResponseBytes is > 0 and <= 67108864, "Limite de resposta do conector inválido.").ValidateOnStart();
+builder.Services.AddSingleton<IReferenceEndpointPolicy, ReferenceEndpointPolicy>();
 builder.Services.AddSingleton<IConnectorSyncPublisher>(sp => new RabbitMqConnectorSyncPublisher(GetRequiredConnectionString(sp, "RabbitMQ")));
 builder.Services.AddSingleton<IConnectorDlqReader>(sp => new RabbitMqConnectorDlqReader(GetRequiredConnectionString(sp, "RabbitMQ")));
 builder.Services.AddScoped<IConnectorSyncService, ConnectorSyncService>();
@@ -143,7 +160,7 @@ builder.Services.AddStackExchangeRedisCache(_ => { });
 builder.Services.AddOptions<RedisCacheOptions>()
     .Configure<IServiceProvider>((options, sp) => options.Configuration = GetRequiredConnectionString(sp, "Redis"));
 builder.Services.AddScoped<IAnalyticsQueryCache, RedisAnalyticsQueryCache>();
-builder.Services.AddScoped<IDeclarativeAnalyticsQueryService>(sp =>
+builder.Services.AddScoped<DeclarativeAnalyticsQueryService>(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();
     return new DeclarativeAnalyticsQueryService(
@@ -158,6 +175,7 @@ builder.Services.AddScoped<IDeclarativeAnalyticsQueryService>(sp =>
             TimeSpan.FromMilliseconds(configuration.GetValue("Analytics:QueryTimeoutMilliseconds", 10_000))),
         sp.GetRequiredService<ILogger<DeclarativeAnalyticsQueryService>>());
 });
+builder.Services.AddScoped<IDeclarativeAnalyticsQueryService, MeteredAnalyticsQueryService>();
 
 builder.Services.AddScoped<IMembershipDirectory, EIP.Platform.Tenant.Infrastructure.MembershipDirectory>();
 builder.Services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();
@@ -187,6 +205,21 @@ builder.Services
         // Mantém os nomes de claim exatamente como emitidos (ex. "sub") em vez do remapeamento
         // legado para URIs longas de ClaimTypes.
         options.MapInboundClaims = false;
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                var subject = context.Principal?.FindFirst("sub")?.Value;
+                var tenant = context.Principal?.FindFirst(EipClaimTypes.TenantId)?.Value;
+                if (!Guid.TryParse(subject, out var userId) || userId == Guid.Empty
+                    || (tenant is not null && (!Guid.TryParse(tenant, out var tenantId) || tenantId == Guid.Empty || tenantId == TenantContext.SystemTenantId)))
+                {
+                    context.Fail("Identidade ou tenant inválido.");
+                }
+
+                return Task.CompletedTask;
+            },
+        };
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -196,6 +229,7 @@ builder.Services
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
             ValidateLifetime = true,
+            ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
             ClockSkew = TimeSpan.FromSeconds(30),
         };
     });
@@ -204,8 +238,11 @@ builder.Services
 // endpoint sem [Authorize]/[AllowAnonymous] explícito exige autenticação por padrão.
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, PlatformUsageAuthorizationHandler>();
 builder.Services.AddAuthorization(options =>
 {
+    options.AddPolicy(PlatformPermissions.TenantUsageRead, policy => policy
+        .RequireAuthenticatedUser().AddRequirements(new PlatformUsageRequirement()));
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
@@ -261,6 +298,19 @@ app.Use(async (context, next) =>
 
 app.UseSerilogRequestLogging();
 
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.XContentTypeOptions = "nosniff";
+    context.Response.Headers["Referrer-Policy"] = "no-referrer";
+    context.Response.Headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'";
+    if (context.Request.Path.StartsWithSegments("/api"))
+    {
+        context.Response.Headers.CacheControl = "no-store";
+    }
+
+    await next();
+});
+
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
@@ -299,39 +349,41 @@ app.Use(async (context, next) =>
 // primeira sincronização); o registro "*099" tem `updatedAt` calculado a cada chamada
 // (`DateTimeOffset.UtcNow`), simulando um dado que continua mudando na origem — prova que o filtro
 // realmente varia entre execuções, não só na primeira.
-app.MapGet("/api/v1/sample/customers", (DateTimeOffset? updatedSince) =>
+if (app.Environment.IsDevelopment())
 {
-    var records = new[]
+    app.MapGet("/api/v1/sample/customers", (DateTimeOffset? updatedSince) =>
     {
+        var records = new[]
+        {
         new { code = "C001", name = "Ana Souza", email = "ana.souza@example.com", city = "São Paulo", stateOrRegion = "SP", countryCode = "BR", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero) },
         new { code = "C002", name = "Bruno Lima", email = "bruno.lima@example.com", city = "Rio de Janeiro", stateOrRegion = "RJ", countryCode = "BR", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 2, 0, 0, 0, TimeSpan.Zero) },
         new { code = "C003", name = "Carla Nunes", email = "carla.nunes@example.com", city = "Belo Horizonte", stateOrRegion = "MG", countryCode = "BR", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 3, 0, 0, 0, TimeSpan.Zero) },
         new { code = "C004", name = "Diego Alves", email = "diego.alves@example.com", city = "Curitiba", stateOrRegion = "PR", countryCode = "BR", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 4, 0, 0, 0, TimeSpan.Zero) },
         new { code = "C005", name = "Elisa Prado", email = "elisa.prado@example.com", city = "Porto Alegre", stateOrRegion = "RS", countryCode = "BR", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 5, 0, 0, 0, TimeSpan.Zero) },
         new { code = "C099", name = "Cliente Sempre Atualizado (E7.1)", email = "sempre-atualizado@example.com", city = "São Paulo", stateOrRegion = "SP", countryCode = "BR", isActive = true, updatedAt = DateTimeOffset.UtcNow },
-    };
+        };
 
-    return Results.Json(records.Where(r => updatedSince is not { } since || r.updatedAt >= since));
-}).AllowAnonymous();
+        return Results.Json(records.Where(r => updatedSince is not { } since || r.updatedAt >= since));
+    }).AllowAnonymous();
 
-app.MapGet("/api/v1/sample/products", (DateTimeOffset? updatedSince) =>
-{
-    var records = new[]
+    app.MapGet("/api/v1/sample/products", (DateTimeOffset? updatedSince) =>
     {
+        var records = new[]
+        {
         new { code = "P001", name = "Notebook Pro 14", productType = "Product", unitOfMeasure = "UN", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero) },
         new { code = "P002", name = "Monitor UltraWide 29", productType = "Product", unitOfMeasure = "UN", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 2, 0, 0, 0, TimeSpan.Zero) },
         new { code = "P003", name = "Suporte Técnico Mensal", productType = "Service", unitOfMeasure = "UN", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 3, 0, 0, 0, TimeSpan.Zero) },
         new { code = "P004", name = "Licença de Software Anual", productType = "Service", unitOfMeasure = "UN", isActive = true, updatedAt = new DateTimeOffset(2026, 6, 4, 0, 0, 0, TimeSpan.Zero) },
         new { code = "P099", name = "Produto Sempre Atualizado (E7.1)", productType = "Product", unitOfMeasure = "UN", isActive = true, updatedAt = DateTimeOffset.UtcNow },
-    };
+        };
 
-    return Results.Json(records.Where(r => updatedSince is not { } since || r.updatedAt >= since));
-}).AllowAnonymous();
+        return Results.Json(records.Where(r => updatedSince is not { } since || r.updatedAt >= since));
+    }).AllowAnonymous();
 
-app.MapGet("/api/v1/sample/sales-invoices", (DateTimeOffset? updatedSince) =>
-{
-    var records = new[]
+    app.MapGet("/api/v1/sample/sales-invoices", (DateTimeOffset? updatedSince) =>
     {
+        var records = new[]
+        {
         new
         {
             invoiceNumber = "NF-0001",
@@ -386,10 +438,12 @@ app.MapGet("/api/v1/sample/sales-invoices", (DateTimeOffset? updatedSince) =>
                 new { lineNumber = 1, productCode = "P099", quantity = 1m, unitPrice = 10.00m, discountAmount = 0m },
             },
         },
-    };
+        };
 
-    return Results.Json(records.Where(r => updatedSince is not { } since || r.updatedAt >= since));
-}).AllowAnonymous();
+        return Results.Json(records.Where(r => updatedSince is not { } since || r.updatedAt >= since));
+    }).AllowAnonymous();
+
+}
 
 app.MapControllers();
 

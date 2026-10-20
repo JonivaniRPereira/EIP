@@ -1,19 +1,30 @@
-<mat-sidenav-container class="h-screen" style="background: #f4f6f8">
+<mat-sidenav-container class="shell-container">
   <mat-sidenav
     [opened]="sidenavOpened()"
-    [mode]="'side'"
-    class="w-64 border-r border-gray-200"
-    style="background: #ffffff"
+    [mode]="compact() ? 'over' : 'side'"
+    (openedChange)="sidenavOpened.set($event)"
+    class="shell-sidebar"
   >
-    <div class="flex h-16 items-center gap-2 px-5">
-      <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">E</div>
-      <span class="text-lg font-semibold tracking-tight text-gray-900">EIP</span>
+    <div class="brand-heading">
+      <a
+        href="https://www.jpcodecraft.com.br/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="JP Code Craft Solutions — abrir site"
+        ><img
+          src="brand/jp-code-craft-logo.png"
+          width="192"
+          height="64"
+          alt="JP Code Craft Solutions"
+      /></a>
+      <span class="product-label">EIP <span>INTELIGÊNCIA CORPORATIVA</span></span>
     </div>
 
     <mat-nav-list class="flex flex-col gap-1 px-3">
       <a
         mat-list-item
         routerLink="/dashboard"
+        (click)="closeCompactMenu()"
         routerLinkActive="!bg-blue-50 !text-blue-700"
         [routerLinkActiveOptions]="{ exact: true }"
         class="!rounded-lg"
@@ -21,21 +32,53 @@
         <mat-icon matListItemIcon>home</mat-icon>
         <span matListItemTitle>Início</span>
       </a>
-      <a mat-list-item routerLink="/dashboards" routerLinkActive="!bg-blue-50 !text-blue-700" class="!rounded-lg">
+      <a
+        mat-list-item
+        routerLink="/dashboards"
+        (click)="closeCompactMenu()"
+        routerLinkActive="!bg-blue-50 !text-blue-700"
+        class="!rounded-lg"
+      >
         <mat-icon matListItemIcon>space_dashboard</mat-icon>
         <span matListItemTitle>Painéis</span>
       </a>
+      @if (auth.hasPermission('connector.view')) {
+        <a
+          mat-list-item
+          routerLink="/connectors"
+          (click)="closeCompactMenu()"
+          routerLinkActive="!bg-blue-50 !text-blue-700"
+          class="!rounded-lg"
+        >
+          <mat-icon matListItemIcon>sync</mat-icon>
+          <span matListItemTitle>Integrações</span>
+        </a>
+      }
     </mat-nav-list>
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <mat-toolbar style="background: #ffffff" class="!border-b !border-gray-200">
+    <mat-toolbar class="brand-toolbar">
       <button mat-icon-button (click)="toggleSidenav()" aria-label="Alternar menu">
         <mat-icon>menu</mat-icon>
       </button>
+      <a
+        class="compact-brand"
+        href="https://www.jpcodecraft.com.br/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="JP Code Craft Solutions — abrir site"
+        ><img
+          src="brand/jp-code-craft-logo.png"
+          width="132"
+          height="44"
+          alt="JP Code Craft Solutions"
+      /></a>
 
       @if (tenantName(); as name) {
-        <span class="ml-2 text-sm font-medium text-gray-700">{{ name }}</span>
+        <span class="tenant-name ml-2 text-sm font-medium text-gray-700" [title]="name">{{
+          name
+        }}</span>
       }
 
       <span class="flex-1"></span>
@@ -45,10 +88,12 @@
         [matMenuTriggerFor]="userMenu"
         class="flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border-0 bg-transparent px-2 py-1 hover:bg-gray-100"
       >
-        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
+        <div
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700"
+        >
           {{ userInitial() }}
         </div>
-        <span class="hidden text-sm text-gray-700 sm:inline">{{ auth.userEmail() }}</span>
+        <span class="user-email text-sm text-gray-700">{{ auth.userEmail() }}</span>
         <mat-icon class="shrink-0 !text-gray-500">expand_more</mat-icon>
       </button>
       <mat-menu #userMenu="matMenu">

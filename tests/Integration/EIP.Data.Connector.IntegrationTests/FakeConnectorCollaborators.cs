@@ -51,7 +51,7 @@ public sealed class NoOpRawObjectStore : IRawObjectStore
 public sealed class UnusedCanonicalReconciliationService : ICanonicalReconciliationService
 {
     public Task<SalesInvoiceReconciliationResult> ReconcileSalesInvoicesAsync(
-        Guid tenantId, Guid sourceSystemId, int reportedCount, decimal reportedNetAmountTotal, decimal toleranceFraction, CancellationToken cancellationToken) =>
+        Guid tenantId, Guid sourceSystemId, int reportedCount, decimal reportedNetAmountTotal, decimal toleranceFraction, CancellationToken cancellationToken, string? rawObjectUri = null) =>
         throw new NotSupportedException("Não usado nos testes de watermark (SourceEntity != sales-invoices).");
 }
 

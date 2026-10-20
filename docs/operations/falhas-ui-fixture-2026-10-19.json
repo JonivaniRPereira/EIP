@@ -1,0 +1,8 @@
+{
+  "tenantId": "5E17B5C9-5862-4029-A627-D95261CBF8A7",
+  "connectorId": "1A10DBC2-621B-4682-9C57-17EAA421E61A",
+  "syncRunId": "ee558356-5e0c-430a-8982-c8d00ee31cc9",
+  "quarantineEntryId": "92da5849-11cb-47b9-9fff-b86dac8cb062",
+  "watermarkBefore": "2026-10-19T12:15:10.9557711Z",
+  "note": "Synthetic test records inserted explicitly; no real source failure was induced."
+}

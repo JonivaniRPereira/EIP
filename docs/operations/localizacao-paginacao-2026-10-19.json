@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-19",
+  "status": "passed",
+  "locale": "pt-BR",
+  "pageSize": 20,
+  "fetchSize": 21,
+  "cursor": ["createdAt", "id"],
+  "validation": {
+    "api": { "passed": 77, "failed": 0 },
+    "frontend": { "passed": 31, "failed": 0 },
+    "hostReleasePublish": "passed",
+    "frontendProductionBuild": "passed",
+    "sqlCursorCases": ["equal timestamps", "insert between pages", "tenant isolation", "quarantine filter before limit"],
+    "ui": ["integration history dates in pt-BR", "commercial dashboard 11.110 BRL"],
+    "scope": "Pagination tested with isolated synthetic integration data and component tests; visual check used existing Demo data, fewer than 20 rows."
+  },
+  "screenshot": "screenshots/painel-pt-br-2026-10-19.png",
+  "localApiUpdated": true,
+  "knownWarning": "Existing Sass @import deprecation"
+}
