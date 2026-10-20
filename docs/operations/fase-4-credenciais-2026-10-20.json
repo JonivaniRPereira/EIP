@@ -1,0 +1,43 @@
+{
+  "localDate": "2026-10-20",
+  "milestone": "F4.3c-local-credentials",
+  "status": "passed-local",
+  "phaseF43Complete": false,
+  "hostTests": {
+    "passed": 143,
+    "notExecuted": 0,
+    "failed": 0,
+    "total": 143
+  },
+  "frontendTests": {
+    "total": 47,
+    "passed": 47
+  },
+  "frontendBuildPassed": true,
+  "releasePublishPassed": true,
+  "localMigrationApplied": "20261020110338_ProtectedProviderCredentials",
+  "localWindowsDpapiProtection": true,
+  "persistentKeyRingDpapiConfirmed": true,
+  "keyRingPlaintextMasterKeyFound": false,
+  "credentialsNeverReturnedByApi": true,
+  "browserSaveAndInputClearingPassed": true,
+  "syntheticCredentialRemoved": true,
+  "remainingDemoCredentials": 0,
+  "demoSettingsRevision": 4,
+  "httpProtections": {
+    "tenantOverride": 400,
+    "oversizedBody": 413,
+    "anonymous": 401,
+    "staleRevision": 409
+  },
+  "demoNetRevenue": 11110.0,
+  "externalModelCalls": 0,
+  "invocationEnabled": false,
+  "productionCredentialStorageImplemented": false,
+  "transportAdaptersImplemented": false,
+  "remoteCiValidatedForThisChange": false,
+  "hostDllSha256": "9922b1d61518e2ea873348831b4278846e4865102c4f8cf22ccdbdb78ed76158",
+  "formatChangedFilesPassed": true,
+  "screenshot": "screenshots/ia-credenciais-2026-10-20.png",
+  "diagnostic": "fase-4-credenciais-diagnostico-2026-10-20.json"
+}

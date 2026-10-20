@@ -217,5 +217,28 @@ permanecem nos backlogs e evidências, sem credenciais ou payloads pessoais nest
   Próxima F4.3c: transportes e armazenamento protegido de credenciais, com política
   de dados/custo; IA continua desabilitada e nenhuma chamada externa autorizada.
   Evidência docs/operations/fase-4-configuracao-2026-10-19.json; CI novo não validado.
+- F4.3c local concluída20/10: credenciais separadas dos perfis via /ai/settings/credentials
+  e PUT/DELETE /ai/settings/profiles/{id}/credential, ai.settings.manage. Só flags/ids
+  devolvidos; corpo limitado8KiB, segredo8-2048ASCIIsem espaços, DTOToStringredacted.
+  Cipher em coluna ProtectedCredentials, mesma RLS e revisão do registrosettings.
+  DataProtection purpose tenant/profile/provider; perfis removidos/renomeados/com
+  provedor alterado descartam chaves na mesma gravação. Concorrência impede misturas.
+  DevelopmentWindows usa %LOCALAPPDATA%/EIP/AiKeyRing, persistente/DPAPI do usuário,
+  applicationName EIP.AI.Credentials.v1. Não apagar esse keyring ou movê-lo ao Git.
+  Produção/outrosSO: protetor indisponível503, sem fallback. CIHostfixture usa somente
+  protetor efêmero de teste em bancos temporários. Cofre de produção continua pendente.
+  UIcampo password separado, limpa após tentativa/reload/destroy, confirmação remoção,
+  bloqueia credenciais enquanto perfis dirty. Defaults podem ser salvos sem editar.
+  Host143/143, frontend47/47, builds/formatação aprovados. Migration aplicada localmente:
+  20261020110338_ProtectedProviderCredentials (coluna nullable; downgrade perde cifras).
+  Browser salvou chave sintética/campo limpo; API não a expôs; keyring DPAPI conferido
+  só por metadados. Teste limpo por API com revisionguard: Demo sem chaves, revisão4,
+  perfis/modelos/limites originais. HTTP401/409/400/413, totalDemo11110, diagnóstico15tenants
+  comfilasvazias. Screenshot ia-credenciais-2026-10-20.png sem valores sensíveis.
+  APIatual %TEMP%/eip-ai-credentials-host, sessão52440, src/Host Development localhost5080.
+  Front/Gateway/Worker mantidos. Evidência fase-4-credenciais-2026-10-20.json.
+  Próxima: transportes multiprovedor e política de dados/custo; nenhum LLM chamado,
+  nenhum orçamento/envio autorizado por cadastrar chave. Não ativar modelos ainda.
+  CI deste código não validado remotamente; manter push manual do usuário.
 - Preservar alterações locais e dados existentes. Testes deixam organizações sintéticas;
   limpeza deve ser delimitada por IDs e planejada, nunca apagar tenants indiscriminadamente.

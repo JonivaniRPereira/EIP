@@ -11,7 +11,7 @@ P01/P03–P08; início desta fase não equivale a homologação de produção.
 |---|---|---|---|
 | F4.1 | Base de ferramentas e descoberta | Registro fechado, schema, permissão analytics.query e tenant da sessão; catálogo igual ao Analytics; recusa de ferramentas/argumentos não permitidos; testes e API local. | Concluído localmente. [Evidência](../operations/fase-4-ferramentas-2026-10-19.json). |
 | F4.2 | Ferramenta queryAnalytics | Consulta declarativa passa pelo serviço analítico medido; mesmas permissões, RLS, medição, limites, filtros, cache e frescor da consulta normal; divergência/cross-tenant/SQL arbitrário recusados. | Concluído localmente. [Evidência](../operations/fase-4-consultas-2026-10-19.json). |
-| F4.3 | Adaptadores de modelo e política de dados | Vários provedores configuráveis na plataforma; credenciais fora do Git, destinos permitidos, orçamento e contrato de dados; contexto mínimo e modo desabilitado seguro. Sem envio externo antes dessa configuração/autorização. | Em andamento: contrato, perfis e tela com persistência por organização; transportes, credenciais e políticas ainda pendentes. |
+| F4.3 | Adaptadores de modelo e política de dados | Vários provedores configuráveis na plataforma; credenciais fora do Git, destinos permitidos, orçamento e contrato de dados; contexto mínimo e modo desabilitado seguro. Sem envio externo antes dessa configuração/autorização. | Em andamento: contrato, perfis, tela e cadastro protegido local; transportes, cofre de produção e políticas ainda pendentes. |
 | F4.4 | Pergunta analítica e interface | Intenção gera proposta validada; resposta com dataset/métrica/período/filtros/frescor, erro e ambiguidade explícitos. Nenhum número inventado. | Após F4.2/F4.3. |
 | F4.5 | Rascunhos assistidos de painel | Proposta não publicada, revisão e confirmação explícita pelos fluxos existentes; permissão de publicação conferida separadamente. | Após F4.4. |
 | F4.6 | Avaliações e guardrails de IA | Casos sintéticos de intenção, ambiguidade, injection em dados/prompt, falha/timeout de modelo/ferramenta e acesso cruzado; métricas e critérios de aceite registrados. | Antes de habilitar IA para usuários. |
@@ -133,6 +133,36 @@ filas vazias. [Evidência](../operations/fase-4-configuracao-2026-10-19.json) e
 F4.3 ainda não está concluída: transportes de modelo, armazenamento protegido de
 credenciais e política de dados/custo permanecem pendentes. Nenhuma chamada de LLM
 ou envio externo. CI remoto deste código depende do push e não foi validado.
+
+## F4.3c — credenciais protegidas no laboratório
+
+Concluída localmente em **20/10/2026**. Cadastro/substituição/remoção por perfil,
+com `ai.settings.manage`, tenant/autor do JWT e a mesma revisão dos perfis.
+A API devolve só disponibilidade/presença, nunca a chave ou cifra. Valores ficam
+em `ProtectedCredentials`; Data Protection inclui tenant/perfil/provedor no propósito.
+Renomear, remover ou trocar o provedor descarta a chave atomicamente. A UI limpa o
+campo após tentativa/reload/saída, bloqueia cadastro com edições pendentes e confirma
+remoção. Padrões herdados podem ser salvos sem alteração antes de cadastrar a chave.
+
+Development Windows usa keyring persistente fora do Git, com DPAPI do usuário.
+Produção/outros sistemas retornam indisponível até implementar cofre adequado;
+não há fallback para texto claro/chaves efêmeras. Nos testes descartáveis, apenas
+o protetor de teste é efêmero. Operação/recuperação no [guia](../guides/ia-provedores.md).
+
+**143/143** testes Host e **47/47** frontend aprovados; builds frontend/Release e
+formatação aprovados. Testes conferem criptografia/scopes, isolamento, ausência
+em respostas, substituição/remoção, limpeza por mudança de perfil, falha de proteção
+e concorrência entre perfil e chave. Migration `20261020110338_ProtectedProviderCredentials`
+aplicada localmente. Navegador salvou valor sintético e confirmou campo vazio;
+keyring DPAPI real conferido por metadados, sem ler/expor chaves. Valor sintético
+removido depois: Demo sem credenciais, revisão4 e dados de negócio preservados.
+HTTP401/409/400/413, receita11110 e diagnóstico15tenants/filas vazias aprovados.
+[Evidência](../operations/fase-4-credenciais-2026-10-20.json) e
+[tela final](../operations/screenshots/ia-credenciais-2026-10-20.png).
+
+F4.3 permanece em andamento: transportes reais, cofre de produção e políticas de
+envio/custo pendentes. Nenhuma chamada externa, conexão validada ou ativação de IA.
+CI deste código ainda depende de push e validação remota.
 
 ## Critérios de saída da fase
 

@@ -1,4 +1,7 @@
 using EIP.Data.Semantic.Application;
+using EIP.Intelligence.AI.Application;
+using EIP.Intelligence.AI.Infrastructure;
+using Microsoft.AspNetCore.DataProtection;
 using EIP.Testing.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -77,6 +80,8 @@ public sealed class HostApiFixture : IAsyncLifetime
             // depender de nenhum detalhe interno do Redis; nunca muda o resultado da consulta.
             webHostBuilder.ConfigureTestServices(services =>
             {
+                // Proteção efêmera somente no banco descartável de testes, também no CI Linux.
+                services.AddSingleton<IAiCredentialProtector>(new DataProtectionAiCredentialProtector(new EphemeralDataProtectionProvider()));
                 services.AddSingleton<AnalyticsQueryCallCounter>();
                 services.AddScoped<AnalyticsQueryService>();
                 services.AddScoped<IAnalyticsQueryService>(sp => new CountingAnalyticsQueryService(

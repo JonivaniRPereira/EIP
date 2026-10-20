@@ -1,6 +1,36 @@
 :host {
   display: block;
 }
+.credential-panel {
+  margin-top: 16px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e8f0;
+}
+.credential-panel h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.credential-panel mat-form-field {
+  width: min(100%, 480px);
+}
+.credential-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.credential-help {
+  font-size: 12px;
+}
+.credential-state {
+  font-weight: 600;
+}
+.removal-confirmation {
+  border: 1px solid #e5cdbc;
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 16px;
+}
 .ai-settings {
   max-width: 1120px;
   margin: auto;

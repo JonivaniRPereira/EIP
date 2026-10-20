@@ -34,7 +34,15 @@ Configuração administrativa em `/settings/ai`, com `ai.settings.manage` (Owner
 `GET/PUT /api/v1/ai/settings` grava perfis por organização em `ai.ProviderSettings`,
 com RLS, auditoria mínima e revisão para conflitos. `GET /ai/providers` retorna os
 perfis efetivos. Aplicar a migration do novo projeto `Infrastructure` antes da API.
-Chaves e ativação não são aceitas nessa edição; chamadas continuam desabilitadas.
+Chaves e ativação não são aceitas nessa edição de perfis; chamadas continuam desabilitadas.
 
-Próxima etapa: transportes e credenciais com política de dados e orçamento definidos.
+Credenciais têm endpoints próprios sob `/api/v1/ai/settings`: status em
+`credentials`, PUT/DELETE em `profiles/{id}/credential`. Mesma permissão administrativa
+e revisão; somente presença é devolvida. Data Protection vincula tenant/perfil/provedor;
+cifras ficam em coluna separada, RLS existente. Troca de provedor/id remove a chave.
+Development Windows usa keyring persistente com DPAPI; demais ambientes recusam
+cadastro até implementar cofre. Sem API de texto claro, rede ou fallback inseguro.
+Aplicar também `ProtectedProviderCredentials`. [Operação e recuperação](../../../docs/guides/ia-provedores.md).
+
+Próxima etapa: transportes, cofre de produção e política de dados/orçamento.
 [Backlog e critérios](../../../docs/roadmap/fase-4-backlog.md).

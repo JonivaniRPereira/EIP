@@ -28,6 +28,7 @@ using EIP.Platform.Tenant.Infrastructure;
 using EIP.Shared.Contracts.Administration;
 using EIP.Shared.Contracts.Tenancy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
@@ -191,6 +192,20 @@ builder.Services.AddDbContextFactory<AiDbContext>((sp, options) =>
     options.UseSqlServer(GetRequiredConnectionString(sp, "TenantDb"), sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", AiDbContext.Schema))
         .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
 builder.Services.AddScoped<IAiSettingsStore, AiSettingsStore>();
+var aiKeyProtection = builder.Services.AddDataProtection().SetApplicationName("EIP.AI.Credentials.v1");
+var aiLocalKeyDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+if (builder.Environment.IsDevelopment() && OperatingSystem.IsWindows() && !string.IsNullOrWhiteSpace(aiLocalKeyDirectory))
+{
+    aiKeyProtection.PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(aiLocalKeyDirectory, "EIP", "AiKeyRing")))
+        .ProtectKeysWithDpapi();
+    builder.Services.AddSingleton<IAiCredentialProtector, DataProtectionAiCredentialProtector>();
+}
+else
+{
+    // Produção precisa de cofre/gerenciamento de chaves próprio; nunca usar chave efêmera ou arquivo sem proteção.
+    builder.Services.AddSingleton<IAiCredentialProtector, UnavailableAiCredentialProtector>();
+}
+builder.Services.AddScoped<IAiCredentialStore, AiCredentialStore>();
 
 builder.Services.AddScoped<IMembershipDirectory, EIP.Platform.Tenant.Infrastructure.MembershipDirectory>();
 builder.Services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();

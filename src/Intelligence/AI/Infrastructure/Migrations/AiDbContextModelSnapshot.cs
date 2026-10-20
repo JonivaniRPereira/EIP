@@ -34,6 +34,10 @@ namespace EIP.Intelligence.AI.Infrastructure.Migrations
                         .HasMaxLength(32768)
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ProtectedCredentials")
+                        .HasMaxLength(131072)
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<long>("Revision")
                         .IsConcurrencyToken()
                         .HasColumnType("bigint");

@@ -12,6 +12,9 @@ describe('AiSettings', () => {
     get: ReturnType<typeof vi.fn>;
     providers: ReturnType<typeof vi.fn>;
     save: ReturnType<typeof vi.fn>;
+    credentials: ReturnType<typeof vi.fn>;
+    saveCredential: ReturnType<typeof vi.fn>;
+    removeCredential: ReturnType<typeof vi.fn>;
   };
   const snapshot = (): AiSettingsView => ({
     revision: 2,
@@ -34,6 +37,11 @@ describe('AiSettings', () => {
       get: vi.fn().mockResolvedValue(snapshot()),
       providers: vi.fn().mockResolvedValue(['openai', 'anthropic']),
       save: vi.fn(),
+      credentials: vi
+        .fn()
+        .mockResolvedValue({ revision: 2, protectionAvailable: true, configuredProfileIds: [] }),
+      saveCredential: vi.fn(),
+      removeCredential: vi.fn(),
     };
     TestBed.configureTestingModule({
       imports: [AiSettings],
@@ -108,5 +116,97 @@ describe('AiSettings', () => {
     await component.load();
     expect(component.error()).toBe('');
     expect(component.dirty()).toBe(false);
+  });
+
+  it('clears the credential input after storing and never mixes it with profile settings', async () => {
+    await component.load();
+    component.credentialDrafts['primary'] = 'synthetic-credential';
+    service.saveCredential.mockResolvedValue({
+      revision: 3,
+      protectionAvailable: true,
+      configuredProfileIds: ['primary'],
+    });
+    await component.saveCredential('primary');
+    expect(service.saveCredential).toHaveBeenCalledWith('primary', 2, 'synthetic-credential');
+    expect(service.save).not.toHaveBeenCalled();
+    expect(component.credentialDrafts['primary']).toBeUndefined();
+    expect(component.revision).toBe(3);
+    expect(component.success()).not.toContain('synthetic-credential');
+  });
+  it('clears the credential on conflict and requires reloading before another attempt', async () => {
+    await component.load();
+    component.credentialDrafts['primary'] = 'synthetic-credential';
+    service.saveCredential.mockRejectedValue(new HttpErrorResponse({ status: 409 }));
+    await component.saveCredential('primary');
+    expect(component.credentialDrafts['primary']).toBeUndefined();
+    expect(component.canManageCredential()).toBe(false);
+    expect(component.error()).toContain('Recarregue');
+  });
+  it('does not store keys while profile changes are unsaved', async () => {
+    await component.load();
+    component.changed();
+    component.credentialDrafts['primary'] = 'synthetic-credential';
+    await component.saveCredential('primary');
+    expect(service.saveCredential).not.toHaveBeenCalled();
+  });
+  it('does not store keys when protection is unavailable', async () => {
+    service.credentials.mockResolvedValue({
+      revision: 2,
+      protectionAvailable: false,
+      configuredProfileIds: [],
+    });
+    await component.load();
+    component.credentialDrafts['primary'] = 'synthetic-credential';
+    await component.saveCredential('primary');
+    expect(service.saveCredential).not.toHaveBeenCalled();
+  });
+  it('can save inherited defaults before registering a credential', async () => {
+    service.get.mockResolvedValue({ ...snapshot(), revision: 0 });
+    service.credentials.mockResolvedValue({
+      revision: 0,
+      protectionAvailable: true,
+      configuredProfileIds: [],
+    });
+    await component.load();
+    service.save.mockResolvedValue({ ...snapshot(), revision: 1 });
+    service.credentials.mockResolvedValue({
+      revision: 1,
+      protectionAvailable: true,
+      configuredProfileIds: [],
+    });
+    await component.save();
+    expect(service.save).toHaveBeenCalled();
+    expect(component.revision).toBe(1);
+    expect(component.canManageCredential()).toBe(true);
+  });
+  it('requires explicit removal confirmation before deleting a stored credential', async () => {
+    await component.load();
+    await component.removeCredential('primary');
+    expect(service.removeCredential).not.toHaveBeenCalled();
+    component.credentialRemovalProfileId.set('primary');
+    service.removeCredential.mockResolvedValue({
+      revision: 3,
+      protectionAvailable: true,
+      configuredProfileIds: [],
+    });
+    await component.removeCredential('primary');
+    expect(service.removeCredential).toHaveBeenCalledWith('primary', 2);
+    expect(component.credentialRemovalProfileId()).toBeNull();
+  });
+  it('rejects a mixed revision when the two configuration reads race with another save', async () => {
+    service.credentials.mockResolvedValue({
+      revision: 3,
+      protectionAvailable: true,
+      configuredProfileIds: [],
+    });
+    await component.load();
+    expect(component.error()).toContain('carregar');
+    expect(component.canManageCredential()).toBe(false);
+  });
+  it('discards typed credentials on component destruction', async () => {
+    await component.load();
+    component.credentialDrafts['primary'] = 'synthetic-credential';
+    component.ngOnDestroy();
+    expect(component.credentialDrafts).toEqual({});
   });
 });

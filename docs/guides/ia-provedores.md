@@ -39,12 +39,14 @@ Owner e Admin têm a permissão `ai.settings.manage` e acessam **Provedores de I
 no menu, em `/settings/ai`. A tela permite criar/remover perfis, escolher provedor
 e modelo, ajustar limites e selecionar um perfil preferido. Para selecionar um
 perfil, informe seu modelo; rascunhos não selecionados podem ficar sem modelo.
-Não há campos para chaves, endpoints externos ou ativação de chamadas.
+Após salvar os perfis, há cadastro separado de credenciais protegidas. Endpoints
+externos e ativação de chamadas continuam fora do formulário.
 
 Ao salvar, a configuração fica em `ai.ProviderSettings`, no mesmo banco físico
 de `TenantDb`, com schema/histórico próprios e RLS de leitura e escrita. O servidor
 obtém tenant e autor do JWT. Guarda somente perfis, seleção, revisão e último
-autor/instante; logs de gravação contêm tenant, autor e revisão, sem modelos,
+autor/instante. A coluna separada `ProtectedCredentials` contém somente cifra,
+nunca a chave em texto. Logs contêm ação, tenant, autor e revisão, sem modelos,
 payloads ou credenciais. Não há histórico de versões completo nesta etapa.
 
 Organizações sem configuração salva herdam os perfis iniciais da instalação.
@@ -75,13 +77,56 @@ Com tenant selecionado e **`ai.settings.manage`**:
   cada perfil tem `id`, `provider`, `model`, `timeoutSeconds`, `maxOutputTokens`.
   Até 32 KiB; 400 para argumentos inválidos, 409 para revisão desatualizada.
 
-Campos extras, inclusive tenant, ativação ou credenciais, são recusados. Membros
+Na edição de perfis, campos extras, inclusive tenant, ativação ou credenciais, são recusados. Membros
 comuns continuam sem permissão de editar, mesmo tendo `analytics.query`.
 Tokens anteriores à nova permissão precisam ser renovados por refresh/login.
 
+## Credenciais protegidas — ambiente local
+
+Em **Development no Windows**, o servidor usa ASP.NET Core Data Protection com
+keyring persistente em `%LOCALAPPDATA%/EIP/AiKeyRing`, chaves protegidas por DPAPI
+do usuário e nome de aplicação `EIP.AI.Credentials.v1`. O propósito criptográfico
+inclui tenant, identificador do perfil e provedor. Uma cifra copiada para outro
+escopo não é decifrada. O keyring fica fora do repositório e do banco de dados.
+
+Em produção ou em outros sistemas, o cadastro retorna indisponível (503) até
+implementar o cofre/gerenciamento de chaves desse ambiente. Não há opção de
+configuração que habilite texto claro ou chaves efêmeras como fallback. A API de
+status continua funcionando e informa `protectionAvailable: false`. Os testes
+usam proteção efêmera apenas nos bancos temporários descartáveis, também no CI.
+
+Com `ai.settings.manage`, sempre na organização do token:
+
+- `GET /api/v1/ai/settings/credentials`: revisão, disponibilidade da proteção e
+  identificadores dos perfis com credencial; sem cifra, fragmento ou valor da chave.
+- `PUT /api/v1/ai/settings/profiles/{id}/credential`: `{revision, secret}`, até 8 KiB;
+  chave com 8–2.048 caracteres ASCII imprimíveis, sem espaços/quebras de linha.
+- `DELETE /api/v1/ai/settings/profiles/{id}/credential?revision=N`: remove a chave;
+  o formulário pede confirmação. Sem chave existente, é idempotente.
+
+Os perfis precisam estar salvos. Gravação, substituição, remoção e edição dos
+perfis compartilham a mesma revisão: conflitos retornam409 sem sobrescrita.
+Trocar identificador/provedor ou remover perfil descarta sua credencial na mesma
+gravação. Alterar apenas modelo/limites mantém a chave. Não existe API para obter
+a chave decifrada. O campo de senha começa vazio, não integra o payload de perfis
+nem o armazenamento local do navegador e é limpo após cada tentativa/reload/saída
+da tela. Falhas de proteção não persistem dados nem recorrem a texto claro.
+
+`protectionAvailable` indica capacidade local de proteção; **credencial cadastrada
+não significa conexão validada**. Nenhum provedor é chamado ao cadastrar, e a IA
+continua desabilitada. A validação usa somente valores sintéticos, removidos depois.
+
+Para recuperação, preservar banco e keyring, com contexto Windows/DPAPI compatível.
+Não apagar/rotacionar o keyring sem um plano de recuperação das cifras existentes.
+Credenciais não são portáveis para produção apenas copiando o banco. O downgrade
+de `ProtectedProviderCredentials` remove a coluna e suas cifras; exige backup
+prévio quando houver credenciais a preservar. Credenciais reais exigem transporte
+HTTPS e a política operacional de segredos do ambiente antes da habilitação.
+
 ## Migration
 
-Antes de executar a API nova, aplicar `InitialProviderSettings` do projeto
+Antes de executar a API nova, aplicar `InitialProviderSettings` e
+`ProtectedProviderCredentials` do projeto
 `src/Intelligence/AI/Infrastructure`. A variável de design-time
 `EIP_AI_DB_CONNECTION` deve apontar para o mesmo banco de `TenantDb` dessa
 instalação, obtida da configuração segura do operador:
@@ -106,11 +151,12 @@ prompts nesta entrega.
 
 O usuário definiu suporte a vários provedores configuráveis na plataforma.
 O contrato, os perfis iniciais e a edição persistida por organização estão
-implementados. Armazenamento de segredos e políticas de custo/envio por organização
-continuam pendentes. Configurações iniciais globais continuam sob o operador.
+implementados. O cadastro protegido local está implementado; cofre de produção,
+transportes e políticas de custo/envio por organização continuam pendentes.
+Configurações iniciais globais continuam sob o operador.
 
 Antes de habilitar modelos: implementar transportes específicos e seus testes,
-armazenamento protegido de credenciais, orçamento/quotas efetivos, política de
+cofre de produção, orçamento/quotas efetivos, política de
 envio de dados e credenciais. Selecionar perfil não autoriza enviar perguntas ou
 agregados a terceiros. Não há fallback automático para outro provedor.
 

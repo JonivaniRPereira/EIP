@@ -7,6 +7,7 @@ public sealed class AiSettingsRecord
     public Guid TenantId { get; set; }
     public long Revision { get; set; }
     public string Payload { get; set; } = string.Empty;
+    public string? ProtectedCredentials { get; set; }
     public Guid UpdatedBy { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 }
@@ -25,6 +26,7 @@ public sealed class AiDbContext(DbContextOptions<AiDbContext> options) : DbConte
             entity.HasKey(record => record.TenantId);
             entity.Property(record => record.Revision).IsConcurrencyToken();
             entity.Property(record => record.Payload).HasMaxLength(32768);
+            entity.Property(record => record.ProtectedCredentials).HasMaxLength(131072);
         });
     }
 }

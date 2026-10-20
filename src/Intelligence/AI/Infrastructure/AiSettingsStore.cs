@@ -31,6 +31,16 @@ public sealed class AiSettingsStore(IDbContextFactory<AiDbContext> factory, AiPr
         }
 
         record.Revision = request.Revision + 1;
+        var credentials = AiCredentialEnvelope.Read(record.ProtectedCredentials);
+        foreach (var entry in credentials.ToArray())
+        {
+            if (!request.Profiles.Any(profile => profile.Id == entry.Key && profile.Provider == entry.Value.Provider))
+            {
+                credentials.Remove(entry.Key);
+            }
+        }
+
+        record.ProtectedCredentials = AiCredentialEnvelope.Write(credentials);
         record.Payload = JsonSerializer.Serialize(new AiProviderCatalog(request.ActiveProfileId, false, request.Profiles));
         record.UpdatedAt = DateTimeOffset.UtcNow;
         record.UpdatedBy = actorId;

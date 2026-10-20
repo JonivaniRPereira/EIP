@@ -22,6 +22,11 @@ export interface SaveAiSettings {
   activeProfileId: string | null;
   profiles: AiProfile[];
 }
+export interface AiCredentialStatus {
+  revision: number;
+  protectionAvailable: boolean;
+  configuredProfileIds: string[];
+}
 
 @Service()
 export class AiSettingsService {
@@ -35,5 +40,24 @@ export class AiSettingsService {
   }
   save(settings: SaveAiSettings): Promise<AiSettingsView> {
     return firstValueFrom(this.http.put<AiSettingsView>(this.url, settings));
+  }
+  credentials(): Promise<AiCredentialStatus> {
+    return firstValueFrom(this.http.get<AiCredentialStatus>(`${this.url}/credentials`));
+  }
+  saveCredential(profileId: string, revision: number, secret: string): Promise<AiCredentialStatus> {
+    return firstValueFrom(
+      this.http.put<AiCredentialStatus>(
+        `${this.url}/profiles/${encodeURIComponent(profileId)}/credential`,
+        { revision, secret },
+      ),
+    );
+  }
+  removeCredential(profileId: string, revision: number): Promise<AiCredentialStatus> {
+    return firstValueFrom(
+      this.http.delete<AiCredentialStatus>(
+        `${this.url}/profiles/${encodeURIComponent(profileId)}/credential`,
+        { params: { revision } },
+      ),
+    );
   }
 }

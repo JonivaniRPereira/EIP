@@ -15,8 +15,8 @@
     <div class="notice">
       <mat-icon>info</mat-icon>
       <p>
-        Salvar configurações não ativa a IA nem envia dados a terceiros. As conexões, credenciais e
-        políticas de uso serão configuradas em uma próxima etapa.
+        Salvar configurações não ativa a IA nem envia dados a terceiros. As conexões e políticas de
+        uso serão configuradas em uma próxima etapa.
       </p>
     </div>
     @if (error()) {
@@ -150,6 +150,85 @@
                   /><mat-hint>Limite de tamanho de cada resposta.</mat-hint></mat-form-field
                 >
               </div>
+              <div class="credential-panel">
+                <h4>Credencial do perfil</h4>
+                @if (!credentialStatus()?.protectionAvailable) {
+                  <p>Cadastro protegido de credenciais indisponível neste ambiente.</p>
+                } @else if (dirty() || revision === 0) {
+                  <p>Salve os perfis antes de cadastrar ou alterar credenciais.</p>
+                } @else {
+                  <p class="credential-state">
+                    {{
+                      credentialStatus()?.configuredProfileIds?.includes(profile.id)
+                        ? 'Credencial cadastrada. A chave não será exibida novamente.'
+                        : 'Nenhuma credencial cadastrada.'
+                    }}
+                  </p>
+                  <p>Cadastrar uma chave não realiza conexão nem valida acesso ao provedor.</p>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Nova chave de API</mat-label>
+                    <input
+                      matInput
+                      type="password"
+                      [name]="'credential-' + i"
+                      autocomplete="off"
+                      spellcheck="false"
+                      [ngModel]="credentialDrafts[profile.id] ?? ''"
+                      (ngModelChange)="credentialDrafts[profile.id] = $event"
+                      [ngModelOptions]="{ standalone: true }"
+                      maxlength="2048"
+                      [disabled]="!canManageCredential()"
+                    />
+                  </mat-form-field>
+                  <div class="credential-actions">
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      (click)="saveCredential(profile.id)"
+                      [disabled]="!canSaveCredential(profile.id)"
+                    >
+                      Salvar credencial
+                    </button>
+                    @if (credentialStatus()?.configuredProfileIds?.includes(profile.id)) {
+                      <button
+                        mat-button
+                        type="button"
+                        (click)="credentialRemovalProfileId.set(profile.id)"
+                        [disabled]="!canManageCredential()"
+                      >
+                        Remover credencial
+                      </button>
+                    }
+                  </div>
+                  @if (credentialRemovalProfileId() === profile.id) {
+                    <div class="removal-confirmation">
+                      <p>
+                        Remover a credencial deste perfil? Será necessário informá-la novamente.
+                      </p>
+                      <button
+                        mat-button
+                        type="button"
+                        (click)="credentialRemovalProfileId.set(null)"
+                        [disabled]="saving()"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        (click)="removeCredential(profile.id)"
+                        [disabled]="!canManageCredential()"
+                      >
+                        Confirmar remoção
+                      </button>
+                    </div>
+                  }
+                }
+                <p class="credential-help">
+                  Ao alterar o identificador ou o provedor e salvar, a credencial anterior será
+                  descartada.
+                </p>
+              </div>
             </mat-card-content></mat-card
           >
         } @empty {
@@ -163,7 +242,7 @@
         <button
           mat-flat-button
           type="submit"
-          [disabled]="settingsForm.invalid || !dirty() || loading() || saving()"
+          [disabled]="settingsForm.invalid || (!dirty() && revision > 0) || loading() || saving()"
         >
           {{ saving() ? 'Salvando…' : 'Salvar configurações' }}
         </button>
