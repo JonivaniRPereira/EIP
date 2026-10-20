@@ -164,6 +164,21 @@ F4.3 permanece em andamento: transportes reais, cofre de produção e políticas
 envio/custo pendentes. Nenhuma chamada externa, conexão validada ou ativação de IA.
 CI deste código ainda depende de push e validação remota.
 
+## F4.3d.1 — protocolos multiprovedor
+
+Concluída localmente em **20/10/2026**: montagem de pedidos e interpretação de
+respostas OpenAI Responses, Anthropic Messages e Google generateContent. Hosts
+fixos, autenticação em cabeçalhos, contexto sem TenantId e limites de tamanho.
+Parser aceita somente consulta declarativa ou esclarecimento; rejeita truncamento,
+tool calls, SQL e campos indevidos. **17/17 testes novos aprovados**, todos sem rede.
+Formatação aplicada. Não houve mudança de UI, banco ou registro no Host.
+
+Esta é a camada de protocolo; não inclui envio HTTP, leitura do cofre ou execução
+das propostas. O adaptador desativado continua registrado. Próxima: transporte
+limitado com timeout/cancelamento/erros sanitizados e testes HTTP simulados;
+depois políticas de dados/custo e integração autenticada. Detalhes e referências
+oficiais no [guia de protocolos](../guides/ia-protocolos.md). CI remoto pendente.
+
 ## Critérios de saída da fase
 
 - [ ] IA mantém exatamente o acesso do usuário e não executa SQL livre.

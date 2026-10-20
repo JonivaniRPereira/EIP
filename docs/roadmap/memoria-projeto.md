@@ -240,5 +240,11 @@ permanecem nos backlogs e evidências, sem credenciais ou payloads pessoais nest
   Próxima: transportes multiprovedor e política de dados/custo; nenhum LLM chamado,
   nenhum orçamento/envio autorizado por cadastrar chave. Não ativar modelos ainda.
   CI deste código não validado remotamente; manter push manual do usuário.
+- Em 20/10/2026: F4.3d.1 prepara AiProviderProtocol para OpenAI/Anthropic/Google.
+  Monta HttpRequestMessage e interpreta respostas; não envia, não lê cofre, não
+  registrado no Host. 17/17 testes offline aprovados, formatação aplicada.
+  Guia docs/guides/ia-protocolos.md. Runtime anterior preservado, IA desativada.
+  Próxima: transporte HTTP limitado, depois política de dados/custo e integração.
+  Nenhum LLM chamado, sem push ou CI remoto desta etapa.
 - Preservar alterações locais e dados existentes. Testes deixam organizações sintéticas;
   limpeza deve ser delimitada por IDs e planejada, nunca apagar tenants indiscriminadamente.
