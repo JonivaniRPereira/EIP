@@ -1,0 +1,40 @@
+{
+  "localDate": "2026-10-19",
+  "milestone": "F4.3b",
+  "status": "passed-local",
+  "phaseF43Complete": false,
+  "hostTests": {
+    "failed": 0,
+    "total": 128,
+    "notExecuted": 0,
+    "passed": 128
+  },
+  "frontendTests": {
+    "total": 39,
+    "passed": 39
+  },
+  "frontendBuildPassed": true,
+  "releasePublishPassed": true,
+  "localMigrationApplied": "20261020015523_InitialProviderSettings",
+  "tenantSettingsRevision": 2,
+  "profileCount": 3,
+  "browserSaveAndReloadPassed": true,
+  "demoDefaultsRestored": true,
+  "invocationEnabled": false,
+  "externalModelCalls": 0,
+  "credentialStorageImplemented": false,
+  "transportAdaptersImplemented": false,
+  "databaseRlsAndConcurrentSavesTested": true,
+  "httpProtections": {
+    "anonymous": 401,
+    "oversizedBody": 413,
+    "tenantOverride": 400,
+    "staleRevision": 409
+  },
+  "demoNetRevenue": 11110.0,
+  "screenshot": "screenshots/ia-configuracao-2026-10-19.png",
+  "remoteCiValidatedForThisChange": false,
+  "hostDllSha256": "c0e9b9db88ea41e7c056d0fd8c04494f15def2c6a6236b28b893b83b9692251e",
+  "formatChangedFilesPassed": true,
+  "recordFinalizedLocalDate": "2026-10-20"
+}

@@ -54,6 +54,18 @@
           <span matListItemTitle>Integrações</span>
         </a>
       }
+      @if (auth.hasPermission('ai.settings.manage')) {
+        <a
+          mat-list-item
+          routerLink="/settings/ai"
+          (click)="closeCompactMenu()"
+          routerLinkActive="!bg-blue-50 !text-blue-700"
+          class="!rounded-lg"
+        >
+          <mat-icon matListItemIcon>tune</mat-icon>
+          <span matListItemTitle>Provedores de IA</span>
+        </a>
+      }
     </mat-nav-list>
   </mat-sidenav>
 

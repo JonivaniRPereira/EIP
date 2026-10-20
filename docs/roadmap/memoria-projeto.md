@@ -198,5 +198,24 @@ permanecem nos backlogs e evidências, sem credenciais ou payloads pessoais nest
   administrativa e transportes; não ativar/enviar dados só porque há perfis.
   Guia docs/guides/ia-provedores.md e evidência fase-4-provedores-2026-10-19.json.
   Não somar testes históricos; CI deste candidato ainda não aprovado remotamente.
+- F4.3b concluída localmente; registro final20/10 com evidências coletadas19/10.
+  Tela /settings/ai no menu Provedores de IA, Owner/Admin via ai.settings.manage.
+  GET/PUT /ai/settings e GET /ai/settings/providers: perfis por tenant com revisão
+  otimista, limite32KiB e campos extras/credenciais/ativação recusados. Defaults
+  da instalação só valem enquanto tenant não salvou. GET /ai/providers efetivo.
+  Novo AI.Infrastructure/AiDbContext em schema ai, conexão TenantDb, migration
+  20261020015523_InitialProviderSettings com tabela e RLS juntas. Aplicada localmente.
+  DbContextFactory design-time exige EIP_AI_DB_CONNECTION; testes migrator atualizados.
+  PKCS10.0.13 herdado de BuildingBlocks.Data, sem manter dependência vulnerável inicial.
+  Host128/128 e frontend39/39, build/Release/formatação aprovados; testes cobrem
+  RLS, permissões, entrada inválida, persistência e duas gravações concorrentes.
+  Browser validou salvar/recarregar; Demo perfis originais restaurados a30s,
+  revisão2, nenhuma seleção. Screenshot ia-configuracao-2026-10-19.png.
+  HTTP401/409/400/413 e totalDemo11110; diagnóstico15tenants e filas vazias.
+  API atual %TEMP%/eip-ai-settings-host, sessão88135, src/Host Development localhost5080.
+  Front/Gateway/Worker mantidos. Sem dados de negócio alterados; configuraçãoDemo salva.
+  Próxima F4.3c: transportes e armazenamento protegido de credenciais, com política
+  de dados/custo; IA continua desabilitada e nenhuma chamada externa autorizada.
+  Evidência docs/operations/fase-4-configuracao-2026-10-19.json; CI novo não validado.
 - Preservar alterações locais e dados existentes. Testes deixam organizações sintéticas;
   limpeza deve ser delimitada por IDs e planejada, nunca apagar tenants indiscriminadamente.

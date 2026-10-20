@@ -14,6 +14,7 @@ using EIP.Data.Warehouse.Application;
 using EIP.Data.Warehouse.Infrastructure;
 using EIP.Host;
 using EIP.Intelligence.AI.Application;
+using EIP.Intelligence.AI.Infrastructure;
 using EIP.Intelligence.Analytics.Application;
 using EIP.Intelligence.Analytics.Infrastructure;
 using EIP.Intelligence.Dashboard.Infrastructure;
@@ -185,6 +186,11 @@ builder.Services.AddScoped<IDeclarativeAnalyticsQueryService, MeteredAnalyticsQu
 builder.Services.AddSingleton<IAiModelAdapter, DisabledAiModelAdapter>();
 builder.Services.AddSingleton(new AiProviderConfiguration(
     builder.Configuration.GetSection("AI").Get<AiProviderOptions>() ?? new AiProviderOptions()));
+// Mesmo banco físico do tenant nesta instalação; schema e histórico próprios do módulo de IA.
+builder.Services.AddDbContextFactory<AiDbContext>((sp, options) =>
+    options.UseSqlServer(GetRequiredConnectionString(sp, "TenantDb"), sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", AiDbContext.Schema))
+        .AddInterceptors(sp.GetRequiredService<TenantSessionContextInterceptor>()));
+builder.Services.AddScoped<IAiSettingsStore, AiSettingsStore>();
 
 builder.Services.AddScoped<IMembershipDirectory, EIP.Platform.Tenant.Infrastructure.MembershipDirectory>();
 builder.Services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();

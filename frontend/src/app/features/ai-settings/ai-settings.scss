@@ -1,0 +1,147 @@
+:host {
+  display: block;
+}
+.ai-settings {
+  max-width: 1120px;
+  margin: auto;
+  color: #18334b;
+}
+.eyebrow {
+  color: #60758b;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+}
+.heading,
+.profiles-heading,
+.profile-heading,
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+h1 {
+  font-size: 30px;
+  font-weight: 600;
+  margin: 8px 0;
+}
+h2 {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+p {
+  line-height: 1.6;
+  color: #52697f;
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff4db;
+  color: #825b12;
+  padding: 10px 14px;
+  border-radius: 24px;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #d6e6f5;
+  background: #f1f7fd;
+  padding: 4px 18px;
+  border-radius: 12px;
+  margin: 24px 0;
+}
+.notice mat-icon {
+  flex-shrink: 0;
+  color: #24669b;
+}
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+mat-card {
+  background: white;
+  border: 1px solid #e0e8f0;
+  box-shadow: none;
+  border-radius: 14px;
+  margin-bottom: 20px;
+}
+mat-card-content {
+  padding: 24px !important;
+}
+.selection mat-form-field {
+  width: min(100%, 420px);
+}
+.profiles-heading {
+  margin: 28px 0 18px;
+}
+.profiles-heading h2 {
+  margin: 0;
+}
+h2 span,
+h3 span {
+  color: #71859a;
+  font-size: 13px;
+  font-weight: 400;
+  margin-left: 8px;
+}
+.profile-heading {
+  margin-bottom: 20px;
+}
+.fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.fields mat-form-field {
+  width: 100%;
+}
+.actions {
+  justify-content: flex-end;
+  padding: 12px 0 28px;
+}
+.error,
+.success {
+  padding: 14px 18px;
+  border-radius: 10px;
+}
+.error {
+  background: #fff1f1;
+  color: #a32929;
+}
+.success {
+  background: #edf8f1;
+  color: #236641;
+}
+@media (max-width: 760px) {
+  .heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .fields {
+    grid-template-columns: 1fr;
+  }
+  .profiles-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .profile-heading h3 span {
+    display: block;
+    margin: 6px 0 0;
+  }
+  mat-card-content {
+    padding: 18px !important;
+  }
+}

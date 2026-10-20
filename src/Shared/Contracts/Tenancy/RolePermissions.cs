@@ -1,4 +1,5 @@
 using EIP.Shared.Contracts.Analytics;
+using EIP.Shared.Contracts.AI;
 using EIP.Shared.Contracts.Connectors;
 using EIP.Shared.Contracts.Dashboards;
 using EIP.Shared.Contracts.Metrics;
@@ -19,6 +20,7 @@ public static class RolePermissions
         {
             TenantPermissions.TenantView,
             TenantPermissions.TenantManage,
+            AiPermissions.SettingsManage,
             TenantPermissions.MembersView,
             TenantPermissions.MembersManage,
             TenantPermissions.CompaniesView,
@@ -32,6 +34,7 @@ public static class RolePermissions
         },
         ["Admin"] = new HashSet<string>
         {
+            AiPermissions.SettingsManage,
             TenantPermissions.TenantView,
             TenantPermissions.MembersView,
             TenantPermissions.MembersManage,

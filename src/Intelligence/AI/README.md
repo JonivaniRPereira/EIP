@@ -30,5 +30,11 @@ e `GET /api/v1/ai/providers`, sem expor referências/valores de credenciais.
 OpenAI/Anthropic/Google são perfis iniciais, sem transportes HTTP implementados.
 Selecionar perfil/modelo não habilita chamadas. [Configuração e pendências](../../../docs/guides/ia-provedores.md).
 
-Próxima etapa: transportes e configuração administrativa com política de dados e orçamento definidos.
+Configuração administrativa em `/settings/ai`, com `ai.settings.manage` (Owner/Admin).
+`GET/PUT /api/v1/ai/settings` grava perfis por organização em `ai.ProviderSettings`,
+com RLS, auditoria mínima e revisão para conflitos. `GET /ai/providers` retorna os
+perfis efetivos. Aplicar a migration do novo projeto `Infrastructure` antes da API.
+Chaves e ativação não são aceitas nessa edição; chamadas continuam desabilitadas.
+
+Próxima etapa: transportes e credenciais com política de dados e orçamento definidos.
 [Backlog e critérios](../../../docs/roadmap/fase-4-backlog.md).

@@ -29,6 +29,10 @@ export const routes: Routes = [
     loadComponent: () => import('./core/layout/shell').then((m) => m.Shell),
     children: [
       {
+        path: 'settings/ai',
+        loadComponent: () => import('./features/ai-settings/ai-settings').then((m) => m.AiSettings),
+      },
+      {
         path: 'connectors',
         loadComponent: () => import('./features/connectors/connectors').then((m) => m.Connectors),
       },

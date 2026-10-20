@@ -11,7 +11,7 @@ P01/P03–P08; início desta fase não equivale a homologação de produção.
 |---|---|---|---|
 | F4.1 | Base de ferramentas e descoberta | Registro fechado, schema, permissão analytics.query e tenant da sessão; catálogo igual ao Analytics; recusa de ferramentas/argumentos não permitidos; testes e API local. | Concluído localmente. [Evidência](../operations/fase-4-ferramentas-2026-10-19.json). |
 | F4.2 | Ferramenta queryAnalytics | Consulta declarativa passa pelo serviço analítico medido; mesmas permissões, RLS, medição, limites, filtros, cache e frescor da consulta normal; divergência/cross-tenant/SQL arbitrário recusados. | Concluído localmente. [Evidência](../operations/fase-4-consultas-2026-10-19.json). |
-| F4.3 | Adaptadores de modelo e política de dados | Vários provedores configuráveis na plataforma; credenciais fora do Git, destinos permitidos, orçamento e contrato de dados; contexto mínimo e modo desabilitado seguro. Sem envio externo antes dessa configuração/autorização. | Em andamento: contrato e perfis configuráveis no backend; transportes, tela administrativa e políticas ainda pendentes. |
+| F4.3 | Adaptadores de modelo e política de dados | Vários provedores configuráveis na plataforma; credenciais fora do Git, destinos permitidos, orçamento e contrato de dados; contexto mínimo e modo desabilitado seguro. Sem envio externo antes dessa configuração/autorização. | Em andamento: contrato, perfis e tela com persistência por organização; transportes, credenciais e políticas ainda pendentes. |
 | F4.4 | Pergunta analítica e interface | Intenção gera proposta validada; resposta com dataset/métrica/período/filtros/frescor, erro e ambiguidade explícitos. Nenhum número inventado. | Após F4.2/F4.3. |
 | F4.5 | Rascunhos assistidos de painel | Proposta não publicada, revisão e confirmação explícita pelos fluxos existentes; permissão de publicação conferida separadamente. | Após F4.4. |
 | F4.6 | Avaliações e guardrails de IA | Casos sintéticos de intenção, ambiguidade, injection em dados/prompt, falha/timeout de modelo/ferramenta e acesso cruzado; métricas e critérios de aceite registrados. | Antes de habilitar IA para usuários. |
@@ -98,11 +98,10 @@ duplicados ou limites inválidos impedem a partida. Descoberta autenticada em
 `GET /api/v1/ai/status` e `/api/v1/ai/providers`, sem referências/valores de chaves.
 Selecionar um perfil não ativa chamadas externas. [Guia de configuração](../guides/ia-provedores.md).
 
-**F4.3 permanece em andamento.** Transportes específicos, tela administrativa,
-armazenamento de segredos, política por organização e quotas/orçamento efetivos
-continuam pendentes. Nenhum dado foi autorizado para envio externo apenas pela
-decisão de suportar vários provedores. A configuração desta etapa é do operador,
-no backend; frontend e fluxo de perguntas ainda não foram alterados.
+Na conclusão de F4.3a, transportes específicos, tela administrativa, segredos e
+políticas continuavam pendentes. A configuração era somente do operador. A etapa
+seguinte adiciona a edição por organização, conforme descrito abaixo; nenhum dado
+foi autorizado para envio externo apenas pela decisão de suportar vários provedores.
 
 Validação desta base: **118/118** testes Host aprovados; Release e formatação
 aprovados. Inclui autorização de status/catálogo, resposta desabilitada,
@@ -111,6 +110,29 @@ real: três perfis, chamada desabilitada, nenhuma referência de credencial expo
 anônimo 401 e receita Demo preservada em11110. Diagnóstico aprovado com15tenants.
 [Evidência](../operations/fase-4-provedores-2026-10-19.json). Sem mudança de frontend,
 Migration, dados de negócio ou chamada externa. CI remoto desta entrega pendente.
+
+## F4.3b — configuração por organização
+
+Concluída localmente, com registro final em **20/10/2026**. Menu **Provedores de IA**
+(`/settings/ai`) para Owner/Admin, protegido por `ai.settings.manage`. Permite editar
+perfis, provedor/modelo, limites e seleção preferida. Persistência em schema próprio
+`ai.ProviderSettings`, RLS de leitura/escrita e revisão para conflitos 409; tenant e
+último autor vêm do JWT. Perfis efetivos substituem os padrões apenas na organização
+que salvou. Credenciais, destinos externos e ativação não são aceitos no formulário.
+
+Validação: **128/128** testes Host e **39/39** frontend; build frontend, Release e
+formatação aprovados. Inclui concorrência real, acesso sem permissão, isolamento SQL,
+rejeição de contexto/credenciais/ativação no corpo e preservação de edições em erros.
+A migration `20261020015523_InitialProviderSettings` foi aplicada localmente.
+Pelo navegador, timeout alterado, salvo e recarregado; depois restaurado a30segundos.
+A Demo ficou com três perfis padrão salvos na revisão2, sem perfil selecionado.
+HTTP real401/409/400/413 e receita11110 conferidos. Diagnóstico aprovado:15tenants,
+filas vazias. [Evidência](../operations/fase-4-configuracao-2026-10-19.json) e
+[tela](../operations/screenshots/ia-configuracao-2026-10-19.png), coletadas em19/10.
+
+F4.3 ainda não está concluída: transportes de modelo, armazenamento protegido de
+credenciais e política de dados/custo permanecem pendentes. Nenhuma chamada de LLM
+ou envio externo. CI remoto deste código depende do push e não foi validado.
 
 ## Critérios de saída da fase
 

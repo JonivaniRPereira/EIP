@@ -1,4 +1,5 @@
 using EIP.Data.Canonical.Infrastructure;
+using EIP.Intelligence.AI.Infrastructure;
 using EIP.Data.Connector.Infrastructure;
 using EIP.Data.Warehouse.Infrastructure;
 using EIP.Intelligence.Dashboard.Infrastructure;
@@ -35,6 +36,13 @@ public static class DatabaseMigrator
 {
     public static async Task MigrateAllAsync(string connectionString)
     {
+        var aiOptions = new DbContextOptionsBuilder<AiDbContext>()
+            .UseSqlServer(connectionString, sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", AiDbContext.Schema)).Options;
+        await using (var aiDb = new AiDbContext(aiOptions))
+        {
+            await aiDb.Database.MigrateAsync();
+        }
+
         var usageOptions = new DbContextOptionsBuilder<UsageDbContext>()
             .UseSqlServer(connectionString, sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", UsageDbContext.Schema)).Options;
         await using (var usageDb = new UsageDbContext(usageOptions))

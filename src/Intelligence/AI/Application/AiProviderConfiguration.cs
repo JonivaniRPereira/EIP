@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace EIP.Intelligence.AI.Application;
 
 /// <summary>Configuração global da instalação. Segredos são referências a variáveis de ambiente, nunca valores.</summary>
@@ -17,6 +19,7 @@ public sealed class AiProviderProfileOptions
     public int MaxOutputTokens { get; set; } = 1024;
 }
 
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AiProviderProfile(string Id, string Provider, string Model, int TimeoutSeconds, int MaxOutputTokens);
 public sealed record AiProviderCatalog(string? ActiveProfileId, bool InvocationEnabled, IReadOnlyList<AiProviderProfile> Profiles);
 

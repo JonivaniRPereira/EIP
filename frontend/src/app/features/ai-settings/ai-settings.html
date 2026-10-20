@@ -1,0 +1,173 @@
+<section class="ai-settings">
+  <p class="eyebrow">CONFIGURAÇÕES DA ORGANIZAÇÃO</p>
+  <div class="heading">
+    <div>
+      <h1>Provedores de IA</h1>
+      <p>Prepare os provedores e modelos que sua equipe poderá utilizar.</p>
+    </div>
+    <span class="status"><mat-icon>pause_circle</mat-icon> Chamadas desativadas</span>
+  </div>
+  @if (!auth.hasPermission('ai.settings.manage')) {
+    <p role="alert">
+      Somente administradores desta organização podem gerenciar estas configurações.
+    </p>
+  } @else {
+    <div class="notice">
+      <mat-icon>info</mat-icon>
+      <p>
+        Salvar configurações não ativa a IA nem envia dados a terceiros. As conexões, credenciais e
+        políticas de uso serão configuradas em uma próxima etapa.
+      </p>
+    </div>
+    @if (error()) {
+      <p role="alert" class="error">{{ error() }}</p>
+    }
+    @if (success()) {
+      <p role="status" class="success">{{ success() }}</p>
+    }
+    @if (loading()) {
+      <p role="status">Carregando configurações…</p>
+    }
+    <form #settingsForm="ngForm" (ngSubmit)="save()">
+      <fieldset [disabled]="loading() || saving()">
+        <mat-card class="selection">
+          <mat-card-content>
+            <h2>Perfil preferido</h2>
+            <p>
+              A seleção vale apenas para esta organização e pode ser alterada a qualquer momento.
+            </p>
+            <mat-form-field appearance="outline"
+              ><mat-label>Perfil preferido</mat-label>
+              <mat-select
+                name="activeProfile"
+                [(ngModel)]="activeProfileId"
+                (ngModelChange)="changed()"
+                [disabled]="loading() || saving()"
+              >
+                <mat-option value="">Nenhum perfil selecionado</mat-option>
+                @for (profile of profiles; track $index) {
+                  <mat-option [value]="profile.id"
+                    >{{ profile.id }} · {{ providerName(profile.provider) }}</mat-option
+                  >
+                }
+              </mat-select>
+            </mat-form-field>
+          </mat-card-content>
+        </mat-card>
+        <div class="profiles-heading">
+          <h2>
+            Perfis disponíveis <span>{{ profiles.length }}/20</span>
+          </h2>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="addProfile()"
+            [disabled]="loading() || saving() || profiles.length >= 20 || providers.length === 0"
+          >
+            <mat-icon>add</mat-icon> Adicionar perfil
+          </button>
+        </div>
+        @for (profile of profiles; track $index; let i = $index) {
+          <mat-card class="profile"
+            ><mat-card-content>
+              <div class="profile-heading">
+                <h3>
+                  {{ providerName(profile.provider) }} <span>{{ profile.id }}</span>
+                </h3>
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removeProfile(i)"
+                  [attr.aria-label]="'Remover perfil ' + profile.id"
+                  [disabled]="saving() || loading()"
+                >
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+              <div class="fields">
+                <mat-form-field appearance="outline"
+                  ><mat-label>Identificador do perfil</mat-label
+                  ><input
+                    matInput
+                    [name]="'id-' + i"
+                    [ngModel]="profile.id"
+                    (ngModelChange)="renameProfile(i, $event)"
+                    required
+                    maxlength="64"
+                    pattern="[A-Za-z0-9_-]+"
+                  /><mat-hint>Letras, números, hífen ou sublinhado.</mat-hint></mat-form-field
+                >
+                <mat-form-field appearance="outline"
+                  ><mat-label>Provedor</mat-label
+                  ><mat-select
+                    [name]="'provider-' + i"
+                    [(ngModel)]="profile.provider"
+                    (ngModelChange)="changed()"
+                    required
+                    [disabled]="saving() || loading()"
+                  >
+                    @for (provider of providers; track provider) {
+                      <mat-option [value]="provider">{{ providerName(provider) }}</mat-option>
+                    }
+                  </mat-select></mat-form-field
+                >
+                <mat-form-field appearance="outline"
+                  ><mat-label>Modelo</mat-label
+                  ><input
+                    matInput
+                    [name]="'model-' + i"
+                    [(ngModel)]="profile.model"
+                    (ngModelChange)="changed()"
+                    maxlength="128"
+                    [required]="activeProfileId === profile.id"
+                  /><mat-hint>Informe o nome exato do modelo contratado.</mat-hint></mat-form-field
+                >
+                <mat-form-field appearance="outline"
+                  ><mat-label>Tempo de espera (segundos)</mat-label
+                  ><input
+                    matInput
+                    type="number"
+                    [name]="'timeout-' + i"
+                    [(ngModel)]="profile.timeoutSeconds"
+                    (ngModelChange)="changed()"
+                    required
+                    min="1"
+                    max="120"
+                    step="1"
+                /></mat-form-field>
+                <mat-form-field appearance="outline"
+                  ><mat-label>Limite de saída (tokens)</mat-label
+                  ><input
+                    matInput
+                    type="number"
+                    [name]="'tokens-' + i"
+                    [(ngModel)]="profile.maxOutputTokens"
+                    (ngModelChange)="changed()"
+                    required
+                    min="1"
+                    max="32768"
+                    step="1"
+                  /><mat-hint>Limite de tamanho de cada resposta.</mat-hint></mat-form-field
+                >
+              </div>
+            </mat-card-content></mat-card
+          >
+        } @empty {
+          <p>Nenhum perfil adicionado. Crie um perfil para preparar sua organização.</p>
+        }
+      </fieldset>
+      <div class="actions">
+        <button mat-button type="button" (click)="load()" [disabled]="saving() || loading()">
+          Recarregar
+        </button>
+        <button
+          mat-flat-button
+          type="submit"
+          [disabled]="settingsForm.invalid || !dirty() || loading() || saving()"
+        >
+          {{ saving() ? 'Salvando…' : 'Salvar configurações' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

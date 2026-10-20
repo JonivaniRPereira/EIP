@@ -80,6 +80,9 @@
   <Folder Name="/src/Intelligence/AI/Application/">
     <Project Path="src/Intelligence/AI/Application/EIP.Intelligence.AI.Application.csproj" />
   </Folder>
+  <Folder Name="/src/Intelligence/AI/Infrastructure/">
+    <Project Path="src/Intelligence/AI/Infrastructure/EIP.Intelligence.AI.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Intelligence/Analytics/" />
   <Folder Name="/src/Intelligence/Analytics/Api/">
     <Project Path="src/Intelligence/Analytics/Api/EIP.Intelligence.Analytics.Api.csproj" />

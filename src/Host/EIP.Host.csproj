@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Intelligence\AI\Api\EIP.Intelligence.AI.Api.csproj" />
+    <ProjectReference Include="..\Intelligence\AI\Infrastructure\EIP.Intelligence.AI.Infrastructure.csproj" />
     <ProjectReference Include="..\Data\Catalog\Api\EIP.Data.Catalog.Api.csproj" />
     <ProjectReference Include="..\Platform\Administration\Api\EIP.Platform.Administration.Api.csproj" />
     <ProjectReference Include="..\Platform\Administration\Infrastructure\EIP.Platform.Administration.Infrastructure.csproj" />

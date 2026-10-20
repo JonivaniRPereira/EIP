@@ -180,7 +180,7 @@ public sealed class AiToolsTests(HostApiFixture fixture)
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    private static async Task<JsonElement> RegisterAsync(HttpClient client)
+    internal static async Task<JsonElement> RegisterAsync(HttpClient client)
     {
         using var response = await client.PostAsJsonAsync("/api/v1/auth/register", new
         {
@@ -194,7 +194,7 @@ public sealed class AiToolsTests(HostApiFixture fixture)
         return auth;
     }
 
-    private static async Task<Guid> SelectNewTenantAsync(HttpClient client, JsonElement auth)
+    internal static async Task<Guid> SelectNewTenantAsync(HttpClient client, JsonElement auth)
     {
         using var response = await client.PostAsJsonAsync("/api/v1/tenants", new
         {
