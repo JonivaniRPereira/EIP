@@ -170,7 +170,7 @@ ENTRYPOINT ["dotnet", "EIP.Host.dll"]
         tableHashesMatch=$true; rlsProbePassed=$true; checkDbPassed=$true
         previousRevision=$revision; candidateSource='working-tree'; publishedHostHashes=$publishHashes
         previousImage=$before.ImageId; candidateImage=$candidate.ImageId; rolledBackImage=$after.ImageId
-        previousOpenApiHash=$before.OpenApiHash; candidateOpenApiHash=$candidate.OpenApiHash; rolledBackOpenApiHash=$after.OpenApiHash
+        previousSchemaSha256=$before.OpenApiHash; candidateSchemaSha256=$candidate.OpenApiHash; rolledBackSchemaSha256=$after.OpenApiHash
         imageRollbackPassed=$true; livenessPassed=$true; fullReadinessTested=$false
         elapsedSeconds=[Math]::Round($timer.Elapsed.TotalSeconds,2)
     } | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $OutputDirectory 'result.json') -Encoding utf8

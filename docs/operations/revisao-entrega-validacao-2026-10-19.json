@@ -1,0 +1,124 @@
+{
+  "localDate": "2026-10-19",
+  "status": "passed-local",
+  "remoteCiAccepted": false,
+  "dotnet": {
+    "configuration": "Release",
+    "buildExitCode": 0,
+    "formatExitCode": 0,
+    "integrationSuiteCount": 9,
+    "tests": 137,
+    "passed": 137,
+    "results": [
+      {
+        "project": "EIP.Data.Canonical.Infrastructure.IntegrationTests",
+        "total": 5,
+        "passed": 5,
+        "failed": 0,
+        "notExecuted": 0,
+        "reportSha256": "dde0c8cc3536d51334e5db79e15eda169ab0e364aae9349b72e885fde1908494"
+      },
+      {
+        "project": "EIP.Data.Catalog.IntegrationTests",
+        "total": 4,
+        "passed": 4,
+        "failed": 0,
+        "notExecuted": 0,
+        "reportSha256": "573a4451c39792afa4fe02426fb94f19bf1bf1ac24a3aa1d6d2602359c084c69"
+      },
+      {
+        "project": "EIP.Data.Connector.IntegrationTests",
+        "total": 10,
+        "passed": 10,
+        "failed": 0,
+        "notExecuted": 0,
+        "reportSha256": "37e87bb9f51866ee9225ba22f36fbb65b4c658f28216d4427eb2009fa5ace082"
+      },
+      {
+        "project": "EIP.Data.DataLake.Infrastructure.IntegrationTests",
+        "total": 3,
+        "passed": 3,
+        "failed": 0,
+        "notExecuted": 0,
+        "reportSha256": "75a3096b4162fe7edb135c49356135dadd4d92accad7d6388bbb416860342748"
+      },
+      {
+        "project": "EIP.Data.Pipeline.IntegrationTests",
+        "total": 13,
+        "passed": 13,
+        "failed": 0,
+        "notExecuted": 0,
+        "reportSha256": "d9bcd873b5324a6172879f6257da030cc46581989deb2fda0e5ae61e0d894796"
+      },
+      {
+        "project": "EIP.Data.Warehouse.IntegrationTests",
+        "total": 11,
+        "passed": 11,
+        "failed": 0,
+        "notExecuted": 0,
+        "reportSha256": "5a6bdb2b767703d0ab751cd509df45055c652e08a9c00b62afee881dd73c00f6"
+      },
+      {
+        "project": "EIP.Host.IntegrationTests",
+        "total": 78,
+        "passed": 78,
+        "failed": 0,
+        "notExecuted": 0,
+        "reportSha256": "2142a3a5850d1bcbc2376b8e4883b56600f542d892ffe52f23dbfa8acce05af5"
+      },
+      {
+        "project": "EIP.Intelligence.Dashboard.Infrastructure.IntegrationTests",
+        "total": 8,
+        "passed": 8,
+        "failed": 0,
+        "notExecuted": 0,
+        "reportSha256": "cb98431fa745310532acaf79a8e62e4993fdc03774735a7f8b64d7c50717fbf7"
+      },
+      {
+        "project": "EIP.Platform.Tenant.Infrastructure.IntegrationTests",
+        "total": 5,
+        "passed": 5,
+        "failed": 0,
+        "notExecuted": 0,
+        "reportSha256": "fc55e2f8bede6f46f826916f3edf376b6932cfde8e998c8a5ecf38ece14dce79"
+      }
+    ],
+    "minioTestImage": "eip-minio-source:RELEASE.2025-04-08T15-41-24Z",
+    "parallelism": "MSBuild maxcpucount 1"
+  },
+  "frontend": {
+    "node": "24.18.0",
+    "npm": "11.16.0",
+    "tests": 33,
+    "failed": 0,
+    "productionBuildPassed": true,
+    "localFontsCheckPassed": true
+  },
+  "secretScan": {
+    "tool": "gitleaks",
+    "version": "8.30.1",
+    "scope": "Candidate tracked and non-ignored files, not Git history",
+    "exitCode": 0,
+    "initialFindings": 5,
+    "expiredCredentialRulesRemoved": 1,
+    "schemaHashFalsePositivesRenamed": 3,
+    "exceptionsAdded": 0,
+    "candidateFiles": 614,
+    "archiveSha256": "d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e"
+  },
+  "dependencies": {
+    "tool": "dotnet list package --vulnerable --include-transitive --format json",
+    "projects": 51,
+    "reportedVulnerablePackages": 0
+  },
+  "limits": [
+    "No remote runner execution or publication",
+    "No Git history secret scan",
+    "No production qualification",
+    "No new container image builds for Host/Gateway/Worker in this review"
+  ],
+  "baseCommit": "3c2de5098d68eb5faa783842a7ce72c47c8b0c3c",
+  "headCommitObserved": "c72bb4d329c391006bb01aae1ea5b508ea512b20",
+  "workingTreeFixesPending": false,
+  "closureCommitAuthorized": true
+}

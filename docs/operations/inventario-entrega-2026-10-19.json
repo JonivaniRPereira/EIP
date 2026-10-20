@@ -1,1334 +1,1361 @@
 {
   "localDate": "2026-10-19",
-  "generatedAtUtc": "2026-10-20T00:42:28.610Z",
-  "scope": "Working tree relative to HEAD; ignored outputs excluded; inventory excludes itself",
+  "generatedAtUtc": "2026-10-20T00:56:21.993Z",
+  "baseCommit": "3c2de5098d68eb5faa783842a7ce72c47c8b0c3c",
+  "headCommit": "c72bb4d329c391006bb01aae1ea5b508ea512b20",
+  "scope": "Accumulated delivery relative to review-start baseline, including external commit and working tree; ignored outputs excluded; inventory excludes itself",
+  "externalCommitObserved": "c72bb4d",
   "publicationReady": false,
   "files": [
     {
-      "path": ".github/workflows/ci.yml",
-      "status": " M",
+      "path": ".claude/settings.json",
+      "status": "M",
       "category": "base-e-ci",
-      "bytes": 4589
+      "bytes": 3164
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "status": "M",
+      "category": "base-e-ci",
+      "bytes": 4867
     },
     {
       "path": ".gitignore",
-      "status": " M",
+      "status": "M",
       "category": "base-e-ci",
       "bytes": 346
     },
     {
       "path": "deploy/docker-compose/compose.minio-source.yml",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 305
     },
     {
       "path": "deploy/docker-compose/minio-source.Dockerfile",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 835
     },
     {
       "path": "docs/07-Seguranca.md",
-      "status": " M",
+      "status": "M",
       "category": "documentacao-e-evidencias",
       "bytes": 18145
     },
     {
       "path": "docs/14-DevOps.md",
-      "status": " M",
+      "status": "M",
       "category": "documentacao-e-evidencias",
       "bytes": 10444
     },
     {
       "path": "docs/16-LGPD.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 19233
     },
     {
       "path": "docs/guides/ambiente-local.md",
-      "status": " M",
+      "status": "M",
       "category": "documentacao-e-evidencias",
       "bytes": 6791
     },
     {
       "path": "docs/guides/backup-restauracao.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 6629
     },
     {
       "path": "docs/guides/conector-operacoes.md",
-      "status": " M",
+      "status": "M",
       "category": "documentacao-e-evidencias",
       "bytes": 12867
     },
     {
       "path": "docs/guides/configuracao-reprocessamento.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 2842
     },
     {
       "path": "docs/guides/diagnostico-local.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 4543
     },
     {
       "path": "docs/guides/falhas-interface.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 6810
     },
     {
       "path": "docs/guides/identidade-visual.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1491
     },
     {
       "path": "docs/guides/integracoes-interface.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 5725
     },
     {
       "path": "docs/guides/isolamento-sob-carga.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 6105
     },
     {
       "path": "docs/guides/localizacao-paginacao.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1953
     },
     {
       "path": "docs/guides/medicao-de-uso.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 5201
     },
     {
       "path": "docs/guides/reconciliacao-incremental.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 3833
     },
     {
       "path": "docs/guides/recuperacao-conjunta-demo.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 5103
     },
     {
       "path": "docs/guides/recuperacao-minio-ingestao.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 6653
     },
     {
       "path": "docs/guides/retomada-aplicacao.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 4738
     },
     {
       "path": "docs/guides/retomada-ingestao.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 4902
     },
     {
       "path": "docs/guides/retry-retomada.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 2634
     },
     {
       "path": "docs/guides/rollback-release.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 7091
     },
     {
       "path": "docs/guides/slos-iniciais.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 7571
     },
     {
       "path": "docs/guides/volume-analytics.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 4013
     },
     {
       "path": "docs/guides/volume-pipeline.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 5195
     },
     {
       "path": "docs/operations/configuracao-reprocessamento-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1207
     },
     {
       "path": "docs/operations/diagnostico-apos-reconciliacao-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1782
     },
     {
       "path": "docs/operations/diagnostico-apos-retry-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1782
     },
     {
       "path": "docs/operations/diagnostico-apos-volume-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1782
     },
     {
       "path": "docs/operations/diagnostico-local-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1782
     },
     {
       "path": "docs/operations/diagnostico-local-2026-10-19.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 908
     },
     {
       "path": "docs/operations/falhas-interface-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1061
     },
     {
       "path": "docs/operations/falhas-ui-fixture-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 386
     },
     {
       "path": "docs/operations/frontend-ci-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1146
     },
     {
       "path": "docs/operations/identidade-jp-codecraft-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 939
     },
     {
       "path": "docs/operations/ingestao-completa-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 7124
     },
     {
       "path": "docs/operations/integracoes-interface-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 752
     },
     {
       "path": "docs/operations/isolamento-carga-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 2805
     },
     {
       "path": "docs/operations/lgpd-schema-2026-10-18.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 53472
     },
     {
       "path": "docs/operations/localizacao-paginacao-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 830
     },
     {
       "path": "docs/operations/operacao-apos-recuperacao-storage-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 4378
     },
     {
       "path": "docs/operations/operacao-tenants-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 3455
     },
     {
       "path": "docs/operations/reconciliacao-incremental-testes-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1056
     },
     {
       "path": "docs/operations/reconciliacao-incremental-volume-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 8103
     },
     {
       "path": "docs/operations/recuperacao-conjunta-demo-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1644
     },
     {
       "path": "docs/operations/recuperacao-minio-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 2319
     },
     {
       "path": "docs/operations/recuperacao-sql-2026-10-18.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 563
     },
     {
       "path": "docs/operations/retomada-aplicacao-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 2307
     },
     {
       "path": "docs/operations/retomada-ingestao-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 5505
     },
     {
       "path": "docs/operations/retry-retomada-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 7065
     },
     {
-      "path": "docs/operations/revisao-laboratorio-snapshot-2026-10-19.json",
+      "path": "docs/operations/revisao-entrega-diagnostico-2026-10-19.json",
+      "status": "A",
+      "category": "documentacao-e-evidencias",
+      "bytes": 1782
+    },
+    {
+      "path": "docs/operations/revisao-entrega-validacao-2026-10-19.json",
       "status": "??",
+      "category": "documentacao-e-evidencias",
+      "bytes": 3704
+    },
+    {
+      "path": "docs/operations/revisao-laboratorio-snapshot-2026-10-19.json",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1782
     },
     {
       "path": "docs/operations/rollback-2026-10-18.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
-      "bytes": 1363
+      "bytes": 1337
     },
     {
       "path": "docs/operations/screenshots/diagnostico-falhas-2026-10-19.png",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 46587
     },
     {
       "path": "docs/operations/screenshots/fontes-locais-2026-10-19.png",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 36444
     },
     {
       "path": "docs/operations/screenshots/identidade-jp-codecraft-compacto-2026-10-19.png",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 23109
     },
     {
       "path": "docs/operations/screenshots/identidade-jp-codecraft-desktop-2026-10-19.png",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 37232
     },
     {
       "path": "docs/operations/screenshots/integracoes-2026-10-19.png",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 40308
     },
     {
       "path": "docs/operations/screenshots/login-demo-corrigido-2026-10-19.png",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 16220
     },
     {
       "path": "docs/operations/screenshots/painel-com-dados-2026-10-19.png",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 16375
     },
     {
       "path": "docs/operations/screenshots/painel-pt-br-2026-10-19.png",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 16330
     },
     {
       "path": "docs/operations/screenshots/painel-visual-2026-10-19.png",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 16308
     },
     {
       "path": "docs/operations/screenshots/reprocessamento-data-2026-10-19.png",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 49470
     },
     {
       "path": "docs/operations/seguranca-api-2026-10-18.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1014
     },
     {
       "path": "docs/operations/slo-2026-10-18.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 4839
     },
     {
       "path": "docs/operations/validacao-interface-2026-10-19.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 3121
     },
     {
       "path": "docs/operations/volume-analytics-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 1333
     },
     {
       "path": "docs/operations/volume-pipeline-2026-10-19.json",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 8058
     },
     {
       "path": "docs/roadmap/fase-3-backlog.md",
-      "status": " M",
+      "status": "M",
       "category": "documentacao-e-evidencias",
       "bytes": 41710
     },
     {
       "path": "docs/roadmap/fechamento-fase-3-2026-10-19.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 5788
     },
     {
       "path": "docs/roadmap/memoria-projeto.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
-      "bytes": 10924
+      "bytes": 12116
+    },
+    {
+      "path": "docs/roadmap/organizacao-entrega-2026-10-19.md",
+      "status": "A",
+      "category": "documentacao-e-evidencias",
+      "bytes": 7109
     },
     {
       "path": "docs/roadmap/preparacao-piloto.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
-      "bytes": 8782
+      "bytes": 8934
     },
     {
       "path": "docs/roadmap/revisao-2026-10-17.md",
-      "status": " M",
+      "status": "M",
       "category": "documentacao-e-evidencias",
       "bytes": 5283
     },
     {
       "path": "docs/roadmap/revisao-laboratorio-2026-10-19.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 6277
     },
     {
       "path": "docs/security/revisao-api-2026-10-18.md",
-      "status": "??",
+      "status": "A",
       "category": "documentacao-e-evidencias",
       "bytes": 10328
     },
     {
       "path": "EIP.slnx",
-      "status": " M",
+      "status": "M",
       "category": "base-e-ci",
       "bytes": 8165
     },
     {
       "path": "frontend/.gitignore",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 681
     },
     {
       "path": "frontend/.nvmrc",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 8
     },
     {
       "path": "frontend/angular.json",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 2458
     },
     {
       "path": "frontend/package-lock.json",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 288898
     },
     {
       "path": "frontend/package.json",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 1150
     },
     {
       "path": "frontend/public/brand/favicon.svg",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 245
     },
     {
       "path": "frontend/public/brand/jp-code-craft-logo.png",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 378858
     },
     {
       "path": "frontend/public/licenses/Material-Icons-OFL.txt",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 4314
     },
     {
       "path": "frontend/public/licenses/Roboto-OFL.txt",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 4512
     },
     {
       "path": "frontend/README.md",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 2490
     },
     {
       "path": "frontend/scripts/check-font-assets.mjs",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 1757
     },
     {
       "path": "frontend/src/app/app.config.ts",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 620
     },
     {
       "path": "frontend/src/app/app.html",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 33
     },
     {
       "path": "frontend/src/app/app.routes.ts",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 2197
     },
     {
       "path": "frontend/src/app/app.scss",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 127
     },
     {
       "path": "frontend/src/app/app.ts",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 305
     },
     {
       "path": "frontend/src/app/core/auth/auth-interceptor.ts",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 1679
     },
     {
       "path": "frontend/src/app/core/auth/auth.spec.ts",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 2544
     },
     {
       "path": "frontend/src/app/core/auth/auth.ts",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 5595
     },
     {
       "path": "frontend/src/app/core/layout/shell.html",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 3490
     },
     {
       "path": "frontend/src/app/core/layout/shell.scss",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 1355
     },
     {
       "path": "frontend/src/app/core/layout/shell.ts",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 2894
     },
     {
       "path": "frontend/src/app/core/locale.spec.ts",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 510
     },
     {
       "path": "frontend/src/app/core/locale.ts",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 171
     },
     {
       "path": "frontend/src/app/features/connectors/connector-failures.html",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 5360
     },
     {
       "path": "frontend/src/app/features/connectors/connector-failures.scss",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 1326
     },
     {
       "path": "frontend/src/app/features/connectors/connector-failures.spec.ts",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 4513
     },
     {
       "path": "frontend/src/app/features/connectors/connector-failures.ts",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 8279
     },
     {
       "path": "frontend/src/app/features/connectors/connectors.html",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 11904
     },
     {
       "path": "frontend/src/app/features/connectors/connectors.scss",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 1715
     },
     {
       "path": "frontend/src/app/features/connectors/connectors.service.ts",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 3722
     },
     {
       "path": "frontend/src/app/features/connectors/connectors.spec.ts",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 6372
     },
     {
       "path": "frontend/src/app/features/connectors/connectors.ts",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 13852
     },
     {
       "path": "frontend/src/app/features/create-tenant/create-tenant.html",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 2096
     },
     {
       "path": "frontend/src/app/features/dashboards/dashboard-form/dashboard-form.spec.ts",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 1738
     },
     {
       "path": "frontend/src/app/features/dashboards/dashboard-form/dashboard-form.ts",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 6498
     },
     {
       "path": "frontend/src/app/features/dashboards/dashboard-viewer/dashboard-viewer.html",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 4370
     },
     {
       "path": "frontend/src/app/features/dashboards/dashboard-viewer/dashboard-viewer.ts",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 4185
     },
     {
       "path": "frontend/src/app/features/login/login.html",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 1847
     },
     {
       "path": "frontend/src/app/features/select-tenant/select-tenant.html",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 1350
     },
     {
       "path": "frontend/src/app/shared/app-footer/app-footer.ts",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 1494
     },
     {
       "path": "frontend/src/app/shared/echart-line/echart-line.ts",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 2815
     },
     {
       "path": "frontend/src/index.html",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 354
     },
     {
       "path": "frontend/src/styles.scss",
-      "status": " M",
+      "status": "M",
       "category": "frontend",
       "bytes": 2893
     },
     {
       "path": "frontend/src/vendor.css",
-      "status": "??",
+      "status": "A",
       "category": "frontend",
       "bytes": 888
     },
     {
       "path": "README.md",
-      "status": " M",
+      "status": "M",
       "category": "documentacao-e-evidencias",
-      "bytes": 8658
+      "bytes": 8745
     },
     {
       "path": "scripts/backup/manifest.sql",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 3222
     },
     {
       "path": "scripts/backup/Test-JointRecovery.ps1",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 3519
     },
     {
       "path": "scripts/backup/Test-Recovery.ps1",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 8257
     },
     {
       "path": "scripts/backup/transient-demo-source.mjs",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 1665
     },
     {
       "path": "scripts/backup/validate-rls.sql",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 2493
     },
     {
       "path": "scripts/backup/verify-raw-recovery.mjs",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 12635
     },
     {
       "path": "scripts/backup/verify-restored-app.mjs",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 9644
     },
     {
       "path": "scripts/backup/verify-restored-ingestion.mjs",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 14682
     },
     {
       "path": "scripts/backup/volume-demo-source.mjs",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 2390
     },
     {
       "path": "scripts/dev-up.sh",
-      "status": " M",
+      "status": "M",
       "category": "operacao-e-ensaios",
       "bytes": 2093
     },
     {
       "path": "scripts/performance/Get-OperationalSnapshot.ps1",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 1008
     },
     {
       "path": "scripts/performance/Measure-Slo.ps1",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 10347
     },
     {
       "path": "scripts/performance/operational-snapshot.sql",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 2074
     },
     {
       "path": "scripts/performance/slo-targets.json",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 695
     },
     {
       "path": "scripts/performance/Test-AnalyticsVolume.mjs",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 9525
     },
     {
       "path": "scripts/performance/Test-Ingestion.mjs",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 8341
     },
     {
       "path": "scripts/performance/Test-LocalOperation.ps1",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 9001
     },
     {
       "path": "scripts/performance/Test-TenantIsolation.mjs",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 9548
     },
     {
       "path": "scripts/README.md",
-      "status": " M",
+      "status": "M",
       "category": "operacao-e-ensaios",
       "bytes": 3518
     },
     {
       "path": "scripts/rollback/seed.sql",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 1191
     },
     {
       "path": "scripts/rollback/Test-Rollback.ps1",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
-      "bytes": 11100
+      "bytes": 11103
     },
     {
       "path": "scripts/rollback/validate-rls.sql",
-      "status": "??",
+      "status": "A",
       "category": "operacao-e-ensaios",
       "bytes": 1103
     },
     {
       "path": "src/BuildingBlocks.Data/EIP.BuildingBlocks.Data.csproj",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 366
     },
     {
       "path": "src/BuildingBlocks.Web/Security/Authorization/PermissionAuthorizationPolicyProvider.cs",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 1625
     },
     {
       "path": "src/Data/Canonical/Application/CanonicalReconciliationService.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 2176
     },
     {
       "path": "src/Data/Canonical/Application/ICanonicalReconciliationService.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 1478
     },
     {
       "path": "src/Data/Canonical/Application/ICanonicalRecordStore.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 5074
     },
     {
       "path": "src/Data/Canonical/Infrastructure/CanonicalRecordStore.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 11459
     },
     {
       "path": "src/Data/Connector/Api/ConnectorsController.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
-      "bytes": 12382
+      "bytes": 12490
     },
     {
       "path": "src/Data/Connector/Api/Contracts/ConnectorContracts.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 1253
     },
     {
       "path": "src/Data/Connector/Api/QuarantineController.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 5667
     },
     {
       "path": "src/Data/Connector/Application/Abstractions/IConnectorSyncStore.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 2364
     },
     {
       "path": "src/Data/Connector/Application/Abstractions/IReferenceEndpointPolicy.cs",
-      "status": "??",
+      "status": "A",
       "category": "conectores-pipeline-e-dados",
       "bytes": 134
     },
     {
       "path": "src/Data/Connector/Application/ConnectorSyncProcessor.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 9250
     },
     {
       "path": "src/Data/Connector/Application/ConnectorSyncService.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
-      "bytes": 4780
+      "bytes": 4813
     },
     {
       "path": "src/Data/Connector/Application/Contracts/SyncRequestedMessage.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 1544
     },
     {
       "path": "src/Data/Connector/Application/IConnectorSyncService.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 2870
     },
     {
       "path": "src/Data/Connector/Infrastructure/ConnectorSyncStore.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
-      "bytes": 5341
+      "bytes": 5374
     },
     {
       "path": "src/Data/Connector/Infrastructure/HttpReferenceRestClient.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 3232
     },
     {
       "path": "src/Data/Connector/Infrastructure/ReferenceEndpointPolicy.cs",
-      "status": "??",
+      "status": "A",
       "category": "conectores-pipeline-e-dados",
       "bytes": 1071
     },
     {
       "path": "src/Data/Connector/Infrastructure/ReferenceRestServiceCollectionExtensions.cs",
-      "status": "??",
+      "status": "A",
       "category": "conectores-pipeline-e-dados",
       "bytes": 547
     },
     {
       "path": "src/Data/DataLake.Infrastructure/S3RawObjectStore.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 7613
     },
     {
       "path": "src/Data/DataLake.Infrastructure/ServiceCollectionExtensions.cs",
-      "status": " M",
+      "status": "M",
       "category": "conectores-pipeline-e-dados",
       "bytes": 1518
     },
     {
       "path": "src/Data/DataLake/IRawStorageUsageReader.cs",
-      "status": "??",
+      "status": "A",
       "category": "conectores-pipeline-e-dados",
       "bytes": 467
     },
     {
       "path": "src/Gateway/appsettings.Development.json",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 220
     },
     {
       "path": "src/Gateway/Program.cs",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 4695
     },
     {
       "path": "src/Host/appsettings.json",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 2436
     },
     {
       "path": "src/Host/EIP.Host.csproj",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 3867
     },
     {
       "path": "src/Host/MeteredAnalyticsQueryService.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 677
     },
     {
       "path": "src/Host/PlatformUsageAuthorizationHandler.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 1533
     },
     {
       "path": "src/Host/Program.cs",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 25452
     },
     {
       "path": "src/Host/StartupSecurityValidation.cs",
-      "status": "??",
+      "status": "A",
       "category": "plataforma-e-seguranca",
       "bytes": 2852
     },
     {
       "path": "src/Platform/Administration/Api/EIP.Platform.Administration.Api.csproj",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 318
     },
     {
       "path": "src/Platform/Administration/Api/TenantUsageController.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 1926
     },
     {
       "path": "src/Platform/Administration/Application/EIP.Platform.Administration.Application.csproj",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 143
     },
     {
       "path": "src/Platform/Administration/Application/ITenantUsageReader.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 443
     },
     {
       "path": "src/Platform/Administration/Infrastructure/AnalyticsUsageRecorder.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 643
     },
     {
       "path": "src/Platform/Administration/Infrastructure/EIP.Platform.Administration.Infrastructure.csproj",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 835
     },
     {
       "path": "src/Platform/Administration/Infrastructure/Migrations/20261018124237_InitialUsage.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
-      "bytes": 2739
+      "bytes": 2473
     },
     {
       "path": "src/Platform/Administration/Infrastructure/Migrations/20261018124237_InitialUsage.Designer.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 1765
     },
     {
       "path": "src/Platform/Administration/Infrastructure/Migrations/UsageDbContextModelSnapshot.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 1665
     },
     {
       "path": "src/Platform/Administration/Infrastructure/TenantUsageReader.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 1774
     },
     {
       "path": "src/Platform/Administration/Infrastructure/UsageDbContext.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 867
     },
     {
       "path": "src/Platform/Administration/Infrastructure/UsageDbContextFactory.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 720
     },
     {
       "path": "src/Platform/Identity/Api/AuthController.cs",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 3024
     },
     {
       "path": "src/Platform/Identity/Api/Contracts/AuthContracts.cs",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 942
     },
     {
       "path": "src/Platform/Identity/Application/Abstractions/IRefreshTokenStore.cs",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 726
     },
     {
       "path": "src/Platform/Identity/Application/AuthService.cs",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 8108
     },
     {
       "path": "src/Platform/Identity/Application/IAuthService.cs",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 706
     },
     {
       "path": "src/Platform/Identity/Infrastructure/EIP.Platform.Identity.Infrastructure.csproj",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 1092
     },
     {
       "path": "src/Platform/Identity/Infrastructure/RefreshTokenStore.cs",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 4265
     },
     {
       "path": "src/Platform/Tenant/Api/TenantsController.cs",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 7139
     },
     {
       "path": "src/Shared/Contracts/Administration/IAnalyticsUsageRecorder.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 194
     },
     {
       "path": "src/Shared/Contracts/Administration/PlatformPermissions.cs",
-      "status": "??",
+      "status": "A",
       "category": "uso-e-administracao",
       "bytes": 224
     },
     {
       "path": "src/Worker/appsettings.json",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 1414
     },
     {
       "path": "src/Worker/Program.cs",
-      "status": " M",
+      "status": "M",
       "category": "plataforma-e-seguranca",
       "bytes": 6582
     },
     {
       "path": "src/Worker/Properties/launchSettings.json",
-      "status": "??",
+      "status": "A",
       "category": "plataforma-e-seguranca",
       "bytes": 147
     },
     {
       "path": "tests/Integration/EIP.Data.Connector.IntegrationTests/ConnectorSyncProcessorRetryIdempotencyTests.cs",
-      "status": " M",
+      "status": "M",
       "category": "testes",
       "bytes": 7724
     },
     {
       "path": "tests/Integration/EIP.Data.Connector.IntegrationTests/ConnectorSyncProcessorWatermarkTests.cs",
-      "status": " M",
+      "status": "M",
       "category": "testes",
       "bytes": 8385
     },
     {
       "path": "tests/Integration/EIP.Data.Connector.IntegrationTests/FakeConnectorCollaborators.cs",
-      "status": " M",
+      "status": "M",
       "category": "testes",
       "bytes": 4002
     },
     {
       "path": "tests/Integration/EIP.Data.Pipeline.IntegrationTests/CanonicalReconciliationServiceTests.cs",
-      "status": " M",
+      "status": "M",
       "category": "testes",
       "bytes": 11502
     },
     {
       "path": "tests/Integration/EIP.Host.IntegrationTests/AnalyticsQueryTimeoutTests.cs",
-      "status": " M",
+      "status": "M",
       "category": "testes",
       "bytes": 8815
     },
     {
       "path": "tests/Integration/EIP.Host.IntegrationTests/ConnectorHttpSecurityTests.cs",
-      "status": "??",
+      "status": "A",
       "category": "testes",
       "bytes": 5824
     },
     {
       "path": "tests/Integration/EIP.Host.IntegrationTests/ConnectorListingTests.cs",
-      "status": "??",
+      "status": "A",
       "category": "testes",
-      "bytes": 12664
+      "bytes": 12709
     },
     {
       "path": "tests/Integration/EIP.Host.IntegrationTests/ConnectorSyncQuotaTests.cs",
-      "status": " M",
+      "status": "M",
       "category": "testes",
       "bytes": 7650
     },
     {
       "path": "tests/Integration/EIP.Host.IntegrationTests/HostApiFixture.cs",
-      "status": " M",
+      "status": "M",
       "category": "testes",
       "bytes": 5000
     },
     {
       "path": "tests/Integration/EIP.Host.IntegrationTests/QuarantineReprocessTests.cs",
-      "status": "??",
+      "status": "A",
       "category": "testes",
-      "bytes": 6011
+      "bytes": 6035
     },
     {
       "path": "tests/Integration/EIP.Host.IntegrationTests/RawStorageUsageReaderTests.cs",
-      "status": "??",
+      "status": "A",
       "category": "testes",
       "bytes": 2282
     },
     {
       "path": "tests/Integration/EIP.Host.IntegrationTests/SecurityReviewTests.cs",
-      "status": "??",
+      "status": "A",
       "category": "testes",
       "bytes": 13414
     },
     {
       "path": "tests/Integration/EIP.Host.IntegrationTests/StartupSecurityValidationTests.cs",
-      "status": "??",
+      "status": "A",
       "category": "testes",
       "bytes": 2454
     },
     {
       "path": "tests/Integration/EIP.Host.IntegrationTests/TenantUsageTests.cs",
-      "status": "??",
+      "status": "A",
       "category": "testes",
       "bytes": 12159
     },
     {
       "path": "tests/Support/EIP.Testing.Infrastructure/EIP.Testing.Infrastructure.csproj",
-      "status": " M",
+      "status": "M",
       "category": "testes",
       "bytes": 1745
     },
     {
       "path": "tests/Support/EIP.Testing.Infrastructure/MinioContainerFixture.cs",
-      "status": " M",
+      "status": "M",
       "category": "testes",
       "bytes": 2026
     },
     {
       "path": "tests/Support/EIP.Testing.Infrastructure/SqlServerContainerFixture.cs",
-      "status": " M",
+      "status": "M",
       "category": "testes",
       "bytes": 6884
     }
   ],
   "groups": {
     "base-e-ci": {
-      "files": 3,
-      "bytes": 13100
+      "files": 4,
+      "bytes": 16542
     },
     "documentacao-e-evidencias": {
-      "files": 74,
-      "bytes": 692308
+      "files": 77,
+      "bytes": 706308
+    },
+    "operacao-e-ensaios": {
+      "files": 24,
+      "bytes": 129194
     },
     "frontend": {
       "files": 45,
       "bytes": 794462
-    },
-    "operacao-e-ensaios": {
-      "files": 24,
-      "bytes": 129191
     },
     "plataforma-e-seguranca": {
       "files": 19,
@@ -1336,15 +1363,15 @@
     },
     "conectores-pipeline-e-dados": {
       "files": 20,
-      "bytes": 80220
-    },
-    "testes": {
-      "files": 17,
-      "bytes": 118541
+      "bytes": 80394
     },
     "uso-e-administracao": {
       "files": 16,
-      "bytes": 16466
+      "bytes": 16200
+    },
+    "testes": {
+      "files": 17,
+      "bytes": 118610
     }
   }
 }

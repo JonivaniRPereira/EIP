@@ -122,5 +122,27 @@ permanecem nos backlogs e evidências, sem credenciais ou payloads pessoais nest
   example.invalid. Login pelo formulário chegou a /dashboard com Empresa Demo ativa;
   screenshot docs/operations/screenshots/login-demo-corrigido-2026-10-19.png.
   Senha não alterada. Nenhuma mudança de API/front necessária.
+- Revisão/organização da entrega concluída localmente em 19/10:
+  [áreas, dependências e tarefas D01–D04](organizacao-entrega-2026-10-19.md).
+  Inventário explícito dos arquivos candidatos; TestResults/ ignorado sem apagar saídas.
+  Gate de formatação identificou seis arquivos, corrigidos; verificação completa e
+  build Release passaram. Nove suites .NET 137/137, zero ignorados/falhas; front33/33,
+  build e fontes passaram. Resultados não se somam aos testes históricos anteriores.
+  CI ganhou build MinIO da tag fonte fixada e EIP_TEST_MINIO_IMAGE explícito.
+  Gitleaks8.30.1 oficial/checksum: token expirado embutido em regra de .claude/settings
+  removido (apenas essa regra, sem ampliar acesso); hashes OpenAPI do rollback renomeados
+  para *SchemaSha256 no JSON/emissor para evitar falso positivo; valores preservados.
+  Scan repetido sem achados e sem exceções; sem scan/rewrite de histórico Git.
+  Auditoria NuGet de 51 projetos sem pacotes vulneráveis reportados; sem novo npm audit.
+  Diagnóstico original passou. Próxima D03: revisar trechos e organizar publicação;
+  D04: aceite remoto de CI/imagens permanece pendente. Esta execução não fez staging,
+  commit/push/PR; observou o commit externo c72bb4d ("New fetures") durante a revisão.
+  Ele foi preservado. Inventário usa base 3c2de50 e inclui o commit mais ajustes finais
+  locais, que ainda precisam compor a próxima entrega (inclusive retirada do JWT expirado).
+- Após a revisão, usuário autorizou commit dos sete ajustes finais de entrega.
+  Fechamento reúne remoção do JWT expirado da regra local, campos *SchemaSha256
+  do rollback e inventário/resumo/documentação. Validação funcional da revisão
+  permanece 137 backend + 33 front aprovados; rechecagem de scanner e sintaxe
+  para o candidato final. Push/PR e CI remoto não incluídos nessa autorização.
 - Preservar alterações locais e dados existentes. Testes deixam organizações sintéticas;
   limpeza deve ser delimitada por IDs e planejada, nunca apagar tenants indiscriminadamente.

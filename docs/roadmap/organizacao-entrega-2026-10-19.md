@@ -2,13 +2,18 @@
 
 Data: **19/10/2026**. Escopo: revisão local do conjunto de alterações e preparação
 de uma entrega revisável. A direção continua sendo laboratório com dados Demo.
-Não houve staging, commit, push ou criação de PR nesta atividade.
+Até o fechamento da revisão inicial, esta execução não havia feito staging ou commit.
+Durante a revisão foi observado
+o commit externo `c72bb4d` ("New fetures"), preservado. Os ajustes finais de scanner,
+relatório de rollback e fechamento desta revisão continuam na árvore de trabalho.
 
 ## Inventário e áreas de revisão
 
 O [inventário de arquivos](../operations/inventario-entrega-2026-10-19.json)
-relaciona o estado de trabalho em relação ao HEAD, incluindo arquivos novos e
-excluindo saídas ignoradas. É uma fotografia, não aprovação automática dos arquivos.
+relaciona o acumulado desde `3c2de50`, base ao iniciar a revisão, incluindo o commit
+externo e arquivos novos/alterações locais no instante da coleta, sem saídas ignoradas. Assim a mudança
+do HEAD durante a atividade não esconde o escopo já incorporado ao commit.
+É uma fotografia, não aprovação automática dos arquivos.
 
 | Área | Conteúdo a revisar em conjunto | Evidência funcional relevante |
 |---|---|---|
@@ -40,8 +45,13 @@ pode produzir estados que não compilam. Manter testes e implementação juntos.
 - A busca local por padrões de chave privada, PAT GitHub, chave AWS e JWT completo
   não encontrou candidatos nos fontes/scripts/docs examinados. Também não apareceram
   campos preenchidos de senha/token/conexão nos JSON de operação pesquisados.
-  Essa busca é limitada: não substitui Gitleaks, revisão dos segredos de ambiente
-  nem auditoria do histórico Git. Gitleaks não estava instalado no ambiente local.
+  Essa busca limitada foi seguida pelo Gitleaks 8.30.1, obtido da release oficial
+  com SHA-256 conferido, em pasta temporária. O scan encontrou dois avisos relativos
+  a um JWT expirado numa regra antiga em `.claude/settings.json`; somente essa regra
+  com credencial foi removida, sem ampliar permissões. Três avisos eram SHA-256 do
+  esquema OpenAPI no resultado de rollback: campos renomeados para `*SchemaSha256`,
+  mantendo valores e ajustando o emissor. Repetição passou sem achados, sem exceções
+  de scanner. O histórico Git não foi reescrito nem escaneado nesta atividade.
 
 O [diagnóstico desta revisão](../operations/revisao-entrega-diagnostico-2026-10-19.json)
 passou: aplicação e dependências disponíveis, um consumidor, filas vazias,
@@ -52,11 +62,48 @@ passou: aplicação e dependências disponíveis, um consumidor, filas vazias,
 | Ordem | Atividade | Aceite |
 |---|---|---|
 | D01 | Inventário e exclusão de artefatos locais | Concluído nesta revisão; inventário detalhado e `.gitignore` conferido. |
-| D02 | Verificar formatação, build e testes do conjunto | Registrar o resultado final desta atividade abaixo; corrigir falhas antes de considerar o conjunto pronto para CI. |
-| D03 | Revisão final de conteúdo e publicação em fluxo acordado | Conferir cada área/trecho, segredos/fixtures, dependências entre commits e descrição da entrega; executar Gitleaks e auditoria de dependências. Publicação ainda não realizada. |
+| D02 | Verificar formatação, build e testes do conjunto | Concluído localmente: ver resultados abaixo. |
+| D03 | Revisão final de conteúdo e publicação em fluxo acordado | Próxima atividade: conferir cada área/trecho, fixtures, dependências entre commits e descrição da entrega. Gitleaks e auditoria de dependências passaram localmente; repetir sobre o candidato final se ele mudar. Publicação ainda não realizada. |
 | D04 | Aceite real do runner | CI remoto passa em instalação, formatação, build, testes, scans e imagens; registrar URL da execução. Evidência local não substitui esse aceite. |
 
 P01 e P03–P08 do [piloto externo](preparacao-piloto.md) permanecem separados.
 Não há nova funcionalidade de cliente, ambiente de produção ou dados reais
 autorizados por esta revisão. O inventário permanece `publicationReady: false`
 até o fechamento das verificações e da revisão/publicação acordada.
+
+## Resultado das verificações locais
+
+[Resumo estruturado](../operations/revisao-entrega-validacao-2026-10-19.json).
+
+- `git diff --check` sem erros de whitespace; formatação completa passou após os seis
+  ajustes. A primeira chamada com caminhos absolutos do relatório não selecionou os
+  arquivos; normalização para caminhos relativos resolveu a seleção.
+- Build Release passou, sem erros; permanecem avisos de análise existentes.
+- Nove suítes .NET, em sequência (`-m:1`): **137/137**, zero falhas e ignorados,
+  incluindo Host **78/78**, conector **10/10** e pipeline **13/13**. MinIO real da
+  imagem compilada da tag fixada, sem substituir Data Lake por mock.
+- Frontend com Node 24.18.0/npm 11.16.0: **33/33**, build de produção e conferência
+  de fontes/licenças locais aprovados. Dependências já instaladas; não foi nova
+  instalação limpa por `npm ci` nesta revisão.
+- Gitleaks 8.30.1: zero achados após os ajustes em snapshot dos arquivos candidatos
+  rastreados e não ignorados; não é scan do histórico Git nem dos arquivos ignorados.
+- NuGet: 51 projetos consultados, zero pacotes com vulnerabilidades reportadas,
+  incluindo transitivos, segundo a fonte consultada no momento. Não foi executada
+  nova auditoria npm nesta atividade.
+
+O CI remoto, o build das três imagens de aplicação e a preparação MinIO num runner
+limpo não foram executados nesta revisão. O novo passo alinha a imagem dos testes
+à evidência local; só a execução remota poderá confirmar esse aceite.
+O script de rollback teve somente os nomes dos campos de hash emitidos alterados;
+sintaxe PowerShell e valores SHA-256 conferidos, sem repetir o ensaio de rollback.
+Os resumos históricos mantêm seus números e limites.
+
+## Fechamento autorizado
+
+Após revisar o resultado, o usuário autorizou criar o commit dos sete arquivos
+finais: configuração local sem JWT embutido, inventário, resumo das verificações,
+relatório/emissor de rollback e registros de continuidade/organização. Esses ajustes
+foram preparados juntos, preservando o commit externo anterior. O inventário é
+a fotografia anterior ao commit, relativa à base registrada; seus estados não
+representam pendências após o commit de fechamento. Não foi solicitado push;
+publicação e aceite do CI remoto permanecem pendentes.
