@@ -66,7 +66,12 @@ builder.Services.AddProblemDetails(options =>
         }
     };
 });
-builder.Services.AddExceptionHandler(_ => { });
+builder.Services.AddExceptionHandler(options =>
+{
+    options.StatusCodeSelector = exception => exception is BadHttpRequestException requestException
+        ? requestException.StatusCode
+        : StatusCodes.Status500InternalServerError;
+});
 
 // Contexto de tenant (AsyncLocal — singleton correto: seu estado é por fluxo assíncrono, não por
 // escopo de DI; ver EIP.BuildingBlocks.Security).

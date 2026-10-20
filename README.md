@@ -345,8 +345,9 @@ Ela foi projetada para tornar-se a camada central de Inteligência Corporativa d
 
 # Status do Projeto
 
-**Fase Atual:** Fase 3 encerrada em 19/10/2026 no escopo reduzido de engenharia (E1–E7).
-Melhorias posteriores da interface entregues; preparação do piloto organizada, ainda sem homologação de entrada.
+**Fase Atual:** Fase 4 iniciada em 19/10/2026 — base de ferramentas autorizadas para IA assistida.
+Fase 3 encerrada no escopo reduzido de engenharia; CI remoto aprovado. Piloto externo ainda sem homologação.
+Ver [tarefas e limites da Fase 4](docs/roadmap/fase-4-backlog.md); esta primeira etapa não inclui provedor ou chat de IA.
 
 **Versão da Documentação:** 1.0
 

@@ -1,0 +1,39 @@
+{
+  "localDate": "2026-10-19",
+  "status": "passed-local",
+  "milestone": "F4.1",
+  "hostTests": {
+    "total": 91,
+    "passed": 91,
+    "failed": 0,
+    "notExecuted": 0
+  },
+  "newToolTests": 12,
+  "newToolTestsIncludedInHostTotal": true,
+  "releasePublishPassed": true,
+  "formatChangedFilesPassed": true,
+  "liveGatewayPassed": true,
+  "tool": "listDatasets",
+  "datasets": [
+    "sales"
+  ],
+  "metrics": [
+    "netRevenue",
+    "invoicedQuantity",
+    "averageTicket"
+  ],
+  "catalogParity": true,
+  "httpProtections": {
+    "anonymous": 401,
+    "unregistered": 404,
+    "contextOverride": 400,
+    "oversizedBody": 413
+  },
+  "oversizeStatusInitiallyIncorrectThenCorrected": true,
+  "providerConfigured": false,
+  "externalModelCalls": 0,
+  "conversationOrRecordStorageAdded": false,
+  "frontendChanged": false,
+  "remoteCiValidatedForThisChange": false,
+  "hostDllSha256": "4588b5a01a2ea77366165ccb997ca13a48455bb2e14d738c06acde1eb5b452cf"
+}

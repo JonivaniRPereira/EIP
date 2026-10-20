@@ -7,6 +7,7 @@ using EIP.Host;
 using EIP.Shared.Contracts.Administration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -25,8 +26,10 @@ namespace EIP.Host.IntegrationTests;
 [Collection(HostApiCollection.Name)]
 public sealed class SecurityReviewTests(HostApiFixture fixture)
 {
-    [Fact]
-    public async Task UnexpectedError_DoesNotReturnInternalExceptionDetail()
+    [Theory]
+    [InlineData(false, HttpStatusCode.InternalServerError)]
+    [InlineData(true, HttpStatusCode.RequestEntityTooLarge)]
+    public async Task RequestErrorsPreserveStatus_AndUnexpectedErrorsDoNotReturnInternalDetails(bool oversized, HttpStatusCode expectedStatus)
     {
         await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
@@ -42,7 +45,14 @@ public sealed class SecurityReviewTests(HostApiFixture fixture)
                 new("ConnectionStrings:Redis", fixture.RedisConnectionString),
             ]));
             builder.ConfigureTestServices(services => services.AddScoped<IAnalyticsQueryService>(_ =>
-                throw new InvalidOperationException("INTERNAL_SECRET_TEST_MARKER")));
+            {
+                if (oversized)
+                {
+                    throw new BadHttpRequestException("INTERNAL_SECRET_TEST_MARKER", StatusCodes.Status413PayloadTooLarge);
+                }
+
+                throw new InvalidOperationException("INTERNAL_SECRET_TEST_MARKER");
+            }));
         });
         using var client = factory.CreateClient();
         await ProvisionAsync(client);
@@ -52,10 +62,11 @@ public sealed class SecurityReviewTests(HostApiFixture fixture)
             metrics = new[] { "netRevenue" },
             dimensions = new[] { "date.month" },
         });
-        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+        response.StatusCode.Should().Be(expectedStatus);
         var body = await response.Content.ReadAsStringAsync();
         body.Should().NotContain("INTERNAL_SECRET_TEST_MARKER");
         body.Should().NotContain("System.InvalidOperationException");
+        body.Should().NotContain("BadHttpRequestException");
     }
 
     [Fact]

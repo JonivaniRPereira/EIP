@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\Analytics\Application\EIP.Intelligence.Analytics.Application.csproj" />
+    <ProjectReference Include="..\..\..\Shared\EIP.Shared.csproj" />
+  </ItemGroup>
+</Project>

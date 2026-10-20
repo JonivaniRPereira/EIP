@@ -152,5 +152,20 @@ permanecem nos backlogs e evidências, sem credenciais ou payloads pessoais nest
   como testes diferentes; artefatos detalhados não baixados. CI anterior c72bb4d
   falhou no scanner, agora corrigido. P01/P03–P08 continuam separados; laboratório
   Demo permanece a direção do usuário. Registros locais anteriores são históricos.
+- Usuário autorizou avançar fases/tarefas; Fase 4 (IA assistida, docs/15 §8) iniciada
+  em 19/10, com [backlog F4.1–F4.7](fase-4-backlog.md). F4.1 concluído localmente:
+  novos projetos AI.Application/AI.Api, registro fechado de listDatasets, schema
+  vazio, analytics.query + tenant obrigatório, limite4KiB, logs mínimos. Catálogo
+  igual ao Analytics; nenhum LLM, chat, SQL, envio externo ou tabela/migration nova.
+  Host91/91, incluindo12 testes de ferramentas; Release/formatação aprovados.
+  HTTP real401/404/400/413 e paridade confirmados. Corrigido handler global que
+  convertia BadHttpRequestException413 em500; regressão mantém exceções internas
+  sanitizadas em500. API local atual em %TEMP%/eip-ai-foundation-host-final,
+  cwd src/Host, Development, localhost5080, sessão3139. Worker/Gateway/front mantidos.
+  Diagnóstico posterior aprovado com15organizações e filas vazias. Front inalterado.
+  Próxima F4.2: queryAnalytics via serviço medido com permissões, RLS, quota e frescor;
+  depois adaptador de modelo, interface, rascunhos e avaliações. Provedor/modelo e
+  política de dados ainda abertos; não chamar modelos externos nesta base.
+  CI remoto anterior não certifica essa nova entrega; manter limite de piloto Demo.
 - Preservar alterações locais e dados existentes. Testes deixam organizações sintéticas;
   limpeza deve ser delimitada por IDs e planejada, nunca apagar tenants indiscriminadamente.
