@@ -63,8 +63,8 @@ passou: aplicação e dependências disponíveis, um consumidor, filas vazias,
 |---|---|---|
 | D01 | Inventário e exclusão de artefatos locais | Concluído nesta revisão; inventário detalhado e `.gitignore` conferido. |
 | D02 | Verificar formatação, build e testes do conjunto | Concluído localmente: ver resultados abaixo. |
-| D03 | Revisão final de conteúdo e publicação em fluxo acordado | Próxima atividade: conferir cada área/trecho, fixtures, dependências entre commits e descrição da entrega. Gitleaks e auditoria de dependências passaram localmente; repetir sobre o candidato final se ele mudar. Publicação ainda não realizada. |
-| D04 | Aceite real do runner | CI remoto passa em instalação, formatação, build, testes, scans e imagens; registrar URL da execução. Evidência local não substitui esse aceite. |
+| D03 | Revisão final de conteúdo e publicação em fluxo acordado | Concluído para a entrega 959e3ae: commit dos ajustes revisados e push realizado pelo usuário para origin/main. Revalidar sobre novos candidatos. |
+| D04 | Aceite real do runner | Concluído para 959e3ae: [execução aprovada](https://github.com/JonivaniRPereira/EIP/actions/runs/39350842675) em frontend, .NET/scans e três imagens. [Evidência](../operations/ci-remoto-2026-10-19.json). |
 
 P01 e P03–P08 do [piloto externo](preparacao-piloto.md) permanecem separados.
 Não há nova funcionalidade de cliente, ambiente de produção ou dados reais
@@ -106,4 +106,21 @@ relatório/emissor de rollback e registros de continuidade/organização. Esses 
 foram preparados juntos, preservando o commit externo anterior. O inventário é
 a fotografia anterior ao commit, relativa à base registrada; seus estados não
 representam pendências após o commit de fechamento. Não foi solicitado push;
-publicação e aceite do CI remoto permanecem pendentes.
+publicação e aceite do CI remoto permaneciam pendentes naquele fechamento.
+
+## Aceite remoto após o push
+
+O usuário realizou o push e `origin/main` foi conferido em
+`959e3ae50e93fea88384fcc5e631f761bf85107b`. A execução CI **39350842675**,
+tentativa registrada no [resultado estruturado](../operations/ci-remoto-2026-10-19.json),
+terminou `success` nos três jobs: frontend, build/lint/testes/scans e imagens Docker.
+O MinIO da fonte fixada foi construído no runner e usado nos testes. Passaram
+também os scans de dependências e segredos, que haviam bloqueado a execução anterior.
+
+O aceite vale para esse SHA exato. Os artefatos detalhados dos testes não foram
+baixados; a evidência registra as conclusões dos jobs e etapas da API GitHub Actions.
+Não houve deploy nem push das imagens. O inventário e o resumo local anteriores
+permanecem como fotografias históricas, com seus indicadores de pendência originais;
+este registro fecha D03/D04 e P02 sem reescrever o resultado local anterior.
+O próximo trabalho local pode partir do backlog funcional/operacional, mantendo
+P01 e P03–P08 separados de qualquer homologação de produção.

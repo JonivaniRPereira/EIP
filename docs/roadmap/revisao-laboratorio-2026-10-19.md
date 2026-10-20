@@ -55,7 +55,9 @@ passou em 13 testes do pipeline e 10 do conector, com recorte final de 11 testes
 de reconciliação; o recorte integra os 13. Repetição do volume passou sem alerta
 indevido e com 211.110 BRL. Worker local atualizado, original saudável.
 Próxima atividade: revisar e organizar o conjunto acumulado para entrega revisável;
-CI remoto segue pendente de publicação no fluxo acordado.
+Atualização posterior: commit `959e3ae` publicado pelo usuário, com
+[CI remoto aprovado](../operations/ci-remoto-2026-10-19.json) nos três jobs.
+P02 concluído para esse commit; sem deploy ou publicação de imagens.
 
 L06 foi a ampliação técnica recomendada dentro da escolha local do usuário.
 L06/L07 são novos ensaios, não critérios retroativos para invalidar os aceites

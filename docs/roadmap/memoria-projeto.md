@@ -144,5 +144,13 @@ permanecem nos backlogs e evidências, sem credenciais ou payloads pessoais nest
   do rollback e inventário/resumo/documentação. Validação funcional da revisão
   permanece 137 backend + 33 front aprovados; rechecagem de scanner e sintaxe
   para o candidato final. Push/PR e CI remoto não incluídos nessa autorização.
+- Usuário informou push concluído; origin/main confirmado em 959e3ae. CI remoto
+  39350842675 aprovado nos três jobs: frontend, build/lint/testes/scans e imagens
+  Host/Gateway/Worker (sem publicação/deploy). MinIO fonte fixada construído no runner.
+  [Evidência completa por etapa](../operations/ci-remoto-2026-10-19.json).
+  D03/D04 e P02 concluídos para esse SHA exato. Não somar contagens locais/remotas
+  como testes diferentes; artefatos detalhados não baixados. CI anterior c72bb4d
+  falhou no scanner, agora corrigido. P01/P03–P08 continuam separados; laboratório
+  Demo permanece a direção do usuário. Registros locais anteriores são históricos.
 - Preservar alterações locais e dados existentes. Testes deixam organizações sintéticas;
   limpeza deve ser delimitada por IDs e planejada, nunca apagar tenants indiscriminadamente.

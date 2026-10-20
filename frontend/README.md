@@ -54,5 +54,7 @@ como `frontend-test-results` por 14 dias. Os builds de imagens aguardam tanto o 
 .NET quanto o frontend. Não há publicação/deploy introduzidos por esta mudança.
 
 A validação local em 19/10/2026 teve instalação limpa, 33 testes aprovados, build e
-conferência de fontes aprovados. A execução real em GitHub Actions continua pendente
-até publicar as alterações e obter um resultado do runner; teste local não a substitui.
+conferência de fontes aprovados. O aceite remoto foi confirmado no commit `959e3ae`:
+[GitHub Actions aprovado](https://github.com/JonivaniRPereira/EIP/actions/runs/39350842675),
+incluindo instalação pelo lockfile, testes, build e fontes. Os jobs .NET/scans e
+imagens também passaram. [Evidência](../docs/operations/ci-remoto-2026-10-19.json).

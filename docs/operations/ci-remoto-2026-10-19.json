@@ -1,0 +1,200 @@
+{
+  "localDate": "2026-10-19",
+  "observedAtUtc": "2026-10-20T01:07:22.1832577+00:00",
+  "status": "passed-remote",
+  "repository": "JonivaniRPereira/EIP",
+  "commit": "959e3ae50e93fea88384fcc5e631f761bf85107b",
+  "branch": "main",
+  "event": "push",
+  "runId": 39350842675,
+  "runAttempt": 1,
+  "url": "https://github.com/JonivaniRPereira/EIP/actions/runs/39350842675",
+  "conclusion": "success",
+  "remoteCiAccepted": true,
+  "jobs": [
+    {
+      "id": 118394390774,
+      "name": "Frontend — testes e build",
+      "conclusion": "success",
+      "html_url": "https://github.com/JonivaniRPereira/EIP/actions/runs/39350842675/job/118394390774",
+      "started_at": "2026-10-20T00:59:08Z",
+      "completed_at": "2026-10-20T00:59:49Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Checkout",
+          "conclusion": "success"
+        },
+        {
+          "name": "Configurar Node.js",
+          "conclusion": "success"
+        },
+        {
+          "name": "Configurar npm da aplicação",
+          "conclusion": "success"
+        },
+        {
+          "name": "Instalar dependências pelo lockfile",
+          "conclusion": "success"
+        },
+        {
+          "name": "Testes do frontend",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build de produção",
+          "conclusion": "success"
+        },
+        {
+          "name": "Conferir fontes e licenças locais",
+          "conclusion": "success"
+        },
+        {
+          "name": "Publicar resultados do frontend",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Configurar Node.js",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Checkout",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 118394391104,
+      "name": "Build, lint, testes e scans",
+      "conclusion": "success",
+      "html_url": "https://github.com/JonivaniRPereira/EIP/actions/runs/39350842675/job/118394391104",
+      "started_at": "2026-10-20T00:59:08Z",
+      "completed_at": "2026-10-20T01:05:08Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Checkout",
+          "conclusion": "success"
+        },
+        {
+          "name": "Configurar .NET",
+          "conclusion": "success"
+        },
+        {
+          "name": "Restaurar dependências",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verificar formatação (lint)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build (Release)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Preparar MinIO da fonte fixada para os testes",
+          "conclusion": "success"
+        },
+        {
+          "name": "Testes (unitários + integração com Testcontainers)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Publicar resultados de teste",
+          "conclusion": "success"
+        },
+        {
+          "name": "Scan de dependências (vulnerabilidades conhecidas)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Scan de segredos (gitleaks)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Configurar .NET",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Checkout",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 118396273935,
+      "name": "Build de imagens Docker (versionadas, sem publicação)",
+      "conclusion": "success",
+      "html_url": "https://github.com/JonivaniRPereira/EIP/actions/runs/39350842675/job/118396273935",
+      "started_at": "2026-10-20T01:05:10Z",
+      "completed_at": "2026-10-20T01:06:26Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Checkout",
+          "conclusion": "success"
+        },
+        {
+          "name": "Configurar Docker Buildx",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build imagem EIP.Host",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build imagem EIP.Gateway",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build imagem EIP.Worker.Sync",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Build imagem EIP.Worker.Sync",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Build imagem EIP.Gateway",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Build imagem EIP.Host",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Configurar Docker Buildx",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Checkout",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "scope": "Exact pushed commit; workflow builds images without publishing or deploying",
+  "testArtifactsDownloaded": false
+}
